@@ -74,16 +74,29 @@ namespace WSFGameJam2026.World
             Clear();
             surface = new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
 
+            var meshes = new Mesh[segmentCount];
             for (int i = 0; i < segmentCount; i++)
-                CreateSegment(i);
+                meshes[i] = CreateMesh(i);
+
+            TorusNormalStitcher.Stitch(meshes, sidesResolution);
+
+            for (int i = 0; i < segmentCount; i++)
+                CreateSegment(i, meshes[i]);
         }
 
-        private void CreateSegment(int segmentIndex)
+        private Mesh CreateMesh(int segmentIndex)
         {
             TorusSegmentProfile profile = surface.GetProfile(segmentIndex);
-            int lengthResolution = profile ? profile.LengthResolution : 16;
-            Mesh mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, lengthResolution, sidesResolution);
+            Mesh mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, profile.LengthResolution, sidesResolution);
             mesh.hideFlags = HideFlags.DontSave;
+
+            profile.Deform(mesh, surface.GetProfile(segmentIndex - 1), surface.GetProfile(segmentIndex + 1), surface.BlendWidth);
+            return mesh;
+        }
+
+        private void CreateSegment(int segmentIndex, Mesh mesh)
+        {
+            TorusSegmentProfile profile = surface.GetProfile(segmentIndex);
 
             var segmentObject = new GameObject($"Segment_{segmentIndex}", typeof(MeshFilter), typeof(MeshRenderer));
             segmentObject.hideFlags = HideFlags.DontSave;

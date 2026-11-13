@@ -7,6 +7,10 @@ namespace WSFGameJam2026.World
     {
         private const float TwoPi = Mathf.PI * 2f;
 
+        /// <summary>
+        /// Builds the segment on the base tube, without terrain: it is added later by <see cref="TorusSegmentProfile.Deform"/>.
+        /// uv.x is the position along the segment (0-1) and is used by the deformation.
+        /// </summary>
         /// <param name="lengthResolution">Subdivisions along the segment.</param>
         /// <param name="sidesResolution">Subdivisions around the tube. Must be equal for all segments so borders match.</param>
         public static Mesh Build(TorusSurface surface, int segmentIndex, int lengthResolution, int sidesResolution)
@@ -30,8 +34,8 @@ namespace WSFGameJam2026.World
                     float phi = aroundT * TwoPi;
                     int vertex = row * columns + column;
 
-                    vertices[vertex] = surface.GetPoint(theta, phi);
-                    normals[vertex] = surface.GetNormal(theta, phi);
+                    vertices[vertex] = surface.GetBasePoint(theta, phi);
+                    normals[vertex] = surface.GetBaseNormal(theta, phi);
                     uvs[vertex] = new Vector2(alongT, aroundT);
                 }
             }

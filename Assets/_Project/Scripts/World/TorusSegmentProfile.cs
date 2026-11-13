@@ -2,9 +2,11 @@ using UnityEngine;
 
 namespace WSFGameJam2026.World
 {
-    /// <summary>Describes mesh resolution and terrain shape of a single snake body segment.</summary>
-    [CreateAssetMenu(menuName = "WSF GameJam/World/Torus Segment Profile")]
-    public class TorusSegmentProfile : ScriptableObject
+    /// <summary>
+    /// Describes how one snake body segment is shaped. Derive from it to add a new kind of terrain:
+    /// implement <see cref="SampleHeight"/> or override <see cref="Deform"/> to modify the vertices directly.
+    /// </summary>
+    public abstract class TorusSegmentProfile : ScriptableObject
     {
         [Header("Mesh")]
         [Tooltip("Number of mesh subdivisions along the snake body. Borders between segments always match.")]
@@ -18,38 +20,29 @@ namespace WSFGameJam2026.World
         private Material materialOverride;
         public Material MaterialOverride => materialOverride;
 
-        [Header("Terrain")]
-        [Tooltip("Total height range of the terrain in world units.")]
-        [SerializeField]
-        [Min(0f)]
-        private float amplitude = 1f;
-        public float Amplitude => amplitude;
+        /// <summary>Terrain height above the base tube at the given undisplaced point of the torus.</summary>
+        public abstract float SampleHeight(Vector3 basePoint);
 
-        [Tooltip("Noise frequency (features per world unit).")]
-        [SerializeField]
-        [Min(0.001f)]
-        private float frequency = 0.15f;
-        public float Frequency => frequency;
+        /// <summary>
+        /// Modifies vertices of a segment mesh made by <see cref="TorusSegmentMeshBuilder"/>
+        /// (vertices on the base tube, radial normals, uv.x = position along the segment).
+        /// Near the segment ends the height is cross-faded with the neighbouring profiles so borders match.
+        /// </summary>
+        public virtual void Deform(Mesh mesh, TorusSegmentProfile previous, TorusSegmentProfile next, float blendWidth)
+        {
+            Vector3[] vertices = mesh.vertices;
+            Vector3[] normals = mesh.normals;
+            Vector2[] uvs = mesh.uv;
 
-        [SerializeField]
-        [Range(1, 6)]
-        private int octaves = 4;
-        public int Octaves => octaves;
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                float height = TorusSegmentBlend.GetHeight(this, previous, next, uvs[i].x, blendWidth, vertices[i]);
+                vertices[i] += normals[i] * height;
+            }
 
-        [Tooltip("Amplitude multiplier of every next octave.")]
-        [SerializeField]
-        [Range(0.1f, 0.9f)]
-        private float persistence = 0.5f;
-        public float Persistence => persistence;
-
-        [Tooltip("Remaps noise (0-1) to height (0-1). Use it for plateaus, ridges and canyons.")]
-        [SerializeField]
-        private AnimationCurve heightCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
-        public AnimationCurve HeightCurve => heightCurve;
-
-        [Tooltip("Shifts the noise so every segment looks different.")]
-        [SerializeField]
-        private Vector3 noiseOffset;
-        public Vector3 NoiseOffset => noiseOffset;
+            mesh.vertices = vertices;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+        }
     }
 }
