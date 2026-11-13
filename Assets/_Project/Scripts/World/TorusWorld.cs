@@ -45,6 +45,8 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private bool generateColliders = true;
 
+        [Header("Editor")]
+        [Tooltip("Rebuilds the world after any change in the Inspector. Turn off if it gets slow.")]
         [SerializeField]
         private bool shouldRebuildOnValidate = true;
 
@@ -54,7 +56,9 @@ namespace WSFGameJam2026.World
         {
             get
             {
-                surface ??= new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
+                if (surface == null)
+                    surface = new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
+
                 return surface;
             }
         }
@@ -76,9 +80,9 @@ namespace WSFGameJam2026.World
 
         private void CreateSegment(int segmentIndex)
         {
-            var profile = surface.GetProfile(segmentIndex);
+            TorusSegmentProfile profile = surface.GetProfile(segmentIndex);
             int lengthResolution = profile ? profile.LengthResolution : 16;
-            var mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, lengthResolution, sidesResolution);
+            Mesh mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, lengthResolution, sidesResolution);
             mesh.hideFlags = HideFlags.DontSave;
 
             var segmentObject = new GameObject($"Segment_{segmentIndex}", typeof(MeshFilter), typeof(MeshRenderer));
@@ -127,6 +131,18 @@ namespace WSFGameJam2026.World
                 DestroyImmediate(target);
         }
 
+#if UNITY_EDITOR
+        // Objects can't be created inside OnValidate, so the rebuild is postponed.
+        private void RebuildDelayed()
+        {
+            UnityEditor.EditorApplication.delayCall -= RebuildDelayed;
+            if (this == null || isActiveAndEnabled == false)
+                return;
+
+            Rebuild();
+        }
+#endif
+
         private void OnDisable()
         {
             Clear();
@@ -134,13 +150,16 @@ namespace WSFGameJam2026.World
 
         private void OnValidate()
         {
-            majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f); 
-            if (shouldRebuildOnValidate)
-            {
-                Rebuild();
-            }
+            majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f);
             surface = null;
-        }
 
+#if UNITY_EDITOR
+            if (shouldRebuildOnValidate == false)
+                return;
+
+            UnityEditor.EditorApplication.delayCall -= RebuildDelayed;
+            UnityEditor.EditorApplication.delayCall += RebuildDelayed;
+#endif
+        }
     }
 }
