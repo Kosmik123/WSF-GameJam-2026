@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace WSFGameJam2026.World
@@ -11,7 +12,6 @@ namespace WSFGameJam2026.World
     public class TorusSurface
     {
         private const float TwoPi = Mathf.PI * 2f;
-        private const float NoiseOrigin = 10000f;
         private const float DerivativeStep = 0.0005f;
 
         private readonly TorusSegmentProfile[] profiles;
@@ -103,9 +103,9 @@ namespace WSFGameJam2026.World
             if (profile == null)
                 return 0f;
 
-            Vector3 samplePoint = basePoint * profile.Frequency + profile.NoiseOffset + Vector3.one * NoiseOrigin;
-            float noise = Mathf.Clamp01(FractalNoise(samplePoint, profile.Octaves, profile.Persistence));
-            return profile.Amplitude * (profile.HeightCurve.Evaluate(noise) - 0.5f);
+            Vector3 samplePoint = basePoint * profile.Frequency + profile.NoiseOffset;
+            float value = Mathf.Clamp01(FractalNoise(samplePoint, profile.Octaves, profile.Persistence));
+            return profile.Amplitude * (profile.HeightCurve.Evaluate(value) - 0.5f);
         }
 
         private float FractalNoise(Vector3 point, int octaves, float persistence)
@@ -126,12 +126,10 @@ namespace WSFGameJam2026.World
             return sum / total;
         }
 
+        /// <summary>True 3D simplex noise remapped to 0-1.</summary>
         private float Noise3D(Vector3 point)
         {
-            float xy = Mathf.PerlinNoise(point.x, point.y);
-            float yz = Mathf.PerlinNoise(point.y, point.z);
-            float zx = Mathf.PerlinNoise(point.z, point.x);
-            return (xy + yz + zx) / 3f;
+            return noise.snoise(new float3(point.x, point.y, point.z)) * 0.5f + 0.5f;
         }
     }
 }
