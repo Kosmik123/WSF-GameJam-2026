@@ -45,15 +45,16 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private bool generateColliders = true;
 
+        [SerializeField]
+        private bool shouldRebuildOnValidate = true;
+
         private TorusSurface surface;
 
         public TorusSurface Surface
         {
             get
             {
-                if (surface == null)
-                    surface = new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
-
+                surface ??= new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
                 return surface;
             }
         }
@@ -75,9 +76,9 @@ namespace WSFGameJam2026.World
 
         private void CreateSegment(int segmentIndex)
         {
-            TorusSegmentProfile profile = surface.GetProfile(segmentIndex);
+            var profile = surface.GetProfile(segmentIndex);
             int lengthResolution = profile ? profile.LengthResolution : 16;
-            Mesh mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, lengthResolution, sidesResolution);
+            var mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, lengthResolution, sidesResolution);
             mesh.hideFlags = HideFlags.DontSave;
 
             var segmentObject = new GameObject($"Segment_{segmentIndex}", typeof(MeshFilter), typeof(MeshRenderer));
@@ -133,8 +134,13 @@ namespace WSFGameJam2026.World
 
         private void OnValidate()
         {
-            majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f);
+            majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f); 
+            if (shouldRebuildOnValidate)
+            {
+                Rebuild();
+            }
             surface = null;
         }
+
     }
 }
