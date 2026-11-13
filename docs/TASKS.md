@@ -3,7 +3,19 @@
 Priorytety: **MUST** (bez tego nie ma gry), **SHOULD** (mocno poprawia grę lub prezentację), **COULD** (jeśli zostanie czas).
 Właściciel: `P` programista, `G` grafik, `C` Claude, `?` do ustalenia.
 Zasada pracy: każdy feature na własnej gałęzi od `develop`, merge do `develop` robi człowiek.
-Termin jamu: **do ustalenia**. Gdy go poznamy, dopiszemy daty.
+Termin jamu: **30 godzin** od startu. Tempo oceniamy na bieżąco i przesuwamy priorytety.
+
+## Budżet czasu (orientacyjny, 30 h)
+
+| Godziny | Cel |
+|---------|-----|
+| 0-6 | Etap 1: ruch, kamera, paszcza, cel, pętla rund (grywalny prototyp) |
+| 6-13 | Etap 2: walka, zdrowie, dwa pierwsze typy wrogów, spawner |
+| 13-19 | Etap 3 i wrogowie 3-4: HUD, wskaźniki, ekrany |
+| 19-26 | Etap 4 i 5: zawartość, shadery, efekty, dźwięk |
+| 26-30 | Zamrożenie funkcji około godziny 26, potem tylko balans, build i prezentacja |
+
+Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 
 ## Zrobione
 
@@ -31,7 +43,7 @@ Termin jamu: **do ustalenia**. Gdy go poznamy, dopiszemy daty.
 - [ ] **Zdrowie** (gracz, wrogowie), obrażenia, śmierć. `P`
 - [ ] **Walka gracza:** atak melee, unik z nietykalnością, hit stop i odrzut. `C`
 - [ ] **Wróg 1 (biegacz)** z AI poruszającym się po torusie i atakiem. `C`
-- [ ] **Wróg 2 (strzelec lub pancerny)**. `P`
+- [ ] **Wróg 2 (strzelec)**. `P`
 - [ ] **Spawner wrogów** w współrzędnych `(θ, φ)` przed graczem, skalowanie ze trudnością rundy. `P`
 - [ ] **Modele i animacje wrogów 1 i 2.** `G`
 
@@ -44,7 +56,7 @@ Termin jamu: **do ustalenia**. Gdy go poznamy, dopiszemy daty.
 
 ## Etap 4: więcej zawartości (SHOULD / COULD)
 
-- [ ] **Wróg 3 i wróg 4** (kolejne typy). `P`, modele: `G`
+- [ ] **Wróg 3 (pancerny) i wróg 4 (rój)**. `P`, modele: `G`
 - [ ] **Mini-boss na czubku głowy** (COULD).
 - [ ] **Różne profile terenu** dla segmentów (pagórki, kratery, grzbiety) jako nowe podklasy `TorusSegmentProfile`. `C`
 - [ ] **Ulepszenia / perki** (COULD, jeśli zostanie czas).
@@ -59,8 +71,9 @@ Termin jamu: **do ustalenia**. Gdy go poznamy, dopiszemy daty.
 
 ## Decyzje do podjęcia
 
-- [ ] Termin jamu.
-- [ ] Typy wrogów 1–4 i ich zachowania.
-- [ ] Co po śmierci: restart od rundy 1 czy od bieżącej.
+- [x] Termin: 30 h.
+- [x] Co po śmierci: restart bieżącej rundy.
+- [x] Typy wrogów: biegacz, strzelec, pancerny, rój.
+- [x] Audio: mieszanka CC0, pracy ręcznej i syntezatorów.
+- [ ] Dokładne zachowania i statystyki wrogów.
 - [ ] Paleta kolorów i referencje wizualne.
-- [ ] Źródło muzyki i dźwięków.

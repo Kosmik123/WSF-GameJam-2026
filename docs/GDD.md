@@ -42,7 +42,9 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 3. Gracz walczy lub ich omija. Straty HP i czas spędzony w walce zmniejszają przewagę nad paszczą.
 4. Gracz okrąża cały torus i dociera na czubek głowy węża (za paszczą).
 5. **Zwycięstwo rundy.** Zaczyna się kolejna runda: paszcza jest szybsza, wrogów jest więcej.
-6. Śmierć (paszcza albo HP = 0) kończy przejście. **[DO USTALENIA]** czy gracz zaczyna od nowa od rundy 1.
+6. Śmierć (paszcza albo HP = 0) restartuje **bieżącą rundę** z jej parametrami (prędkość paszczy, liczba wrogów). Numer rundy nie spada.
+
+**Runda** to jedno pełne okrążenie: od startu przed paszczą do dotarcia na czubek głowy. Po każdej wygranej rundzie kolejna ma szybszą paszczę i więcej wrogów. Rund jest tyle, ile gracz wytrzyma, więc „najlepszy wynik” to numer najdalszej rundy.
 
 ## 7. Gracz
 
@@ -55,7 +57,8 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 
 - Zakres: **4 lub więcej typów** (ambitnie, patrz ryzyka).
 - Wrogowie pojawiają się w współrzędnych `(θ, φ)` na torusie, przed graczem.
-- **[DO USTALENIA]** konkretne typy (propozycja do rozważenia): biegacz (szybki, słaby), strzelec (dystans), pancerny (wolny, wytrzymały), roj (wiele małych), ewentualny mini-boss na czubku głowy.
+- **Typy:** biegacz (szybki, słaby), strzelec (atak z dystansu), pancerny (wolny, wytrzymały), rój (wiele małych). Mini-boss na czubku głowy to opcja, jeśli zostanie czas.
+- **[DO USTALENIA]** dokładne zachowania i statystyki (ustalimy na prototypie).
 - Trudność narasta z kolejnymi rundami: więcej wrogów i szybsza paszcza.
 
 ## 9. Progresja
@@ -72,7 +75,7 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 ## 11. Styl wizualny i dźwięk
 
 - **Grafika:** stylizowany low poly, spójna paleta, shadery i efekty cząsteczkowe podbijające prezentację (łuski, mgła, poświata paszczy). **[DO USTALENIA]** paleta i referencje.
-- **Dźwięk:** muzyka rosnąca w napięciu przy zbliżaniu się paszczy, efekty walki, dźwięk paszczy. **[DO USTALENIA]** źródło assetów audio.
+- **Dźwięk:** muzyka rosnąca w napięciu przy zbliżaniu się paszczy, efekty walki, dźwięk paszczy. Źródło: mieszanka darmowych paczek (CC0), pracy ręcznej i syntezatorów. Przy każdym assecie z zewnątrz sprawdzamy licencję.
 
 ## 12. Zakres i ryzyka
 
@@ -91,9 +94,6 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 
 ## 14. Otwarte pytania
 
-- Dokładny termin jamu.
-- Konkretne typy wrogów i ich zachowania.
-- Co dzieje się po śmierci (restart od rundy 1 czy od bieżącej).
+- Dokładne zachowania i statystyki wrogów.
 - Czy gra ma dodatkowe ulepszenia, jeśli zostanie czas.
 - Paleta kolorów i referencje wizualne.
-- Źródło muzyki i dźwięków.
