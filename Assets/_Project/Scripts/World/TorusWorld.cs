@@ -45,6 +45,11 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private bool generateColliders = true;
 
+        [Header("Editor")]
+        [Tooltip("Rebuilds the world after any change in the Inspector. Turn off if it gets slow.")]
+        [SerializeField]
+        private bool rebuildOnValidate = true;
+
         private TorusSurface surface;
 
         public TorusSurface Surface
@@ -126,6 +131,18 @@ namespace WSFGameJam2026.World
                 DestroyImmediate(target);
         }
 
+#if UNITY_EDITOR
+        // Objects can't be created inside OnValidate, so the rebuild is postponed.
+        private void RebuildDelayed()
+        {
+            UnityEditor.EditorApplication.delayCall -= RebuildDelayed;
+            if (this == null || isActiveAndEnabled == false)
+                return;
+
+            Rebuild();
+        }
+#endif
+
         private void OnDisable()
         {
             Clear();
@@ -135,6 +152,14 @@ namespace WSFGameJam2026.World
         {
             majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f);
             surface = null;
+
+#if UNITY_EDITOR
+            if (rebuildOnValidate == false)
+                return;
+
+            UnityEditor.EditorApplication.delayCall -= RebuildDelayed;
+            UnityEditor.EditorApplication.delayCall += RebuildDelayed;
+#endif
         }
     }
 }
