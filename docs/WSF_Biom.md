@@ -1,7 +1,7 @@
 # WSF — assety biomów
 
 Stylizowane, low-poly assety środowiska dla 6 biomów: **Las, Pustynia, Wybrzeże, Lód, Wulkan, Bagno**.
-Każdy typ ma **4 warianty** (`_v0`–`_v3`). Razem **268 obiektów**, obecnie w pliku Blendera grafika (`Head.blend`, kolekcja `LD57_Biomes`).
+Każdy typ ma **4 warianty** (`_v0`–`_v3`). Razem **268 obiektów**, w pliku `Assets/Blender/LD57_Biomes.blend` (kolekcja `LD57_Biomes`), osobno od modeli głowy w `all_models.blend`.
 Kolory są zapisane w **vertex colorach** — co trzeba przygotować w Unity opisuje sekcja [Vertex colory w Unity](#vertex-colory-w-unity--co-przygotować).
 
 ---
@@ -172,7 +172,7 @@ LD57_Biomes
 **Wszystkie trzy pliki muszą leżeć w jednym folderze.** Skrypty są u grafika (poza tym repozytorium).
 
 - **Regeneracja:** uruchom `ld57_biomes.py` w Blenderze (Scripting → Run) albo:
-  `blender -b Head.blend --python ld57_biomes.py` + zapis pliku.
+  `blender -b LD57_Biomes.blend --python ld57_biomes.py` + zapis pliku.
   Skrypt usuwa i buduje od nowa całą kolekcję `LD57_Biomes` — **ręczne zmiany w tych obiektach zostaną nadpisane**.
 - **Zmiana kolorów:** edytuj palety w `PAL` (sRGB, para *ciemny / jasny*) i uruchom ponownie.
 - **Dodanie typu:** dopisz krotkę `("Kategoria", "Nazwa", builder)` do listy biomu w `BIOMES`.

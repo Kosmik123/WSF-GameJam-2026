@@ -31,7 +31,7 @@ Instancje trafiają do `PSG_Generated/PSG_<ścieżka>`, są osadzone na terenie 
 ## Scatter na płaszczyźnie (obszar)
 
 1. Zaznacz płaszczyznę albo teren i kliknij **Scatter on Selected Mesh**. W oknie wybierz biom i czy dodać preset.
-2. Preset biomu dodaje 5 warstw. Kolekcje bierze z `all_models.blend` (`<Biom>_Duze`, `_Srednie`, `_Drobne`):
+2. Preset biomu dodaje 5 warstw. Kolekcje bierze z pliku, w którym są assety biomów, np. `LD57_Biomes.blend` (`<Biom>_Duze`, `_Srednie`, `_Drobne`):
 
 | Warstwa | Tryb | Co robi |
 |---|---|---|
@@ -116,7 +116,9 @@ Inspiracje: tarasowanie wysokości do płaskowyżów i warstwy noise (baza, gór
 
 ## Przykładowe biomy: `Assets/Blender/PSG_Biomes.blend`
 
-Sześć biomów, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek), razem 18 kawałków na 720 m. Wszystkie stoją w jednym rzędzie wzdłuż X, w tej kolejności, i łączą się ze sobą, także na granicach biomów. Każdy biom ma własną paletę terenu i scatter z presetu biomu, a każdy kawałek inne ukształtowanie:
+**Assety biomów są w osobnym pliku `Assets/Blender/LD57_Biomes.blend`** (kolekcja `LD57_Biomes`: 6 biomów, 190 obiektów, materiały `LD57 Stylized` i `LD57 Stylized Glow`). Wcześniej siedziały w `all_models.blend`, ale ten plik służy teraz do modeli głowy i zmiany w nim psuły biomy (brakujący materiał dawał czarny teren). Zmiany assetów biomów rób w `LD57_Biomes.blend`, a `PSG_Biomes.blend` podlinkuje je automatycznie.
+
+Sześć biomów. Każdy biom to jeden segment 40×40 m podzielony wzdłuż X na 3 kawałki 13,3×40 m (Grid 13×40 oczek), razem 18 kawałków na 240 m. Labirynt cieczy (Wulkan, Bagno) jest liczony raz dla całego segmentu (`shape.grid_crossings`) i wspólny dla jego 3 kawałków (*Lock Crossings*), więc groble i brody przechodzą przez szwy. Przejście w płaski szew zajmuje 2,5 m (*Edge Blend*). Wszystkie stoją w jednym rzędzie wzdłuż X, w tej kolejności, i łączą się ze sobą, także na granicach biomów. Każdy biom ma własną paletę terenu i scatter z presetu biomu, a każdy kawałek inne ukształtowanie:
 
 | Biom | Kawałek 1 | Kawałek 2 | Kawałek 3 |
 |---|---|---|---|
@@ -134,10 +136,10 @@ Sześć biomów, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek),
 - Obie ciecze płyną przez szwy wszystkich 3 kawałków biomu (wspólny *Liquid Seed*). Zewnętrzne brzegi biomu są suche, więc sąsiednie biomy dalej łączą się płaskim lądem.
 - Te dwa biomy nie używają presetu, tylko własnych warstw: funkcje `volcano()` i `swamp()` w skrypcie.
 - Kawałki nazywają się `Teren_<Biom>_<1-3>` i leżą w kolekcjach `Teren_<Biom>`. Instancje są w `PSG_Generated`.
-- Assety **nie są kopiowane**: kolekcje biomów są podlinkowane z `all_models.blend` (ścieżka względna, kolekcja `PSG_Sources (linked)` jest wykluczona z widoku). Zmiany modeli w `all_models.blend` od razu widać w biomach.
+- Assety **nie są kopiowane**: kolekcje biomów są podlinkowane z `Assets/Blender/LD57_Biomes.blend` (ścieżka względna, kolekcja `PSG_Sources (linked)` jest wykluczona z widoku). Zmiany modeli w `all_models.blend` od razu widać w biomach.
 - Plik buduje skrypt [Tools/Blender/psg_examples/build_biomes.py](../Tools/Blender/psg_examples/build_biomes.py). Ustawienia każdego kawałka (preset, nadpisania, seed) są w słowniku `BIOMES`. Ponowne uruchomienie nadpisuje plik:
   `blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py`
-- Unity zaimportuje `.blend` z `Assets/` tylko z zainstalowanym Blenderem (tak jak `all_models.blend`). Do gry lepiej eksportować przez **Export FBX for Unity**.
+- Unity zaimportuje `.blend` z `Assets/` tylko z zainstalowanym Blenderem (tak jak inne pliki `.blend` w `Assets/Blender`). Do gry lepiej eksportować przez **Export FBX for Unity**.
 
 ## Ciecze: lawa i bagno (Liquid Maze)
 
