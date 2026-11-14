@@ -55,7 +55,7 @@ namespace WSFGameJam2026.Editor
         }
 
         // The texts need the default font of TextMeshPro. Returns true when the import was started and the menu has to be run again.
-        private static bool AskToImportTextMeshPro()
+        internal static bool AskToImportTextMeshPro()
         {
             var shouldImport = EditorUtility.DisplayDialog(
                 "HUD setup",
@@ -80,7 +80,7 @@ namespace WSFGameJam2026.Editor
             return null;
         }
 
-        private static void Connect(Component component, string propertyName, Object target)
+        internal static void Connect(Component component, string propertyName, Object target)
         {
             var serialized = new SerializedObject(component);
             serialized.FindProperty(propertyName).objectReferenceValue = target;
@@ -152,7 +152,7 @@ namespace WSFGameJam2026.Editor
             return roundLabel;
         }
 
-        private static GameObject CreateImage(string objectName, Transform parent, Color color)
+        internal static GameObject CreateImage(string objectName, Transform parent, Color color)
         {
             var imageObject = new GameObject(objectName, typeof(RectTransform), typeof(UnityEngine.UI.Image));
             imageObject.transform.SetParent(parent, false);
@@ -165,7 +165,7 @@ namespace WSFGameJam2026.Editor
         }
 
         // Needs the default font of TextMeshPro, so it returns null when TMP Essentials are not imported.
-        private static TMP_Text CreateText(string objectName, Transform parent, float fontSize, TextAlignmentOptions alignment, string text)
+        internal static TMP_Text CreateText(string objectName, Transform parent, float fontSize, TextAlignmentOptions alignment, string text)
         {
             if (TMP_Settings.instance == null)
                 return null;
@@ -183,7 +183,7 @@ namespace WSFGameJam2026.Editor
             return label;
         }
 
-        private static void Stretch(RectTransform rect)
+        internal static void Stretch(RectTransform rect)
         {
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
