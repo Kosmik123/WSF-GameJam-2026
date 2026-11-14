@@ -24,15 +24,19 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] Przebudowa świata po zmianie w Inspectorze (OnValidate).
 - [x] `TorusObject`: ogólna klasa dla wszystkiego, co stoi na torusie (gracz, NPC, przedmioty), pozycja jako `θ`, `φ`; `TorusPlayerMovement` tylko steruje nim z wejścia (A/D obrót, W/S przód i tył).
 - [x] Kamera z góry pod skosem za graczem.
+- [x] Profil segmentu jako klasa odkształcająca mesh (`Deform`), `NoiseTorusSegmentProfile`, wygładzanie normalnych na granicach.
+- [x] Dodatkowe profile terenu: siatka, mapa wysokości i mesh (`Grid`, `Heightmap`, `MeshTorusSegmentProfile`) z łączeniem szwów.
+- [x] `TorusAngles` (`θ`, `φ` w radianach, w Inspectorze w stopniach) i `TorusGeometry` (jedno miejsce z konwencją lewoskrętnego układu Unity).
+- [x] Ruch głowy (`HeadMovement`): jednostajny ruch po środku torusa, styczna jako kierunek przodu.
 
 ## W trakcie
 
-- [ ] Profil segmentu jako klasa odkształcająca mesh (`Deform`), `NoiseTorusSegmentProfile`, wygładzanie normalnych na granicach (gałąź `feature/torus-segment-deformers`, czeka na merge). Właściciel: C.
+- [ ] Paszcza: ruch głowy jest gotowy, brakuje strefy śmierci, kolizji z graczem i animacji szczęki (patrz Etap 1).
 
 ## Etap 1: prototyp grywalny (MUST)
 
-- [ ] **Gracz: ruch po torusie** w współrzędnych `(θ, φ)`, orientacja według normalnej powierzchni, sterowanie (Input System). `C`
-- [ ] **Kamera** z góry pod skosem, podążająca za graczem, „góra” = normalna powierzchni. `C`
+- [x] **Gracz: ruch po torusie** w współrzędnych `(θ, φ)`, orientacja według normalnej powierzchni, sterowanie (Input System). `C`
+- [x] **Kamera** z góry pod skosem, podążająca za graczem, „góra” = normalna powierzchni. `C`
 - [ ] **Paszcza (logika):** jednostajny ruch po `θ`, śmierć gracza przy wejściu w strefę. `C`
 - [ ] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia na czubek głowy. `C`
 - [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci z wynikiem (liczba rund), zapis rekordu i restart od rundy 1. `P`
