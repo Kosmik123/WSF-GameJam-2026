@@ -398,37 +398,194 @@ def paint_mask(path, points_xy):
     return 1.0 - t * t * (3.0 - 2.0 * t)
 
 
+def _smoothstep(edge0, edge1, x):
+    if edge1 - edge0 <= 1e-9:
+        return (x >= edge1).astype(np.float64)
+    t = np.clip((x - edge0) / (edge1 - edge0), 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
+
+
+def _lerp(a, b, t):
+    return a + (b - a) * t[:, None]
+
+
+def _noise_field(points, scale, seed):
+    return np.fromiter(
+        (noise.noise(Vector((p[0] * scale, p[1] * scale, p[2] * scale + seed))) for p in points),
+        dtype=np.float64, count=len(points))
+
+
+def _hash01(indices, seed):
+    """Deterministic per-element random in [0, 1) (per-face jitter like the assets)."""
+    x = (indices.astype(np.uint64) * np.uint64(2654435761) + np.uint64(seed * 97 + 13)) & np.uint64(0xFFFFFFFF)
+    x ^= x >> np.uint64(15)
+    x = (x * np.uint64(2246822519)) & np.uint64(0xFFFFFFFF)
+    x ^= x >> np.uint64(13)
+    return (x & np.uint64(0xFFFFFF)).astype(np.float64) / float(0x1000000)
+
+
+def terrain_colors(settings, points, normals, element_ids):
+    """Asset-style terrain shading: Z gradient (dark low, light high), slope palette, biased noise."""
+    count = len(points)
+    z = points[:, 2]
+    if settings.gradient_auto:
+        z_min, z_max = float(z.min()), float(z.max())
+    else:
+        z_min, z_max = settings.gradient_min, settings.gradient_max
+    if z_max - z_min > 1e-4:
+        height = np.clip((z - z_min) / (z_max - z_min), 0.0, 1.0)
+    else:
+        height = np.full(count, 0.5)
+    # Z grading: the same dark -> light rule as the assets, blended towards the middle by strength
+    t = 0.5 + (height - 0.5) * settings.gradient_strength
+    if settings.noise_brightness > 0.0 or settings.noise_bias > 0.0:
+        field = _noise_field(points, max(settings.noise_scale, 1e-4), settings.seed * 3.17)
+    else:
+        field = np.zeros(count)
+    t = np.clip(t + field * settings.noise_brightness, 0.0, 1.0)
+
+    flat = _lerp(np.array(settings.flat_dark), np.array(settings.flat_light), t)
+    slope = _lerp(np.array(settings.slope_dark), np.array(settings.slope_light), t)
+    angle = np.arccos(np.clip(np.abs(normals[:, 2]), 0.0, 1.0))
+    half = settings.slope_blend * 0.5
+    slope_mask = _smoothstep(settings.slope_angle - half, settings.slope_angle + half, angle)
+    color = _lerp(flat, slope, slope_mask)
+
+    if settings.noise_bias > 0.0:
+        # second, larger noise picks patches tinted towards the bias color (dry grass, sand, ...)
+        patches = _noise_field(points, max(settings.noise_scale, 1e-4) * 0.45, settings.seed * 3.17 + 41.0)
+        amount = _smoothstep(-0.1, 0.6, patches) * settings.noise_bias * (1.0 - slope_mask)
+        color = _lerp(color, np.tile(np.array(settings.bias_color), (count, 1)), amount)
+    return color
+
+
 def repaint_ground(ground):
-    """Recompute the whole ground color from its base color and every path that targets it."""
+    """Recompute the whole ground color: terrain shading (or flat base) + every path that targets it."""
     if ground is None or ground.type != 'MESH':
         return
     mesh = ground.data
+    settings = ground.psg_ground
     count = len(mesh.vertices)
     if count == 0:
         return
-    co = np.empty(count * 3, dtype=np.float32)
-    mesh.vertices.foreach_get("co", co)
-    co = co.reshape(-1, 3).astype(np.float64)
     matrix = np.array(ground.matrix_world, dtype=np.float64)
-    world = co @ matrix[:3, :3].T + matrix[:3, 3]
-    points_xy = world[:, :2]
+    rotation = matrix[:3, :3]
+    normal_matrix = np.linalg.inv(rotation).T if abs(np.linalg.det(rotation)) > 1e-12 else rotation
 
-    color = np.tile(np.array(ground.psg_ground.base_color, dtype=np.float64), (count, 1))
-    coverage = np.zeros(count)
+    faceted = settings.terrain_enabled and settings.faceted
+    if faceted:
+        element_count = len(mesh.polygons)
+        co = np.empty(element_count * 3, dtype=np.float32)
+        mesh.polygons.foreach_get("center", co)
+        nrm = np.empty(element_count * 3, dtype=np.float32)
+        mesh.polygons.foreach_get("normal", nrm)
+    else:
+        element_count = count
+        co = np.empty(count * 3, dtype=np.float32)
+        mesh.vertices.foreach_get("co", co)
+        nrm = np.empty(count * 3, dtype=np.float32)
+        mesh.vertex_normals.foreach_get("vector", nrm)
+    points = co.reshape(-1, 3).astype(np.float64) @ rotation.T + matrix[:3, 3]
+    normals = nrm.reshape(-1, 3).astype(np.float64) @ normal_matrix.T
+    normals /= np.maximum(np.linalg.norm(normals, axis=1), 1e-12)[:, None]
+    ids = np.arange(element_count)
+
+    if settings.terrain_enabled:
+        rgb = terrain_colors(settings, points, normals, ids)
+    else:
+        rgb = np.tile(np.array(settings.base_color[:3], dtype=np.float64), (element_count, 1))
+
+    coverage = np.zeros(element_count)
     paths = [p for p in all_paths() if p.psg.target == ground and p.psg.paint_enabled]
     paths.sort(key=lambda p: (p.psg.paint_order, p.name))
     for path in paths:
-        mask = paint_mask(path, points_xy) * path.psg.paint_strength
+        mask = paint_mask(path, points[:, :2]) * path.psg.paint_strength
         tint = np.array(path.psg.paint_color[:3], dtype=np.float64)
-        color[:, :3] = color[:, :3] * (1.0 - mask[:, None]) + tint[None, :] * mask[:, None]
+        rgb = rgb * (1.0 - mask[:, None]) + tint[None, :] * mask[:, None]
         coverage = np.maximum(coverage, mask)
-    color[:, 3] = coverage if ground.psg_ground.mask_in_alpha else 1.0
 
-    loops = np.empty(len(mesh.loops), dtype=np.int32)
-    mesh.loops.foreach_get("vertex_index", loops)
+    if settings.terrain_enabled and settings.facet_jitter > 0.0:
+        # per-element brightness spread, the "hand painted facets" rule of the assets
+        jitter = 1.0 + (_hash01(ids, settings.seed) * 2.0 - 1.0) * settings.facet_jitter
+        rgb = rgb * jitter[:, None]
+
+    color = np.empty((element_count, 4))
+    color[:, :3] = np.clip(rgb, 0.0, None)
+    color[:, 3] = coverage if settings.mask_in_alpha else 1.0
+
+    if faceted:
+        loop_totals = np.empty(len(mesh.polygons), dtype=np.int32)
+        mesh.polygons.foreach_get("loop_total", loop_totals)
+        corner_source = np.repeat(np.arange(len(mesh.polygons)), loop_totals)
+    else:
+        corner_source = np.empty(len(mesh.loops), dtype=np.int32)
+        mesh.loops.foreach_get("vertex_index", corner_source)
     attr = ensure_color_attribute(mesh)
-    attr.data.foreach_set("color", color[loops].astype(np.float32).ravel())
+    attr.data.foreach_set("color", color[corner_source].astype(np.float32).ravel())
     mesh.update()
+
+
+# Terrain palettes sampled from the biome assets: role -> (object name filter, low pct, high pct).
+TERRAIN_SOURCES = {
+    "Las": {"flat": ("Las_Trawa_v0, Las_Trawa_v1", 0.1, 0.6), "slope": ("Las_Kamyki", 0.1, 0.9),
+            "bias": ("Las_Trawa_v2, Las_Trawa_v3", 0.4, 0.6)},
+    "Pustynia": {"flat": ("Pustynia_Skala_warstwowa", 0.55, 0.95), "slope": ("Pustynia_Kamyki", 0.1, 0.9),
+                 "bias": ("Pustynia_Sucha_trawa", 0.4, 0.6)},
+    "Wybrzeze": {"flat": ("Wybrzeze_Trawa_wydmowa", 0.3, 0.9), "slope": ("Wybrzeze_Otoczaki", 0.1, 0.9),
+                 "bias": ("Wybrzeze_Wyrzucone_drewno", 0.4, 0.6)},
+    "Lod": {"flat": ("Lod_Zaspa", 0.1, 0.9), "slope": ("Lod_Skala_ze_sniegiem", 0.05, 0.45),
+            "bias": ("Lod_Lodowe_kolce", 0.4, 0.6)},
+    "Wulkan": {"flat": ("Wulkan_Kamyki", 0.1, 0.9), "slope": ("Wulkan_Kolumny_bazaltowe", 0.1, 0.6),
+               "bias": ("Wulkan_Zuzel", 0.4, 0.6)},
+    "Bagno": {"flat": ("Bagno_Turzyca", 0.1, 0.8), "slope": ("Bagno_Omszala_kloda", 0.1, 0.6),
+              "bias": ("Bagno_Trzciny", 0.4, 0.6)},
+}
+
+
+def asset_colors(name_filter):
+    """Linear RGB of every face corner of the matching asset objects, sorted by luminance."""
+    chunks = []
+    for obj in bpy.data.objects:
+        if obj.type != 'MESH' or obj.psg_inst.path is not None or not name_matches(obj.name, name_filter):
+            continue
+        attr = obj.data.color_attributes.get(COLOR_ATTRIBUTE)
+        if attr is None:
+            continue
+        data = np.empty(len(attr.data) * 4, dtype=np.float32)
+        attr.data.foreach_get("color", data)
+        chunks.append(data.reshape(-1, 4)[:, :3].astype(np.float64))
+    if not chunks:
+        return None
+    colors = np.concatenate(chunks)
+    luminance = colors @ np.array([0.2126, 0.7152, 0.0722])
+    return colors[np.argsort(luminance)]
+
+
+def _percentile_color(colors, pct):
+    """Average of a small luminance window around the percentile (stable against single faces)."""
+    n = len(colors)
+    center = int(pct * (n - 1))
+    half = max(n // 40, 1)
+    return colors[max(center - half, 0):min(center + half + 1, n)].mean(axis=0)
+
+
+def sample_terrain_palette(ground, biome):
+    """Set the ground palette from the biome assets. Returns the list of roles that found no assets."""
+    settings = ground.psg_ground
+    missing = []
+    for role, (name_filter, low, high) in TERRAIN_SOURCES[biome].items():
+        colors = asset_colors(name_filter)
+        if colors is None:
+            missing.append(name_filter)
+            continue
+        dark, light = _percentile_color(colors, low), _percentile_color(colors, high)
+        if role == "flat":
+            settings.flat_dark, settings.flat_light = dark, light
+        elif role == "slope":
+            settings.slope_dark, settings.slope_light = dark, light
+        else:
+            settings.bias_color = (dark + light) * 0.5
+    return missing
 
 
 # --------------------------------------------------------------------------------------------
@@ -838,6 +995,8 @@ def _regenerate(path, depsgraph):
 
     if not area:
         repaint_targets(path)
+    elif path.psg_ground.is_ground:
+        repaint_ground(path)  # terrain shading follows the edited area shape
     return created
 
 
@@ -1065,15 +1224,16 @@ def add_layer(path, source=None, copy_from=None):
 BIOME_PRESET = (
     ("Drzewa", "_Duze", "", 'CLUSTER',
      dict(cluster_density=0.6, cluster_radius=4.0, cluster_min=2, cluster_max=4, single_chance=0.35,
-          min_distance=2.5, scale_min=0.85, scale_max=1.2)),
+          min_distance=2.5, scale_min=0.85, scale_max=1.2, max_slope=math.radians(30.0))),
     ("Krzewy", "_Srednie", "", 'AROUND',
      dict(parent="Drzewa", around_min=1.5, around_max=4.0, around_count_min=0, around_count_max=2,
-          around_chance=0.8, min_distance=1.0, scale_min=0.7, scale_max=1.1)),
+          around_chance=0.8, min_distance=1.0, scale_min=0.7, scale_max=1.1, max_slope=math.radians(35.0))),
     ("Trawa wokol", "_Drobne", "!Kamyki, !Otoczaki", 'AROUND',
      dict(parent="Drzewa", around_min=0.7, around_max=3.5, around_count_min=6, around_count_max=14,
-          min_distance=0.3, scale_min=0.7, scale_max=1.2)),
+          min_distance=0.3, scale_min=0.7, scale_max=1.2, max_slope=math.radians(35.0))),
     ("Trawa", "_Drobne", "!Kamyki, !Otoczaki, !Grzyby", 'SCATTER',
-     dict(density=0.03, min_distance=0.5, avoid_distance=1.0, scale_min=0.7, scale_max=1.1)),
+     dict(density=0.03, min_distance=0.5, avoid_distance=1.0, scale_min=0.7, scale_max=1.1,
+          max_slope=math.radians(35.0))),
     ("Kamienie", "_Drobne", "Kamyki, Otoczaki", 'SCATTER',
      dict(density=0.008, min_distance=2.0, avoid_distance=1.5, scale_min=0.6, scale_max=1.3)),
 )

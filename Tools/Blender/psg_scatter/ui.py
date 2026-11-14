@@ -1,7 +1,7 @@
 import bpy
 
 from . import core
-from .ops import active_path
+from .ops import active_path, terrain_target
 from .props import AREA_MODES, PATH_MODES
 
 
@@ -192,10 +192,61 @@ class PSG_PT_paint(PSGPanel, bpy.types.Panel):
         layout.prop(settings, "paint_order")
         ground = settings.target
         if ground is not None:
-            box = layout.box()
-            box.label(text="Ground: " + ground.name, icon='MESH_GRID')
-            box.prop(ground.psg_ground, "base_color")
-            box.prop(ground.psg_ground, "mask_in_alpha")
+            layout.label(text="Ground colors: Terrain Paint panel", icon='MESH_GRID')
+
+
+class PSG_PT_terrain(PSGPanel, bpy.types.Panel):
+    bl_label = "Terrain Paint"
+    bl_parent_id = "PSG_PT_main"
+
+    @classmethod
+    def poll(cls, context):
+        return terrain_target(context) is not None
+
+    def draw(self, context):
+        layout = self.layout
+        ground_obj = terrain_target(context)
+        ground = ground_obj.psg_ground
+        layout.label(text=ground_obj.name, icon='MESH_GRID')
+        layout.operator("psg.paint_terrain", text="Paint / Sample Biome Palette", icon='BRUSH_DATA')
+        if not ground.is_ground:
+            return
+        layout.prop(ground, "terrain_enabled")
+        if not ground.terrain_enabled:
+            layout.prop(ground, "base_color")
+            layout.prop(ground, "mask_in_alpha")
+            return
+        box = layout.box()
+        row = box.row(align=True)
+        row.prop(ground, "flat_dark", text="")
+        row.prop(ground, "flat_light", text="")
+        row.label(text="Flat")
+        row = box.row(align=True)
+        row.prop(ground, "slope_dark", text="")
+        row.prop(ground, "slope_light", text="")
+        row.label(text="Slope")
+        row = box.row(align=True)
+        row.prop(ground, "bias_color", text="")
+        row.label(text="Bias")
+        col = layout.column(align=True)
+        col.prop(ground, "gradient_strength")
+        col.prop(ground, "gradient_auto")
+        if not ground.gradient_auto:
+            row = col.row(align=True)
+            row.prop(ground, "gradient_min")
+            row.prop(ground, "gradient_max")
+        col = layout.column(align=True)
+        col.prop(ground, "slope_angle")
+        col.prop(ground, "slope_blend")
+        col = layout.column(align=True)
+        col.prop(ground, "noise_scale")
+        col.prop(ground, "noise_brightness")
+        col.prop(ground, "noise_bias")
+        col = layout.column(align=True)
+        col.prop(ground, "faceted")
+        col.prop(ground, "facet_jitter")
+        col.prop(ground, "seed")
+        layout.prop(ground, "mask_in_alpha")
 
 
 class PSG_PT_instances(PSGPanel, bpy.types.Panel):
@@ -227,7 +278,8 @@ class PSG_PT_instances(PSGPanel, bpy.types.Panel):
         layout.operator("psg.select_path", icon='CURVE_PATH')
 
 
-CLASSES = (PSG_UL_layers, PSG_PT_main, PSG_PT_path, PSG_PT_layers, PSG_PT_paint, PSG_PT_instances)
+CLASSES = (PSG_UL_layers, PSG_PT_main, PSG_PT_path, PSG_PT_layers, PSG_PT_paint, PSG_PT_terrain,
+           PSG_PT_instances)
 
 
 def register():

@@ -89,6 +89,20 @@ Waga wariantu: własność `psg_weight` (Custom Property) na obiekcie źródłow
 - Na laptopie z dwiema kartami przypnij Blendera do karty NVIDIA: Ustawienia Windows → System → Ekran → Grafika → `blender.exe` → Wysoka wydajność.
 - Kolekcje, nad którymi nie pracujesz, wykluczaj z widoku checkboxem w Outlinerze. Samo ukrycie oczkiem nie zdejmuje obiektów z obliczeń.
 
+## Malowanie terenu (kolory jak w assetach)
+
+Panel **Terrain Paint** działa na zaznaczonym meshu (obszarze, terenie albo *Ground* ścieżki). Przycisk **Paint / Sample Biome Palette** włącza cieniowanie i pobiera paletę z assetów wybranego biomu. **Scatter on Selected Mesh** robi to od razu (opcja *Paint Terrain*). Kolor trafia do `Col` (Face Corner), tak jak w assetach, a teren dostaje materiał `LD57 Stylized`.
+
+Zasady, te same co w assetach z [WSF_Biom.md](WSF_Biom.md#wspólne-reguły-kolorowania):
+
+- **Gradient wzdłuż Z**: najniższy punkt dostaje kolor ciemny, najwyższy jasny (`lerp(ciemny, jasny, t)`). *Z Gradient* ustawia siłę. *Auto Range* bierze zakres z wysokości meshu, bez niego zakres wpisujesz w *Z Min/Max*.
+- **Nachylenie**: ściany bardziej strome niż *Slope Angle* dostają paletę skały. *Slope Blend* ustawia płynne przejście.
+- **Noise**: *Noise Brightness* przesuwa kolor po palecie ciemny/jasny. *Noise Bias* tworzy większe plamy przechylone ku kolorowi *Bias*, np. sucha trawa w lesie.
+- **Fasety**: *Faceted* daje jeden kolor na ścianę, a *Facet Jitter* losową jasność ±% na ścianę (w assetach 5–12%).
+- Paleta pochodzi z kolorów assetów biomu (percentyle jasności): Las to trawa + kamyki + sucha trawa, Pustynia to piasek ze skał warstwowych + terakota, Lód to zaspa + skała ze śniegiem i tak dalej (`TERRAIN_SOURCES` w `core.py`). Każdy kolor można potem zmienić ręcznie.
+- Drogi ze ścieżek malują się na wierzchu, a *Facet Jitter* obejmuje też je.
+- Preset biomu nie stawia drzew i trawy na stromych ścianach (*Max Slope* 30–35°).
+
 ## Malowanie podłoża
 
 - Kolor trafia do atrybutu `Col` (Face Corner, Float Color), tak samo jak w assetach biomów. Teren dostaje materiał `LD57 Stylized` (Color Attribute → Base Color), jeśli w pliku nie ma żadnego.

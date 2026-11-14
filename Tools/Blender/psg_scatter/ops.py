@@ -119,6 +119,8 @@ class PSG_OT_make_area(bpy.types.Operator):
     preset: BoolProperty(name="Biome Preset", default=True,
                          description="Add trees in clusters + bushes and grass around them + grass and rocks")
     biome: EnumProperty(name="Biome", items=BIOMES)
+    paint: BoolProperty(name="Paint Terrain", default=True,
+                        description="Also paint the mesh with the biome terrain colors (slope, Z gradient, noise)")
 
     @classmethod
     def poll(cls, context):
@@ -136,9 +138,63 @@ class PSG_OT_make_area(bpy.types.Operator):
             if self.preset and not obj.psg.layers:
                 missing += core.apply_biome_preset(obj, self.biome, replace=False)
             core.init_area(obj, context.scene.psg)
+            if self.paint:
+                missing += enable_terrain_paint(obj, self.biome)
             core.regenerate(obj, context.evaluated_depsgraph_get())
         if missing:
             self.report({'WARNING'}, "Missing collections: " + ", ".join(sorted(set(missing))))
+        return {'FINISHED'}
+
+
+def enable_terrain_paint(obj, biome):
+    """Asset-style terrain shading on a mesh, palette sampled from the biome assets."""
+    ground = obj.psg_ground
+    ground.is_ground = True
+    ground.terrain_enabled = True
+    missing = core.sample_terrain_palette(obj, biome)
+    if not obj.data.materials:
+        obj.data.materials.append(core.ground_material())
+    core.repaint_ground(obj)
+    return missing
+
+
+def terrain_target(context):
+    """Mesh whose terrain paint the panel and operators edit."""
+    obj = context.active_object
+    if obj is None:
+        return None
+    if obj.type == 'MESH' and obj.psg_inst.path is None:
+        return obj
+    path = active_path(context)
+    if path is not None and path.type == 'CURVE':
+        return path.psg.target
+    return None
+
+
+class PSG_OT_paint_terrain(bpy.types.Operator):
+    bl_idname = "psg.paint_terrain"
+    bl_label = "Paint Terrain"
+    bl_description = ("Vertex-color terrain like the assets: dark-to-light along Z, rock color on slopes, "
+                      "noise with a color bias. Palette sampled from the biome assets")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    biome: EnumProperty(name="Biome", items=BIOMES)
+
+    @classmethod
+    def poll(cls, context):
+        return terrain_target(context) is not None
+
+    def invoke(self, context, _event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        targets = {o for o in context.selected_objects if o.type == 'MESH' and o.psg_inst.path is None}
+        targets.add(terrain_target(context))
+        missing = []
+        for obj in targets:
+            missing += enable_terrain_paint(obj, self.biome)
+        if missing:
+            self.report({'WARNING'}, "No assets for: " + ", ".join(sorted(set(missing))))
         return {'FINISHED'}
 
 
@@ -521,7 +577,7 @@ def select_only(context, objects):
 
 CLASSES = (
     PSG_OT_draw_annotation, PSG_OT_annotation_to_path, PSG_OT_make_path, PSG_OT_make_area,
-    PSG_OT_area_preset, PSG_OT_create_ground,
+    PSG_OT_area_preset, PSG_OT_paint_terrain, PSG_OT_create_ground,
     PSG_OT_generate, PSG_OT_clear, PSG_OT_reset_edits, PSG_OT_bake, PSG_OT_display_all, PSG_OT_repaint,
     PSG_OT_select_instances, PSG_OT_select_path,
     PSG_OT_layer_add, PSG_OT_layer_remove, PSG_OT_layer_move, PSG_OT_layer_reseed,

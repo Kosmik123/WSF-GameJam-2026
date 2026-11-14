@@ -174,6 +174,42 @@ class PSG_Ground(bpy.types.PropertyGroup):
     mask_in_alpha: BoolProperty(name="Mask in Alpha", default=False, update=_ground_changed,
                                 description="Write combined paint coverage into vertex color alpha")
 
+    terrain_enabled: BoolProperty(name="Terrain Shading", default=False, update=_ground_changed,
+                                  description="Color from height (Z), slope and noise instead of a flat Base Color")
+    flat_dark: FloatVectorProperty(name="Flat Dark", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                   default=(0.026, 0.082, 0.009), update=_ground_changed)
+    flat_light: FloatVectorProperty(name="Flat Light", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                    default=(0.10, 0.21, 0.023), update=_ground_changed)
+    slope_dark: FloatVectorProperty(name="Slope Dark", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                    default=(0.24, 0.22, 0.27), update=_ground_changed)
+    slope_light: FloatVectorProperty(name="Slope Light", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                     default=(0.46, 0.42, 0.48), update=_ground_changed)
+    bias_color: FloatVectorProperty(name="Bias Color", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                    default=(0.42, 0.33, 0.10), update=_ground_changed,
+                                    description="Color that noise patches lean towards (dry grass, sand)")
+    gradient_strength: FloatProperty(name="Z Gradient", default=0.8, min=0.0, max=1.0, subtype='FACTOR',
+                                     update=_ground_changed,
+                                     description="Dark at the lowest point, light at the highest (same rule as the assets)")
+    gradient_auto: BoolProperty(name="Auto Range", default=True, update=_ground_changed,
+                                description="Use the mesh's own lowest and highest point")
+    gradient_min: FloatProperty(name="Z Min", default=0.0, unit='LENGTH', update=_ground_changed)
+    gradient_max: FloatProperty(name="Z Max", default=5.0, unit='LENGTH', update=_ground_changed)
+    slope_angle: FloatProperty(name="Slope Angle", default=math.radians(28.0), min=0.0, max=math.radians(90.0),
+                               subtype='ANGLE', update=_ground_changed,
+                               description="Steeper than this uses the slope (rock) palette")
+    slope_blend: FloatProperty(name="Slope Blend", default=math.radians(14.0), min=0.0, max=math.radians(90.0),
+                               subtype='ANGLE', update=_ground_changed)
+    noise_scale: FloatProperty(name="Noise Scale", default=0.12, min=0.001, update=_ground_changed)
+    noise_brightness: FloatProperty(name="Noise Brightness", default=0.25, min=0.0, max=1.0, subtype='FACTOR',
+                                    update=_ground_changed, description="Noise shift along the dark/light palette")
+    noise_bias: FloatProperty(name="Noise Bias", default=0.3, min=0.0, max=1.0, subtype='FACTOR',
+                              update=_ground_changed, description="How much noise patches lean to the Bias Color")
+    faceted: BoolProperty(name="Faceted", default=True, update=_ground_changed,
+                          description="One color per face, like the assets (flat facets)")
+    facet_jitter: FloatProperty(name="Facet Jitter", default=0.08, min=0.0, max=0.5, subtype='FACTOR',
+                                update=_ground_changed, description="Random brightness per face (assets: 5-12%)")
+    seed: IntProperty(name="Seed", default=0, update=_ground_changed)
+
 
 class PSG_SceneSettings(bpy.types.PropertyGroup):
     source: PointerProperty(name="Default Source", type=bpy.types.Collection)
