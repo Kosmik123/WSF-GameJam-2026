@@ -4,8 +4,9 @@ using WSFGameJam2026.Player;
 namespace WSFGameJam2026.Cameras
 {
     /// <summary>
-    /// Follows the player from above at an angle. The camera's up is the surface normal,
-    /// so the world turns around the player as he runs around the torus.
+    /// Follows the player from above at an angle, behind him (opposite to the direction he faces).
+    /// The camera's up is the normal of the smooth torus, so the world turns around the player
+    /// as he runs around the tube.
     /// </summary>
     public class TorusFollowCamera : MonoBehaviour
     {
@@ -53,8 +54,9 @@ namespace WSFGameJam2026.Cameras
             if (target == null)
                 return;
 
-            Vector3 up = target.SurfaceNormal;
-            Vector3 forward = Vector3.ProjectOnPlane(target.RunDirection, up).normalized;
+            // The smooth base tube is used instead of the terrain, so bumps don't shake the camera.
+            Vector3 up = target.BaseNormal;
+            Vector3 forward = Vector3.ProjectOnPlane(target.Facing, up).normalized;
             Vector3 focus = target.transform.position + up * lookAtHeight;
 
             float pitchRadians = pitch * Mathf.Deg2Rad;
