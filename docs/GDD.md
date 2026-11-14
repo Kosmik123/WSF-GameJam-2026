@@ -32,7 +32,7 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 
 - Strefa śmierci w kształcie szczęki węża, która krąży po torusie.
 - Porusza się **jednostajnie**, ze stałą prędkością kątową. Nie przyspiesza w ramach rundy.
-- Dotknięcie paszczy zabija natychmiast, niezależnie od HP i nietykalności (unik, chwila po trafieniu). Paszcza nie zadaje obrażeń, tylko woła `Health.Kill()`, a śmierć od paszczy i od HP = 0 idzie tą samą ścieżką (`OnDied`). Wykrywanie liczymy z kątów `θ` gracza i głowy, bez fizyki i colliderów.
+- Dotknięcie paszczy zabija natychmiast, niezależnie od HP i nietykalności (unik, chwila po trafieniu). Paszcza nie zadaje obrażeń, tylko woła `Health.Kill()`, a śmierć od paszczy i od HP = 0 idzie tą samą ścieżką (`OnDied`). Wykrywanie liczymy z kątów `θ` gracza i głowy, bez fizyki i colliderów. Strefa ma nieregularny kształt zależny od `φ`: górna i dolna szczęka sięgają dalej do przodu, policzki są cofnięte do tyłu (dwie krzywe w Inspektorze: zasięg do przodu i do tyłu).
 - Gracz musi być szybszy od paszczy, żeby ją okrążyć, więc walka z wrogami kosztuje czas.
 - Wygląd: animowana szczęka (otwiera się i zamyka), po bokach strefy zagrożenia efekty (poświata, dźwięk, drgania kamery).
 
