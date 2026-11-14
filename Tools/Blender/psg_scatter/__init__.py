@@ -1,8 +1,9 @@
-﻿"""PSG - Path Scatter Generator.
+"""PSG - Path Scatter Generator.
 
-Draw an annotation line, turn it into an editable path curve, scatter instanced
-(linked-duplicate) assets along it and paint the ground under it with vertex colors
-blended at the edges. Output exports to Unity 6 as FBX with shared meshes.
+Scatter instanced (linked-duplicate) assets on a selected mesh (clusters, surroundings,
+uniform layers) or along a path drawn with an annotation, and paint the ground under
+paths with vertex colors blended at the edges. Output exports to Unity 6 as FBX with
+shared meshes.
 """
 
 bl_info = {
@@ -11,7 +12,7 @@ bl_info = {
     "version": (0, 2, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > PSG",
-    "description": "Annotation-driven instanced scatter with vertex-color ground paint, Unity-ready",
+    "description": "Instanced area and path scatter with vertex-color ground paint, Unity-ready",
     "category": "Object",
 }
 

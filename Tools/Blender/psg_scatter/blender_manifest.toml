@@ -1,9 +1,9 @@
-﻿schema_version = "1.0.0"
+schema_version = "1.0.0"
 
 id = "psg_scatter"
 version = "0.2.0"
 name = "PSG Path Scatter"
-tagline = "Annotation-driven instanced scatter with vertex-color ground paint"
+tagline = "Instanced area and path scatter with vertex-color ground paint"
 maintainer = "WSF GameJam 2026"
 type = "add-on"
 tags = ["Object", "Mesh"]
