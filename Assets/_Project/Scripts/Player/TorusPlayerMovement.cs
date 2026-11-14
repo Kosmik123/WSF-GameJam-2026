@@ -37,6 +37,18 @@ namespace WSFGameJam2026.Player
 
         public TorusObject TorusObject => torusObject;
 
+        /// <summary>Smoothed input: x = turn, y = forward/back. Read by combat (dodge direction).</summary>
+        public Vector2 SmoothedInput => smoothedInput;
+
+        /// <summary>Multiplier of the move speed, set by combat (slower while attacking). 1 = normal.</summary>
+        public float SpeedMultiplier { get; set; } = 1f;
+
+        /// <summary>Multiplier of the turn speed, set by combat. 1 = normal.</summary>
+        public float TurnMultiplier { get; set; } = 1f;
+
+        /// <summary>When true, input does not move the character (dodge, knockback, death).</summary>
+        public bool IsLocked { get; set; }
+
         private void Awake()
         {
             torusObject = GetComponent<TorusObject>();
@@ -50,9 +62,11 @@ namespace WSFGameJam2026.Player
         private void Update()
         {
             smoothedInput = Vector2.MoveTowards(smoothedInput, ReadInput(), inputResponse * Time.deltaTime);
+            if (IsLocked)
+                return;
 
-            torusObject.Turn(smoothedInput.x * turnSpeedDegrees * Mathf.Deg2Rad * Time.deltaTime);
-            torusObject.Move(smoothedInput.y * moveSpeed * Time.deltaTime);
+            torusObject.Turn(smoothedInput.x * turnSpeedDegrees * TurnMultiplier * Mathf.Deg2Rad * Time.deltaTime);
+            torusObject.Move(smoothedInput.y * moveSpeed * SpeedMultiplier * Time.deltaTime);
         }
 
         private Vector2 ReadInput()

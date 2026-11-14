@@ -93,14 +93,86 @@ namespace WSFGameJam2026.World
             if (world == null)
                 return;
 
+            MoveAlongLocal(localFacing, distance);
+        }
+
+        /// <summary>Moves along a world space direction (projected on the surface) without changing the facing. Used by knockback and dodge.</summary>
+        public void MoveInDirection(Vector3 worldDirection, float distance)
+        {
+            if (world == null)
+                return;
+
+            var localDirection = Vector3.ProjectOnPlane(world.transform.InverseTransformDirection(worldDirection), localUp);
+            if (localDirection.sqrMagnitude < 0.0001f)
+                return;
+
+            MoveAlongLocal(localDirection.normalized, distance);
+        }
+
+        /// <summary>Turns towards a world space direction by at most the given angle (radians).</summary>
+        public void TurnTowards(Vector3 worldDirection, float maxRadians)
+        {
+            if (world == null)
+                return;
+
+            var target = Vector3.ProjectOnPlane(world.transform.InverseTransformDirection(worldDirection), localUp);
+            if (target.sqrMagnitude < 0.0001f)
+                return;
+
+            float signedDegrees = Vector3.SignedAngle(localFacing, target, localUp);
+            float maxDegrees = maxRadians * Mathf.Rad2Deg;
+            localFacing = Quaternion.AngleAxis(Mathf.Clamp(signedDegrees, -maxDegrees, maxDegrees), localUp) * localFacing;
+            ApplyTransform();
+        }
+
+        /// <summary>Puts the object in a world (also for objects spawned from prefabs), at the given angles, facing the given world direction.</summary>
+        public void Place(TorusWorld newWorld, TorusAngles newAngles, Vector3 worldFacing)
+        {
+            world = newWorld;
+            if (world == null)
+                return;
+
+            SetPosition(newAngles);
+            localFacing = world.transform.InverseTransformDirection(worldFacing);
+            Refresh();
+        }
+
+        /// <summary>
+        /// Offset from this object to the given angles, along the surface, in world space. It lies in the tangent plane
+        /// of this object and its length is the approximate surface distance (exact for short distances).
+        /// Unlike a straight line, it never goes through the tube, so an enemy on the underside is not "close".
+        /// </summary>
+        public Vector3 GetSurfaceOffsetTo(TorusAngles target)
+        {
+            if (world == null)
+                return Vector3.zero;
+
+            var surface = world.Surface;
+            var delta = angles.DeltaTo(target);
+            float middlePhi = angles.Phi + delta.y * 0.5f;
+            float thetaDistance = delta.x * TorusGeometry.GetRingRadius(surface.MajorRadius, surface.MinorRadius, middlePhi);
+            float phiDistance = delta.y * surface.MinorRadius;
+
+            var localOffset = localRunDirection * thetaDistance + TorusGeometry.GetPhiDirection(angles.Theta, angles.Phi) * phiDistance;
+            return world.transform.TransformDirection(localOffset);
+        }
+
+        /// <summary>Surface offset to another object on the same torus. See <see cref="GetSurfaceOffsetTo(TorusAngles)"/>.</summary>
+        public Vector3 GetSurfaceOffsetTo(TorusObject other)
+        {
+            return GetSurfaceOffsetTo(other.Angles);
+        }
+
+        private void MoveAlongLocal(Vector3 localDirection, float distance)
+        {
             // Directions of growing theta and phi are perpendicular, so the speed stays constant.
             float theta = angles.Theta;
             float phi = angles.Phi;
             var phiDirection = TorusGeometry.GetPhiDirection(theta, phi);
 
             var surface = world.Surface;
-            float thetaDistance = Vector3.Dot(localFacing, localRunDirection) * distance;
-            float phiDistance = Vector3.Dot(localFacing, phiDirection) * distance;
+            float thetaDistance = Vector3.Dot(localDirection, localRunDirection) * distance;
+            float phiDistance = Vector3.Dot(localDirection, phiDirection) * distance;
 
             Vector2 delta = TorusGeometry.GetAngleDelta(surface.MajorRadius, surface.MinorRadius, phi, thetaDistance, phiDistance);
             angles = angles.Add(delta.x, delta.y);

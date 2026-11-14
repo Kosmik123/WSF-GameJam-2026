@@ -56,7 +56,7 @@ namespace WSFGameJam2026.Editor
             EditorSceneManager.MarkSceneDirty(player.scene);
         }
 
-        private static InputActionReference FindActionReference(string mapName, string actionName)
+        internal static InputActionReference FindActionReference(string mapName, string actionName)
         {
             foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(InputAssetPath))
                 if (asset is InputActionReference reference && reference.action != null)
@@ -66,7 +66,7 @@ namespace WSFGameJam2026.Editor
             return null;
         }
 
-        private static void SetReference(Object target, string propertyName, Object value)
+        internal static void SetReference(Object target, string propertyName, Object value)
         {
             var serializedObject = new SerializedObject(target);
             serializedObject.FindProperty(propertyName).objectReferenceValue = value;

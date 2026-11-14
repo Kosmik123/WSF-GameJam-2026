@@ -1,0 +1,87 @@
+using UnityEngine;
+using WSFGameJam2026.Combat;
+using WSFGameJam2026.World;
+
+namespace WSFGameJam2026.Enemies
+{
+    /// <summary>
+    /// Base of enemy AI on the torus. Gives access to the enemy, its target and movement helpers.
+    /// <see cref="Enemy"/> disables all behaviours on death.
+    /// </summary>
+    [RequireComponent(typeof(Enemy))]
+    public abstract class EnemyBehaviour : MonoBehaviour
+    {
+        [Header("Movement")]
+        [SerializeField]
+        [Min(0f)]
+        protected float moveSpeed = 4f;
+
+        [Tooltip("Turning speed in degrees per second.")]
+        [SerializeField]
+        [Min(0f)]
+        protected float turnSpeedDegrees = 360f;
+
+        [Tooltip("Target further than this (along the surface) is not noticed.")]
+        [SerializeField]
+        [Min(0f)]
+        protected float detectRange = 18f;
+
+        protected Enemy Enemy { get; private set; }
+        protected TorusObject TorusObject { get; private set; }
+        protected Health Health { get; private set; }
+        protected BodyFlash BodyFlash { get; private set; }
+        private Knockback knockback;
+
+        protected Health Target => Enemy.Target;
+
+        /// <summary>The enemy can act: alive, after the spawn delay, not being pushed, with a living target.</summary>
+        protected bool CanAct => Enemy.IsActive && (knockback == null || knockback.IsActive == false) && Target != null && Target.IsDead == false;
+
+        protected virtual void Awake()
+        {
+            Enemy = GetComponent<Enemy>();
+            TorusObject = GetComponent<TorusObject>();
+            Health = GetComponent<Health>();
+            BodyFlash = GetComponent<BodyFlash>();
+            knockback = GetComponent<Knockback>();
+        }
+
+        /// <summary>Surface offset from this enemy to the target (see <see cref="TorusObject.GetSurfaceOffsetTo(TorusObject)"/>).</summary>
+        protected Vector3 OffsetToTarget()
+        {
+            return TorusObject.GetSurfaceOffsetTo(Target.TorusObject);
+        }
+
+        /// <summary>Turns towards the direction and moves forward with the given speed multiplier.</summary>
+        protected void MoveTowards(Vector3 worldDirection, float speedMultiplier = 1f)
+        {
+            TorusObject.TurnTowards(worldDirection, turnSpeedDegrees * Mathf.Deg2Rad * Time.deltaTime);
+
+            // Slower while still turning, so enemies do not run in circles around the target.
+            float alignment = Mathf.Clamp01(Vector3.Dot(TorusObject.Facing, worldDirection.normalized));
+            TorusObject.Move(moveSpeed * speedMultiplier * alignment * Time.deltaTime);
+        }
+
+        /// <summary>Moves along a direction without turning (strafe, retreat).</summary>
+        protected void Slide(Vector3 worldDirection, float speedMultiplier = 1f)
+        {
+            TorusObject.MoveInDirection(worldDirection, moveSpeed * speedMultiplier * Time.deltaTime);
+        }
+
+        protected void Face(Vector3 worldDirection, float turnMultiplier = 1f)
+        {
+            TorusObject.TurnTowards(worldDirection, turnSpeedDegrees * turnMultiplier * Mathf.Deg2Rad * Time.deltaTime);
+        }
+
+        /// <summary>Deals damage to the target when its body is within the radius. Returns true on a hit.</summary>
+        protected bool TryHitTarget(float radius, int baseDamage, float knockbackDistance)
+        {
+            var offset = OffsetToTarget();
+            if (offset.magnitude > radius + Target.BodyRadius)
+                return false;
+
+            var direction = offset.sqrMagnitude > 0.0001f ? offset.normalized : TorusObject.Facing;
+            return Target.TakeDamage(new DamageInfo(Enemy.ScaleDamage(baseDamage), direction, knockbackDistance, Health.Team));
+        }
+    }
+}

@@ -42,12 +42,16 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 
 ## Etap 2: walka i wrogowie (MUST)
 
-- [ ] **Zdrowie** (gracz, wrogowie), obrażenia, śmierć. `P`
-- [ ] **Walka gracza:** atak melee, unik z nietykalnością, hit stop i odrzut. `C`
-- [ ] **Wróg 1 (biegacz)** z AI poruszającym się po torusie i atakiem. `C`
-- [ ] **Wróg 2 (strzelec)**. `P`
-- [ ] **Spawner wrogów** w współrzędnych `(θ, φ)` przed graczem, poziom wroga ustalany raz przy pojawieniu się (z trudności segmentu i mnożnika rundy), wrogowie pojawiają się kilka sekund przed graczem. `P`
-- [ ] **Modele i animacje wrogów 1 i 2.** `G`
+Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ, φ)`, odległości po powierzchni, bez NavMesha i fizyki). Ustawienie sceny: menu **WSF GameJam/Setup/Create Combat And Enemies**. Nie testowane jeszcze w Unity.
+
+- [x] **Zdrowie** (gracz, wrogowie), obrażenia, śmierć: `Health`, `DamageInfo`, `CombatQueries`, `Enemy` (śmierć, zdarzenia dla XP). `C`
+- [x] **Walka gracza:** atak melee w łuku z combo (3 ciosy, ostatni mocniejszy), unik z nietykalnością (Spacja), hit stop, odrzut, błysk, wstrząs kamery: `PlayerCombat`, `HitStop`, `Knockback`, `BodyFlash`, `HitFeedback`. `C`
+- [x] **Wróg 1 (biegacz)** (slime z LD57): otaczanie gracza w sektorach, zapowiedź, wyskok, odskok: `RunnerEnemy`. `C`
+- [x] **Wróg 2 (strzelec)** (z LD57): trzyma dystans, strafe, ucieka, strzał z zapowiedzią i linią celowania: `ShooterEnemy`, `EnemyProjectile`. `C`
+- [x] **Spawner wrogów** przed graczem, poziom z odległości od paszczy (krzywa) × `RoundMultiplier`, usuwanie wrogów daleko za graczem: `EnemySpawner`. `C`
+- [ ] **Test i balans walki w Unity** (feel ataku i uniku, statystyki wrogów). `?`
+- [ ] **Podpięcie pod pętlę rund:** `EnemySpawner.RoundMultiplier` i `Clear()`, `PlayerCombat.Revive()`, reakcja na `Health.OnDied` gracza (ekran śmierci). `P`
+- [ ] **Modele i animacje wrogów 1 i 2** (teraz są placeholdery z prymitywów). Zdarzenia do animacji: `PlayerCombat.OnAttackStarted/OnDodgeStarted`. `G`
 
 ## Etap 2b: progresja (MUST)
 

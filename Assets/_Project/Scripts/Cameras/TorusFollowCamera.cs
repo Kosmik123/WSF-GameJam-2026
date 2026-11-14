@@ -38,8 +38,20 @@ namespace WSFGameJam2026.Cameras
         [Min(0f)]
         private float rotationSharpness = 8f;
 
+        [Header("Shake")]
+        [Tooltip("Frequency of the shake noise.")]
+        [SerializeField]
+        [Min(0f)]
+        private float shakeFrequency = 25f;
+
         private Vector3 velocity;
         private bool shouldSnap = true;
+
+        // Position without shake. Smoothing works on it, so shaking never drags the camera.
+        private Vector3 smoothedPosition;
+        private float shakeAmplitude;
+        private float shakeDuration;
+        private float shakeTimeLeft;
 
         private void Reset()
         {
@@ -49,6 +61,32 @@ namespace WSFGameJam2026.Cameras
         private void OnEnable()
         {
             shouldSnap = true;
+        }
+
+        /// <summary>Shakes the camera. A stronger shake replaces a weaker one. Runs in real time, so it also works during the hit stop.</summary>
+        public void Shake(float amplitude, float duration)
+        {
+            if (amplitude < shakeAmplitude * (shakeTimeLeft / Mathf.Max(0.0001f, shakeDuration)))
+                return;
+
+            shakeAmplitude = amplitude;
+            shakeDuration = Mathf.Max(0.01f, duration);
+            shakeTimeLeft = shakeDuration;
+        }
+
+        private Vector3 GetShakeOffset()
+        {
+            if (shakeTimeLeft <= 0f)
+                return Vector3.zero;
+
+            shakeTimeLeft -= Time.unscaledDeltaTime;
+            float strength = shakeAmplitude * Mathf.Clamp01(shakeTimeLeft / shakeDuration);
+            float time = Time.unscaledTime * shakeFrequency;
+            var noise = new Vector3(
+                Mathf.PerlinNoise(time, 0.1f) - 0.5f,
+                Mathf.PerlinNoise(0.3f, time) - 0.5f,
+                Mathf.PerlinNoise(time, 0.7f) - 0.5f);
+            return 2f * strength * noise;
         }
 
         private void LateUpdate()
@@ -66,17 +104,18 @@ namespace WSFGameJam2026.Cameras
 
             if (shouldSnap)
             {
+                smoothedPosition = desiredPosition;
                 transform.SetPositionAndRotation(desiredPosition, Quaternion.LookRotation(focus - desiredPosition, up));
                 velocity = Vector3.zero;
                 shouldSnap = false;
                 return;
             }
 
-            var newPosition = Vector3.SmoothDamp(transform.position, desiredPosition, ref velocity, positionSmoothTime);
+            smoothedPosition = Vector3.SmoothDamp(smoothedPosition, desiredPosition, ref velocity, positionSmoothTime);
 
-            var desiredRotation = Quaternion.LookRotation(focus - newPosition, up);
+            var desiredRotation = Quaternion.LookRotation(focus - smoothedPosition, up);
             float blend = 1f - Mathf.Exp(-rotationSharpness * Time.deltaTime);
-            transform.SetPositionAndRotation(newPosition, Quaternion.Slerp(transform.rotation, desiredRotation, blend));
+            transform.SetPositionAndRotation(smoothedPosition + GetShakeOffset(), Quaternion.Slerp(transform.rotation, desiredRotation, blend));
         }
     }
 }

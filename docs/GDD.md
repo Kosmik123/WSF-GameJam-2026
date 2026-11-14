@@ -52,14 +52,16 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 - Kamera: z góry pod skosem, pomiędzy top-down a widokiem zza pleców. „Góra” kamery to normalna powierzchni, więc świat obraca się wokół gracza.
 - Ruch: po powierzchni torusa (współrzędne `θ`, `φ`), z kontrolerem kinematycznym, bez fizyki na zakrzywionej powierzchni.
 - Zdrowie: pasek HP, wrogowie zadają obrażenia. **[DO USTALENIA]** czy HP się regeneruje albo leczy.
-- Walka: **melee + unik** (hack and slash). Atak bronią, unik (przewrót lub dash z krótką nietykalnością), ewentualnie parowanie. **[DO USTALENIA]** czy gracz ma combo i czy jest jedna broń.
+- Walka: **melee + unik** (hack and slash). Atak bronią, unik (przewrót lub dash z krótką nietykalnością), ewentualnie parowanie. **[DO USTALENIA]** czy jest jedna broń.
+- Prototyp (etap 2): cios w łuku przed graczem, combo 3 ciosów (ostatni mocniejszy, większy odrzut), unik do przodu lub do tyłu (zależnie od wciśniętego kierunku) z nietykalnością, unik przerywa końcówkę ciosu. Po trafieniu gracz ma chwilę nietykalności. Trafienia liczymy po odległości na powierzchni torusa, nie przez collidery.
 
 ## 8. Wrogowie
 
 - Zakres: **4 lub więcej typów** (ambitnie, patrz ryzyka).
 - Wrogowie pojawiają się w współrzędnych `(θ, φ)` na torusie, przed graczem.
 - **Typy:** biegacz (szybki, słaby), strzelec (atak z dystansu), pancerny (wolny, wytrzymały), rój (wiele małych). Mini-boss na czubku głowy to opcja, jeśli zostanie czas.
-- **[DO USTALENIA]** dokładne zachowania i statystyki (ustalimy na prototypie).
+- **[DO USTALENIA]** dokładne statystyki (ustalimy na prototypie).
+- Zachowania z prototypu (na bazie LD57): **biegacz** otacza gracza razem z innymi biegaczami, miga przed atakiem, wyskakuje do przodu i odskakuje. **Strzelec** trzyma dystans, chodzi bokiem, ucieka, gdy gracz jest blisko, i strzela po zapowiedzi (błysk i linia celowania). Trafienie w trakcie zapowiedzi przerywa atak wroga.
 - Trudność wrogów zależy od **odległości od paszczy** (patrz sekcja 9), a z kolejnymi rundami rośnie dodatkowo mnożnik: więcej wrogów i szybsza paszcza.
 
 ## 9. Progresja
