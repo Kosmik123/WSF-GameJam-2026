@@ -168,7 +168,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8746362065382489076, guid: 7c98492b493e7bc46b6d7b158a144fac, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 348.67676
+      value: 350.1
       objectReference: {fileID: 0}
     - target: {fileID: 8746362065382489076, guid: 7c98492b493e7bc46b6d7b158a144fac, type: 3}
       propertyPath: m_LocalRotation.w
@@ -341,7 +341,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410087039}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31e2325c002da13428ea3db9ae5dbf9a, type: 3}
   m_Name: 
@@ -420,7 +420,7 @@ Transform:
   m_GameObject: {fileID: 595407832}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: 0, y: 0, z: 349.57675}
+  m_LocalPosition: {x: 0, y: 0, z: 351}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -588,7 +588,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusWorld
   majorRadius: 300
   minorRadius: 50
-  segmentCount: 6
+  segmentCount: 16
   sidesResolution: 180
   segmentProfiles:
   - {fileID: 11400000, guid: edf6c2a1a9e188f48b605eb7205e6981, type: 2}
@@ -597,10 +597,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2c4991ca5f6ff7f4187919b5f6e3c3b7, type: 2}
   - {fileID: 11400000, guid: fda19e253147a3b42bb49c111c412dd6, type: 2}
   - {fileID: 11400000, guid: 92b4a6fd6f3df0447958e58146bf2f1a, type: 2}
-  blendWidth: 0.2
+  blendWidth: 0.3
   defaultMaterial: {fileID: 0}
   generateColliders: 1
-  shouldRebuildOnValidate: 1
+  shouldRebuildOnValidate: 0
 --- !u!4 &1142851115
 Transform:
   m_ObjectHideFlags: 0
@@ -637,8 +637,10 @@ MonoBehaviour:
   - {fileID: 919132149155446097, guid: ebeefd2fe8a55b7438a9687f110866ce, type: 3}
   - {fileID: 919132149155446097, guid: e0a5c0726d3e2e54f996b50e9e4128a9, type: 3}
   terrainPrefix: Teren_
-  shadowCasting: 1
-  receiveShadows: 1
+  shadowCasting: 0
+  shadowTarget: {fileID: 0}
+  shadowRangeDegrees: 1
+  receiveShadows: 0
 --- !u!1 &1167247099
 GameObject:
   m_ObjectHideFlags: 0
@@ -707,6 +709,7 @@ MonoBehaviour:
   head: {fileID: 66875074}
   spawner: {fileID: 1581976040}
   playerCombat: {fileID: 1703670344}
+  playerSkills: {fileID: 0}
   startGapDegrees: 25
   startPhiDegrees: 90
   jawSpeedPerRound: 0.2
@@ -1230,7 +1233,7 @@ PrefabInstance:
     - target: {fileID: 5024990559671578796, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 6c391b4fb4959fc4a89f9beb533cfabd, type: 2}
+      objectReference: {fileID: 5150274445971863401, guid: 4f8bbd446ab63ee4a9d6c89a6695caff, type: 3}
     - target: {fileID: 5245275856973429819, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 60
@@ -1390,7 +1393,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 358.67676
+      value: 360.1
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalRotation.w
