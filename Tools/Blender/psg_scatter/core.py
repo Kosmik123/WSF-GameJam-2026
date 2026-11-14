@@ -691,7 +691,7 @@ class SpatialHash:
             self.cells.setdefault(self._key(p), []).append(p)
 
 
-def placement_matrix(layer, position, tangent, normal, rolls, source):
+def placement_matrix(layer, position, tangent, normal, rolls, source, scale_factor=1.0):
     yaw = layer.yaw_offset + (rolls[1] - 0.5) * layer.yaw_random
     if layer.align_to_path:
         yaw += math.atan2(tangent.y, tangent.x)
@@ -699,7 +699,7 @@ def placement_matrix(layer, position, tangent, normal, rolls, source):
     if normal is not None and layer.align_to_normal > 0.0:
         tilt = Vector((0.0, 0.0, 1.0)).rotation_difference(normal)
         rotation = Quaternion().slerp(tilt, layer.align_to_normal) @ rotation
-    scale = layer.scale_min + (layer.scale_max - layer.scale_min) * rolls[2]
+    scale = (layer.scale_min + (layer.scale_max - layer.scale_min) * rolls[2]) * scale_factor
     up = normal if normal is not None else Vector((0.0, 0.0, 1.0))
     location = position + up * layer.z_offset
     source_basis = source.matrix_world.to_3x3().to_4x4()
@@ -801,8 +801,9 @@ def around_candidates(layer, parents):
             angle = rng.random() * math.tau
             radius = math.sqrt(r_low * r_low + (r_high * r_high - r_low * r_low) * rng.random()) * factor
             offset = Vector((math.cos(angle) * radius, math.sin(angle) * radius, 0.0))
+            inherited = parent_scale if layer.inherit_parent_scale else 1.0
             candidates.append((stable_index(parent_index, k), parent_position + offset, no_tangent,
-                               random_rolls(rng)))
+                               random_rolls(rng), inherited))
     return candidates
 
 
@@ -815,7 +816,8 @@ def layer_placements(layer, candidates, raycast, occupied, avoid):
     for p in occupied:
         spatial.add(p)
     max_slope_cos = math.cos(layer.max_slope)
-    for index, position, tangent, rolls in candidates:
+    for index, position, tangent, rolls, *extra in candidates:
+        scale_factor = extra[0] if extra else 1.0
         normal = None
         if raycast is not None:
             hit, normal = raycast(position.x, position.y)
@@ -830,8 +832,9 @@ def layer_placements(layer, candidates, raycast, occupied, avoid):
             continue
         spatial.add(position)
         source = pick_weighted(sources, rolls[0])
-        scale = layer.scale_min + (layer.scale_max - layer.scale_min) * rolls[2]
-        yield index, source, placement_matrix(layer, position, tangent, normal, rolls, source), position, scale
+        scale = (layer.scale_min + (layer.scale_max - layer.scale_min) * rolls[2]) * scale_factor
+        matrix = placement_matrix(layer, position, tangent, normal, rolls, source, scale_factor)
+        yield index, source, matrix, position, scale
 
 
 def instance_name(path, layer, index, source):

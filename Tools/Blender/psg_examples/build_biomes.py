@@ -8,6 +8,7 @@ Run (from the repository root):
     blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py
 """
 
+import math
 import os
 import sys
 
@@ -15,8 +16,12 @@ import bpy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
+sys.path.insert(0, HERE)
 import psg_scatter  # noqa: E402
+from bridges import build_bridges  # noqa: E402
 from psg_scatter import core, shape  # noqa: E402
+
+BRIDGES = "PSG_Kladki"
 
 REPO = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 LIBRARY = os.path.join(REPO, "Assets", "Blender", "all_models.blend")
@@ -71,6 +76,10 @@ def link_biome_collections():
     bpy.context.scene.collection.children.link(sources)
     for collection in data_to.collections:
         sources.children.link(collection)
+    bridges = bpy.data.collections.new(BRIDGES)
+    sources.children.link(bridges)
+    material = bpy.data.materials.get("LD57 Stylized") or core.ground_material()
+    build_bridges(bridges, material)
     layer = bpy.context.view_layer.layer_collection.children[sources.name]
     layer.exclude = True  # the library assets are only sources, keep them out of the viewport
     return data_to.collections
@@ -99,11 +108,40 @@ def build_piece(biome, index, preset, overrides, seed, location):
     piece.select_set(True)
     bpy.context.view_layer.objects.active = piece
     bpy.ops.psg.make_area('EXEC_DEFAULT', preset=True, biome=biome, paint=True, shape_preset='NONE')
+    customize = CUSTOM_LAYERS.get(biome)
+    if customize is not None:
+        customize(piece)
     core.run_shape(piece)  # shape with the overrides above; re-snaps scatter and repaints
     for layer in piece.psg.layers:
         layer.seed = seed * 10 + layer.uid
     core.regenerate(piece)
     return piece
+
+
+def add_layer(piece, name, collection, mode, **values):
+    layer = core.add_layer(piece, collection)
+    layer.name = name
+    layer.mode = mode
+    for key, value in values.items():
+        setattr(layer, key, value)
+    return layer
+
+
+def volcano_layers(piece):
+    """Lava puddles as their own layer with a wide size range, footbridges over some of them."""
+    drobne = bpy.data.collections.get("Wulkan_Drobne")
+    for layer in piece.psg.layers:
+        if layer.source == drobne:
+            layer.source_filter = ", ".join(t for t in (layer.source_filter, "!Kaluza") if t)
+    puddles = add_layer(piece, "Kaluze lawy", drobne, 'SCATTER', source_filter="Kaluza",
+                        density=0.012, scale_min=0.45, scale_max=2.3, min_distance=5.0, avoid_distance=2.5,
+                        max_slope=math.radians(12.0), align_to_normal=1.0)
+    add_layer(piece, "Kladki", bpy.data.collections.get(BRIDGES), 'AROUND', parent=str(puddles.uid),
+              around_min=0.0, around_max=0.0, around_count_min=1, around_count_max=1, around_chance=0.7,
+              inherit_parent_scale=True, scale_min=1.0, scale_max=1.1, align_to_normal=1.0)
+
+
+CUSTOM_LAYERS = {"Wulkan": volcano_layers}
 
 
 def main():

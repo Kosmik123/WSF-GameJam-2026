@@ -132,6 +132,7 @@ class PSG_PT_layers(PSGPanel, bpy.types.Panel):
             row.prop(layer, "around_count_max")
             col.prop(layer, "around_chance")
             col.prop(layer, "around_scale_radius")
+            col.prop(layer, "inherit_parent_scale")
         elif layer.mode == 'CLUSTER':
             col.prop(layer, "cluster_density")
             col.prop(layer, "cluster_radius")

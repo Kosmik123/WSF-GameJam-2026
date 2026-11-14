@@ -47,7 +47,7 @@ Tryby obszaru:
 
 - **Scatter**: równomiernie po powierzchni, *Density* = sztuk na m².
 - **Clusters**: *Clusters / 100 m²*, *Cluster Radius*, *Min/Max Count*, *Single Chance* (szansa na pojedynczy egzemplarz).
-- **Around** (także na ścieżkach): wokół każdego elementu warstwy *Parent*. Ustawiasz promień min/max, liczbę min/max i *Chance*. *Scale with Parent* mnoży promień przez skalę rodzica. Warstwa rodzica musi być wyżej na liście. Usunięcie drzewa usuwa przy regeneracji jego trawę i krzaki (chyba że są zablokowane).
+- **Around** (także na ścieżkach): wokół każdego elementu warstwy *Parent*. *Inherit Parent Scale* mnoży skalę przez skalę rodzica, np. kładka tak duża jak kałuża pod nią (promień 0 = dokładnie na rodzicu). Ustawiasz promień min/max, liczbę min/max i *Chance*. *Scale with Parent* mnoży promień przez skalę rodzica. Warstwa rodzica musi być wyżej na liście. Usunięcie drzewa usuwa przy regeneracji jego trawę i krzaki (chyba że są zablokowane).
 
 Wspólne dla wszystkich trybów:
 
@@ -127,6 +127,11 @@ Sześć biomów, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek),
 | Wulkan | tarasy lawowe (4 poziomy, 2,5 m) | ryft (wąskie doliny) | poszarpany Mixed |
 | Lód | dolina lodowcowa | Mixed z górkami | pole śnieżne (1,2 m) |
 
+- **Wulkan, kałuże lawy i kładki:**
+  - Kałuże są osobną warstwą *Kaluze lawy* (Scatter): rzadko, w skali 0,45–2,3×, tylko na płaskim (do 12°), z dala od innych elementów. W warstwach trawy są wykluczone filtrem `!Kaluza`.
+  - Nad ok. 70% kałuż stoi kładka: warstwa *Kladki* (Around → Kaluze lawy, promień 0, 1 sztuka, *Inherit Parent Scale*), więc kładka ma długość dopasowaną do kałuży pod nią.
+  - Kładki to 4 proceduralne warianty low poly z [Tools/Blender/psg_examples/bridges.py](../Tools/Blender/psg_examples/bridges.py): drewniana z łukiem i poręczami, płaska z jedną poręczą, z brakującymi deskami, kamienne płyty.
+  - Kładki mają kolory w `Col` (fasety z jitterem, część desek przypalona), materiał `LD57 Stylized` i pivot na ziemi. Leżą lokalnie w kolekcji `PSG_Kladki`.
 - Kawałki nazywają się `Teren_<Biom>_<1-3>` i leżą w kolekcjach `Teren_<Biom>`. Instancje są w `PSG_Generated`.
 - Assety **nie są kopiowane**: kolekcje biomów są podlinkowane z `all_models.blend` (ścieżka względna, kolekcja `PSG_Sources (linked)` jest wykluczona z widoku). Zmiany modeli w `all_models.blend` od razu widać w biomach.
 - Plik buduje skrypt [Tools/Blender/psg_examples/build_biomes.py](../Tools/Blender/psg_examples/build_biomes.py). Ustawienia każdego kawałka (preset, nadpisania, seed) są w słowniku `BIOMES`. Ponowne uruchomienie nadpisuje plik:

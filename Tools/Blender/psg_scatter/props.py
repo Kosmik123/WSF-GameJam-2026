@@ -88,6 +88,9 @@ class PSG_Layer(bpy.types.PropertyGroup):
     around_count_max: IntProperty(name="Max Count", default=8, min=0, max=127, update=_scatter_changed)
     around_chance: FloatProperty(name="Chance", default=1.0, min=0.0, max=1.0, subtype='FACTOR',
                                  update=_scatter_changed, description="Chance that a parent instance gets surroundings")
+    inherit_parent_scale: BoolProperty(name="Inherit Parent Scale", default=False, update=_scatter_changed,
+                                       description="Multiply the scale by the parent instance scale "
+                                                   "(e.g. a bridge as big as the puddle under it)")
     around_scale_radius: BoolProperty(name="Scale with Parent", default=True, update=_scatter_changed,
                                       description="Multiply the radius by the parent instance scale")
     avoid_distance: FloatProperty(name="Avoid Other Layers", default=0.0, min=0.0, unit='LENGTH',
