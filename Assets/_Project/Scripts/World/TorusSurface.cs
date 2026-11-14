@@ -61,7 +61,7 @@ namespace WSFGameJam2026.World
         public Vector3 GetBasePoint(float theta, float phi)
         {
             float ring = MajorRadius + MinorRadius * Mathf.Cos(phi);
-            return new Vector3(ring * Mathf.Cos(theta), MinorRadius * Mathf.Sin(phi), ring * Mathf.Sin(theta));
+            return new Vector3(ring * Mathf.Sin(theta), MinorRadius * Mathf.Sin(phi), ring * Mathf.Cos(theta));
         }
 
         /// <summary>Outward normal of the base tube, without terrain height.</summary>
