@@ -30,9 +30,11 @@ namespace WSFGameJam2026.Editor
             player.name = "Player";
             Undo.RegisterCreatedObjectUndo(player, "Create Player");
 
+            // TorusPlayerMovement requires TorusObject, so Unity adds it automatically.
             var movement = player.AddComponent<TorusPlayerMovement>();
+            var torusObject = player.GetComponent<TorusObject>();
             var enabler = player.AddComponent<InputActionMapEnabler>();
-            SetReference(movement, "world", world);
+            SetReference(torusObject, "world", world);
             SetReference(movement, "moveAction", moveReference);
             SetReference(enabler, "actions", actionsAsset);
 
@@ -48,7 +50,7 @@ namespace WSFGameJam2026.Editor
             if (camera.TryGetComponent(out TorusFollowCamera followCamera) == false)
                 followCamera = Undo.AddComponent<TorusFollowCamera>(camera.gameObject);
 
-            SetReference(followCamera, "target", movement);
+            SetReference(followCamera, "target", torusObject);
 
             Selection.activeGameObject = player;
             EditorSceneManager.MarkSceneDirty(player.scene);

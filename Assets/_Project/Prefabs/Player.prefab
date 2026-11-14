@@ -237,6 +237,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8746362065382489076}
   - component: {fileID: 1929964610123949241}
+  - component: {fileID: 1929964610123949250}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -272,16 +273,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 375f6073bf3e9d944b42757ac88611b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.TorusPlayerMovement
-  world: {fileID: 0}
   moveAction: {fileID: -1680190386980627800, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   moveSpeed: 8
   inputResponse: 8
-  turnSpeed: 100
-  groundOffset: 0.01
-  slopeSampleDistance: 1.5
-  heightSharpness: 25
-  tiltSharpness: 12
+  turnSpeed: 180
+--- !u!114 &1929964610123949250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b2d4dc6db724a03ad0a0f56ef98ba7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusObject
+  world: {fileID: 0}
+  groundOffset: 0.1
   startTheta: 0
   startPhi: 90
-  theta: 0
-  phi: 0

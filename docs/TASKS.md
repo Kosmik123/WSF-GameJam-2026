@@ -22,6 +22,8 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] Świat: proceduralny torus z segmentami o różnej rozdzielczości i terenie (`TorusWorld`, `TorusSurface`, `TorusSegmentMeshBuilder`).
 - [x] Szum terenu z Unity.Mathematics.
 - [x] Przebudowa świata po zmianie w Inspectorze (OnValidate).
+- [x] `TorusObject`: ogólna klasa dla wszystkiego, co stoi na torusie (gracz, NPC, przedmioty), pozycja jako `θ`, `φ`; `TorusPlayerMovement` tylko steruje nim z wejścia (A/D obrót, W/S przód i tył).
+- [x] Kamera z góry pod skosem za graczem.
 
 ## W trakcie
 

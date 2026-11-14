@@ -1,5 +1,5 @@
 using UnityEngine;
-using WSFGameJam2026.Player;
+using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Cameras
 {
@@ -11,7 +11,7 @@ namespace WSFGameJam2026.Cameras
     public class TorusFollowCamera : MonoBehaviour
     {
         [SerializeField]
-        private TorusPlayerMovement target;
+        private TorusObject target;
 
         [Header("Placement")]
         [SerializeField]
@@ -41,7 +41,7 @@ namespace WSFGameJam2026.Cameras
 
         private void Reset()
         {
-            target = FindFirstObjectByType<TorusPlayerMovement>();
+            target = FindFirstObjectByType<TorusObject>();
         }
 
         private void OnEnable()
