@@ -86,7 +86,7 @@ namespace WSFGameJam2026.Head
             return points;
         }
 
-        private static Mesh GetMesh(Renderer renderer)
+        internal static Mesh GetMesh(Renderer renderer)
         {
             if (renderer is SkinnedMeshRenderer skinned)
                 return skinned.sharedMesh;
@@ -95,7 +95,7 @@ namespace WSFGameJam2026.Head
         }
 
         /// <summary>Fills bins without any vertex by interpolating between the nearest filled bins around the circle.</summary>
-        private static bool FillEmptyBins(float[] radii)
+        internal static bool FillEmptyBins(float[] radii)
         {
             int count = radii.Length;
             bool hasAny = false;

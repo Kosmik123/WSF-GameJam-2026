@@ -181,7 +181,7 @@ namespace WSFGameJam2026.Rounds
 
             spawner.RoundMultiplier = 1f + enemiesPerRound * roundsPlayed;
             spawner.Clear();
-
+             
             var startTheta = head.Theta + startGapDegrees * Mathf.Deg2Rad;
             var startAngles = new TorusAngles(startTheta, startPhiDegrees * Mathf.Deg2Rad);
             var world = playerObject.World;

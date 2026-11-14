@@ -36,6 +36,20 @@ namespace WSFGameJam2026.Head
         [SerializeField]
         private float neckHeightOffset;
 
+        [Header("Head surface")]
+        [Tooltip("The player walks on the real surface of the head, baked from its meshes into a height map. Off = the neck outline stretched along the head.")]
+        [SerializeField]
+        private bool useHeadHeightMap = true;
+
+        [Tooltip("Size of a cell of the head height map along the body, in world units. Make it not larger than the terrain mesh vertices spacing.")]
+        [SerializeField]
+        [Min(0.05f)]
+        private float headMapCellSize = 0.25f;
+
+        [Tooltip("Number of cells of the head height map around the tube.")]
+        [SerializeField]
+        [Min(8)]
+        private int headMapColumns = 128;
 
         [Header("Tail")]
         [Tooltip("Length of the zone ahead of the head where the tail thins out just before it is eaten, in degrees along the snake body. 0 = no thinning.")]
@@ -185,6 +199,24 @@ namespace WSFGameJam2026.Head
             return Mathf.Max(0f, measuredLength + headFrontOffsetDegrees * Mathf.Deg2Rad);
         }
 
+        private void BakeHeadMap(Renderer[] renderers)
+        {
+            if (useHeadHeightMap == false)
+                return;
+
+            if (HeadHeightMapBaker.TryBake(world, movement.Theta, renderers, headMapCellSize, headMapColumns, out float[,] map, out float mapLength) == false)
+            {
+                Debug.LogWarning("Could not bake the height map of the head, the neck outline is used instead.", this);
+                return;
+            }
+
+            for (int row = 0; row < map.GetLength(0); row++)
+                for (int column = 0; column < map.GetLength(1); column++)
+                    map[row, column] += neckHeightOffset;
+
+            world.HeadTerrain.ConfigureHeadMap(map, mapLength, neckSliceDepthDegrees * Mathf.Deg2Rad);
+        }
+
         private bool Measure()
         {
             movement.Refresh();
@@ -203,6 +235,7 @@ namespace WSFGameJam2026.Head
 
             headLength = GetAdjustedHeadLength(headLength);
             world.HeadTerrain.Configure(neckOffset, headLength, headBlendLengthDegrees * Mathf.Deg2Rad, heights);
+            BakeHeadMap(renderers);
             world.HeadTerrain.ConfigureTail(tailTaperLengthDegrees * Mathf.Deg2Rad, tailTaperCurve);
             world.HeadTerrain.SetTheta(movement.Theta);
             return true;

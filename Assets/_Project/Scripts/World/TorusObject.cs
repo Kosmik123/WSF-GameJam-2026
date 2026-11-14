@@ -29,6 +29,8 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private TorusAngles startAngles = TorusAngles.FromDegrees(0f, 90f);
 
+        [Header("States")]
+        [SerializeField]
         private TorusAngles angles;
 
         private float smoothedHeight;

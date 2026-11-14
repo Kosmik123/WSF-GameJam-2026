@@ -281,7 +281,7 @@ MonoBehaviour:
   groundOffset: 0.1
   heightSharpness: 25
   startAngles:
-    thetaRadians: 0.5235988
+    thetaRadians: 0.17453292
     phiRadians: 1.0471976
 --- !u!114 &1929964610123949241
 MonoBehaviour:
