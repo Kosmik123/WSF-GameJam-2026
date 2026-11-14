@@ -45,6 +45,10 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private bool receiveShadows = true;
 
+        [Tooltip("Settings of the props by mesh: blocking radius, visible range, turning a class off. Empty = every prop is placed, always visible, does not block.")]
+        [SerializeField]
+        private TorusPropCatalog propCatalog;
+
         [Header("Toppling Before The Head")]
         [Tooltip("Tall assets (trees, columns) fall over when the head comes this close to them, in meters along the body ahead of the head's front.")]
         [SerializeField]
@@ -68,6 +72,8 @@ namespace WSFGameJam2026.World
 
         private readonly List<Batch> batches = new List<Batch>();
         private readonly List<Placement> placements = new List<Placement>();
+        private Matrix4x4[] shadowBuffer = new Matrix4x4[0];
+        private Matrix4x4[] plainBuffer = new Matrix4x4[0];
         private int appliedHeadVersion = -1;
         private readonly Dictionary<Material, Material> instancedMaterials = new Dictionary<Material, Material>();
         private bool isBuilt;
@@ -111,6 +117,7 @@ namespace WSFGameJam2026.World
             public readonly List<Matrix4x4> LocalMatrices = new List<Matrix4x4>();
             public readonly List<Placement> Owners = new List<Placement>();
             public float[] Thetas;
+            public float VisibleRange;
             public Matrix4x4[] WorldMatrices;
         }
 
@@ -178,6 +185,7 @@ namespace WSFGameJam2026.World
             foreach (var batch in batches)
                 SortByTheta(batch);
 
+            world.Obstacles.Build(surface);
             UpdateWorldMatrices();
         }
 
@@ -235,6 +243,13 @@ namespace WSFGameJam2026.World
                 if (renderer.gameObject == terrain.gameObject || renderer.TryGetComponent<MeshFilter>(out var filter) == false || filter.sharedMesh == null)
                     continue;
 
+                TorusPropDefinition definition = null;
+                if (propCatalog)
+                    propCatalog.TryGetDefinition(filter.sharedMesh, out definition);
+
+                if (definition && definition.IsDisabled)
+                    continue;
+
                 index++;
                 var onTerrain = toTerrain * renderer.transform.localToWorldMatrix;
                 Vector3 local = onTerrain.GetColumn(3);
@@ -248,7 +263,7 @@ namespace WSFGameJam2026.World
                 var neighbour = isEndBorder ? next : previous;
                 float ownWeight = blendWidth > 0f ? TorusSegmentBlend.GetOwnWeight(own, neighbour, distance / blendWidth, around, isEndBorder) : 1f;
                 if (Hash01(segment, index, 0) < ownWeight)
-                    AddPlaced(surface, segment + along, around, onTerrain, filter.sharedMesh, renderer.sharedMaterials, batchLookup);
+                    AddPlaced(surface, segment + along, around, onTerrain, filter.sharedMesh, renderer.sharedMaterials, definition, batchLookup);
 
                 if (blendWidth <= 0f || neighbour == null || neighbour.ClampsAlong == false)
                     continue;
@@ -257,12 +272,12 @@ namespace WSFGameJam2026.World
                 if (mirroredWeight > 0.001f && Hash01(segment, index, 1) < mirroredWeight)
                 {
                     float mirroredSegmentPosition = isEndBorder ? segment + 1f + distance : segment - distance;
-                    AddPlaced(surface, mirroredSegmentPosition, around, onTerrain, filter.sharedMesh, renderer.sharedMaterials, batchLookup);
+                    AddPlaced(surface, mirroredSegmentPosition, around, onTerrain, filter.sharedMesh, renderer.sharedMaterials, definition, batchLookup);
                 }
             }
         }
 
-        private void AddPlaced(TorusSurface surface, float segmentPosition, float around, Matrix4x4 onTerrain, Mesh mesh, Material[] materials, Dictionary<(Mesh, int, Material), Batch> batchLookup)
+        private void AddPlaced(TorusSurface surface, float segmentPosition, float around, Matrix4x4 onTerrain, Mesh mesh, Material[] materials, TorusPropDefinition definition, Dictionary<(Mesh, int, Material), Batch> batchLookup)
         {
             var placement = new Placement();
             placement.BaseMatrix = GetTorusMatrix(surface, segmentPosition, around, onTerrain, placement);
@@ -271,9 +286,13 @@ namespace WSFGameJam2026.World
             int seed = Mathf.RoundToInt(segmentPosition * 10007f + around * 7919f);
             placement.FallYaw = (Hash01(seed, placements.Count, 2) * 2f - 1f) * toppleSpreadDegrees * Mathf.Deg2Rad;
             placement.FallDelay = Hash01(seed, placements.Count, 3) * 0.45f;
-            AddInstance(mesh, materials, placement, batchLookup);
+            float visibleRange = definition ? definition.VisibleRangeDegrees * Mathf.Deg2Rad : TorusGeometry.TwoPi;
+            AddInstance(mesh, materials, placement, visibleRange, batchLookup);
             placements.Add(placement);
             InstanceCount++;
+
+            if (definition && definition.BlockRadius > 0f)
+                world.Obstacles.Add(new TorusAngles(placement.Theta, placement.Phi), definition.BlockRadius * onTerrain.lossyScale.x);
         }
 
         /// <summary>Deterministic random 0-1 per asset, so the blend looks the same after every rebuild.</summary>
@@ -318,7 +337,7 @@ namespace WSFGameJam2026.World
             return Matrix4x4.TRS(position, frame * onTerrain.rotation, onTerrain.lossyScale);
         }
 
-        private void AddInstance(Mesh mesh, Material[] materials, Placement placement, Dictionary<(Mesh, int, Material), Batch> batchLookup)
+        private void AddInstance(Mesh mesh, Material[] materials, Placement placement, float visibleRange, Dictionary<(Mesh, int, Material), Batch> batchLookup)
         {
             if (materials == null || materials.Length == 0)
                 return;
@@ -332,7 +351,7 @@ namespace WSFGameJam2026.World
                 var key = (mesh, subMesh, material);
                 if (batchLookup.TryGetValue(key, out var batch) == false)
                 {
-                    batch = new Batch { Mesh = mesh, SubMesh = subMesh, Material = material };
+                    batch = new Batch { Mesh = mesh, SubMesh = subMesh, Material = material, VisibleRange = visibleRange };
                     batchLookup.Add(key, batch);
                     batches.Add(batch);
                 }
@@ -405,6 +424,12 @@ namespace WSFGameJam2026.World
         // Instances near the shadow target cast shadows, all the others do not: two groups of draws per batch.
         private void DrawBatch(Batch batch, Camera camera, Bounds bounds)
         {
+            if (batch.VisibleRange < Mathf.PI && shadowTarget != null)
+            {
+                DrawLimited(batch, camera, bounds);
+                return;
+            }
+
             int count = batch.WorldMatrices.Length;
             if (shadowTarget == null)
             {
@@ -439,6 +464,47 @@ namespace WSFGameJam2026.World
             DrawRange(shadowParams, batch, first, count);
             DrawRange(shadowParams, batch, 0, wrappedLast);
             DrawRange(noShadowParams, batch, wrappedLast, first);
+        }
+
+        // Props with a limited visible range (grass...): only the ones within the range of theta around the shadow target are drawn.
+        // The visible ones are copied into two buffers, with and without shadows.
+        private void DrawLimited(Batch batch, Camera camera, Bounds bounds)
+        {
+            int count = batch.WorldMatrices.Length;
+            if (shadowBuffer.Length < count)
+            {
+                shadowBuffer = new Matrix4x4[count];
+                plainBuffer = new Matrix4x4[count];
+            }
+
+            float targetTheta = shadowTarget.Angles.Theta;
+            float shadowRange = nearShadowRangeDegrees * Mathf.Deg2Rad;
+
+            int shadowCount = 0;
+            int plainCount = 0;
+            for (int i = 0; i < count; i++)
+            {
+                float distance = Mathf.Abs(Mathf.Repeat(batch.Thetas[i] - targetTheta + Mathf.PI, TorusGeometry.TwoPi) - Mathf.PI);
+                if (distance > batch.VisibleRange)
+                    continue;
+
+                if (distance <= shadowRange)
+                {
+                    shadowBuffer[shadowCount++] = batch.WorldMatrices[i];
+                    continue;
+                }
+
+                plainBuffer[plainCount++] = batch.WorldMatrices[i];
+            }
+
+            DrawBuffer(CreateRenderParams(batch, camera, bounds, ShadowCastingMode.On), batch, shadowBuffer, shadowCount);
+            DrawBuffer(CreateRenderParams(batch, camera, bounds, ShadowCastingMode.Off), batch, plainBuffer, plainCount);
+        }
+
+        private static void DrawBuffer(RenderParams renderParams, Batch batch, Matrix4x4[] buffer, int count)
+        {
+            for (int start = 0; start < count; start += MaxInstancesPerDraw)
+                Graphics.RenderMeshInstanced(renderParams, batch.Mesh, batch.SubMesh, buffer, Mathf.Min(MaxInstancesPerDraw, count - start), start);
         }
 
         private RenderParams CreateRenderParams(Batch batch, Camera camera, Bounds bounds, ShadowCastingMode shadowMode)
@@ -583,6 +649,9 @@ namespace WSFGameJam2026.World
 
         private void Clear()
         {
+            if (world)
+                world.Obstacles.Clear();
+
             placements.Clear();
             appliedHeadVersion = -1;
             batches.Clear();
