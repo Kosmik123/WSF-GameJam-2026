@@ -35,12 +35,38 @@ namespace WSFGameJam2026.World
         private bool receiveShadows = true;
 
         private readonly List<Batch> batches = new List<Batch>();
+        private readonly List<Placement> placements = new List<Placement>();
+        private int appliedHeadVersion = -1;
         private readonly Dictionary<Material, Material> instancedMaterials = new Dictionary<Material, Material>();
         private bool isBuilt;
         private Matrix4x4 builtWorldMatrix;
 
         /// <summary>Number of placed assets.</summary>
         public int InstanceCount { get; private set; }
+
+        /// <summary>Where an asset stands on the terrain and which slots of the batches hold its matrices (one per sub-mesh).</summary>
+        private class Placement
+        {
+            public float Theta;
+            public float Phi;
+            public float Height;
+            public Vector3 Up;
+            public Matrix4x4 BaseMatrix;
+            public bool IsMoved;
+            public readonly List<Slot> Slots = new List<Slot>();
+        }
+
+        private readonly struct Slot
+        {
+            public readonly Batch Batch;
+            public readonly int Index;
+
+            public Slot(Batch batch, int index)
+            {
+                Batch = batch;
+                Index = index;
+            }
+        }
 
         private class Batch
         {
@@ -125,8 +151,10 @@ namespace WSFGameJam2026.World
                     continue;
 
                 var onTerrain = toTerrain * renderer.transform.localToWorldMatrix;
-                var matrix = GetTorusMatrix(surface, segment, terrainBounds, onTerrain, heightScale, heightOffset);
-                AddInstance(filter.sharedMesh, renderer.sharedMaterials, matrix, batchLookup);
+                var placement = new Placement();
+                placement.BaseMatrix = GetTorusMatrix(surface, segment, terrainBounds, onTerrain, heightScale, heightOffset, placement);
+                AddInstance(filter.sharedMesh, renderer.sharedMaterials, placement, batchLookup);
+                placements.Add(placement);
                 InstanceCount++;
             }
         }
@@ -136,7 +164,7 @@ namespace WSFGameJam2026.World
         /// Position: terrain X -> along the segment, terrain Z -> around the tube, terrain Y -> height (as the segment profile).
         /// Rotation: terrain up becomes the tube normal, like <see cref="TorusObject"/> uses for anything standing on the torus.
         /// </summary>
-        private Matrix4x4 GetTorusMatrix(TorusSurface surface, int segment, Bounds terrainBounds, Matrix4x4 onTerrain, float heightScale, float heightOffset)
+        private Matrix4x4 GetTorusMatrix(TorusSurface surface, int segment, Bounds terrainBounds, Matrix4x4 onTerrain, float heightScale, float heightOffset, Placement placement)
         {
             Vector3 local = onTerrain.GetColumn(3);
             float along = Mathf.Clamp01((local.x - terrainBounds.min.x) / Mathf.Max(terrainBounds.size.x, 1e-4f));
@@ -146,6 +174,10 @@ namespace WSFGameJam2026.World
 
             var up = surface.GetBaseNormal(theta, phi);
             float height = local.y * heightScale + heightOffset;
+            placement.Theta = theta;
+            placement.Phi = phi;
+            placement.Height = height;
+            placement.Up = up;
             var position = surface.GetBasePoint(theta, phi) + up * height;
 
             // Terrain X maps to growing theta and Z to growing phi; with the normal as up that frame is mirrored,
@@ -154,7 +186,7 @@ namespace WSFGameJam2026.World
             return Matrix4x4.TRS(position, frame * onTerrain.rotation, onTerrain.lossyScale);
         }
 
-        private void AddInstance(Mesh mesh, Material[] materials, Matrix4x4 matrix, Dictionary<(Mesh, int, Material), Batch> batchLookup)
+        private void AddInstance(Mesh mesh, Material[] materials, Placement placement, Dictionary<(Mesh, int, Material), Batch> batchLookup)
         {
             if (materials == null || materials.Length == 0)
                 return;
@@ -173,7 +205,8 @@ namespace WSFGameJam2026.World
                     batches.Add(batch);
                 }
 
-                batch.LocalMatrices.Add(matrix);
+                batch.LocalMatrices.Add(placement.BaseMatrix);
+                placement.Slots.Add(new Slot(batch, batch.LocalMatrices.Count - 1));
             }
         }
 
@@ -228,6 +261,8 @@ namespace WSFGameJam2026.World
             if (world.transform.localToWorldMatrix != builtWorldMatrix)
                 UpdateWorldMatrices();
 
+            ApplyHeadTerrain();
+
             float radius = (world.MajorRadius + world.MinorRadius) * 2f + 50f;
             var bounds = new Bounds(world.transform.position, Vector3.one * radius * Mathf.Max(1f, world.transform.lossyScale.x));
             foreach (var batch in batches)
@@ -249,8 +284,65 @@ namespace WSFGameJam2026.World
             }
         }
 
+        /// <summary>
+        /// The head shapes the terrain near it (the tail ahead of it thins out, the terrain behind it blends into the neck), but the assets
+        /// are placed on the terrain without the head. So whenever the head terrain changes, assets in the range it affects are moved along
+        /// the tube normal by the change of the terrain height at their spot. Assets under the head itself are hidden.
+        /// Assets that left the range go back to their original place.
+        /// </summary>
+        private void ApplyHeadTerrain()
+        {
+            var headTerrain = world.HeadTerrain;
+            if (headTerrain == null || headTerrain.Version == appliedHeadVersion)
+                return;
+
+            appliedHeadVersion = headTerrain.Version;
+            headTerrain.GetAffectedRange(out float rangeStart, out float rangeLength);
+            float minorRadius = world.MinorRadius;
+
+            foreach (var placement in placements)
+            {
+                bool isInRange = headTerrain.IsActive && Mathf.Repeat(placement.Theta - rangeStart, TorusGeometry.TwoPi) <= rangeLength;
+                if (isInRange == false && placement.IsMoved == false)
+                    continue;
+
+                var matrix = placement.BaseMatrix;
+                if (isInRange)
+                {
+                    matrix = headTerrain.GetWeight(placement.Theta) >= 1f ? GetHiddenMatrix(placement.BaseMatrix) : GetMovedMatrix(headTerrain, placement, minorRadius);
+                    placement.IsMoved = true;
+                }
+                else
+                {
+                    placement.IsMoved = false;
+                }
+
+                foreach (var slot in placement.Slots)
+                {
+                    slot.Batch.LocalMatrices[slot.Index] = matrix;
+                    slot.Batch.WorldMatrices[slot.Index] = builtWorldMatrix * matrix;
+                }
+            }
+        }
+
+        private static Matrix4x4 GetMovedMatrix(TorusHeadTerrain headTerrain, Placement placement, float minorRadius)
+        {
+            float newHeight = headTerrain.Apply(placement.Height, placement.Theta, placement.Phi, minorRadius);
+            var matrix = placement.BaseMatrix;
+            var position = (Vector3)matrix.GetColumn(3) + placement.Up * (newHeight - placement.Height);
+            matrix.SetColumn(3, new Vector4(position.x, position.y, position.z, 1f));
+            return matrix;
+        }
+
+        private static Matrix4x4 GetHiddenMatrix(Matrix4x4 matrix)
+        {
+            return Matrix4x4.TRS(matrix.GetColumn(3), Quaternion.identity, Vector3.zero);
+        }
+
         private void Clear()
         {
+            placements.Clear();
+            appliedHeadVersion = -1;
             batches.Clear();
             InstanceCount = 0;
             foreach (var instanced in instancedMaterials.Values)
