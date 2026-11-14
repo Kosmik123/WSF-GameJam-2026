@@ -23,6 +23,23 @@ def _poll_ground(_self, obj):
     return obj.type == 'MESH' and obj.psg_inst.path is None
 
 
+_parent_cache = []
+
+
+def _parent_items(self, _context):
+    """Earlier layers of the same generator; the enum value is the layer uid (stable on rename/reorder)."""
+    items = [("0", "-", "No parent", 0)]
+    for layer in self.id_data.psg.layers:
+        if layer.uid != self.uid:
+            items.append((str(layer.uid), layer.name, "", layer.uid))
+    _parent_cache[:] = items
+    return _parent_cache
+
+
+PATH_MODES = ('LINE', 'EDGES', 'BAND', 'AROUND')
+AREA_MODES = ('SCATTER', 'CLUSTER', 'AROUND')
+
+
 class PSG_Layer(bpy.types.PropertyGroup):
     name: StringProperty(name="Name", default="Layer")
     uid: IntProperty()
@@ -30,13 +47,39 @@ class PSG_Layer(bpy.types.PropertyGroup):
     source: PointerProperty(
         name="Source", type=bpy.types.Collection, update=_scatter_changed,
         description="Collection with source meshes (variants). Custom prop 'psg_weight' on an object sets its pick weight")
+    source_filter: StringProperty(
+        name="Filter", update=_scatter_changed,
+        description="Comma-separated name parts to use from the collection, '!' excludes (e.g. 'Trawa, Kwiaty, !v3')")
     mode: EnumProperty(
         name="Mode", update=_scatter_changed, default='LINE',
         items=[
-            ('LINE', "Along", "One instance every Spacing, randomly offset inside Width"),
-            ('EDGES', "Edges", "Pairs of instances on both edges at distance Width (fences, borders)"),
-            ('BAND', "Band", "Random fill of the band between Inner Width and Width, by Density"),
+            ('LINE', "Along", "Path: one instance every Spacing, randomly offset inside Width"),
+            ('EDGES', "Edges", "Path: pairs of instances on both edges at distance Width (fences, borders)"),
+            ('BAND', "Band", "Path: random fill of the band between Inner Width and Width, by Density"),
+            ('SCATTER', "Scatter", "Area: uniform random scatter by Density"),
+            ('CLUSTER', "Clusters", "Area: groups of instances around random centers, some single"),
+            ('AROUND', "Around", "Instances around every instance of the Parent layer (grass and bushes around trees)"),
         ])
+    cluster_density: FloatProperty(name="Clusters / 100 m²", default=0.5, min=0.0, soft_max=20.0,
+                                   update=_scatter_changed)
+    cluster_radius: FloatProperty(name="Cluster Radius", default=4.0, min=0.0, unit='LENGTH', update=_scatter_changed)
+    cluster_min: IntProperty(name="Min Count", default=2, min=1, max=127, update=_scatter_changed)
+    cluster_max: IntProperty(name="Max Count", default=4, min=1, max=127, update=_scatter_changed)
+    single_chance: FloatProperty(name="Single Chance", default=0.3, min=0.0, max=1.0, subtype='FACTOR',
+                                 update=_scatter_changed, description="Chance that a cluster is a single instance")
+    parent: EnumProperty(name="Parent", items=_parent_items, update=_scatter_changed,
+                         description="Layer whose instances this layer surrounds")
+    around_min: FloatProperty(name="Radius Min", default=0.8, min=0.0, unit='LENGTH', update=_scatter_changed)
+    around_max: FloatProperty(name="Radius Max", default=3.0, min=0.0, unit='LENGTH', update=_scatter_changed)
+    around_count_min: IntProperty(name="Min Count", default=3, min=0, max=127, update=_scatter_changed)
+    around_count_max: IntProperty(name="Max Count", default=8, min=0, max=127, update=_scatter_changed)
+    around_chance: FloatProperty(name="Chance", default=1.0, min=0.0, max=1.0, subtype='FACTOR',
+                                 update=_scatter_changed, description="Chance that a parent instance gets surroundings")
+    around_scale_radius: BoolProperty(name="Scale with Parent", default=True, update=_scatter_changed,
+                                      description="Multiply the radius by the parent instance scale")
+    avoid_distance: FloatProperty(name="Avoid Other Layers", default=0.0, min=0.0, unit='LENGTH',
+                                  update=_scatter_changed,
+                                  description="Keep this distance from instances of the layers above (except Parent)")
     seed: IntProperty(name="Seed", default=1, update=_scatter_changed)
     spacing: FloatProperty(name="Spacing", default=2.0, min=0.05, unit='LENGTH', update=_scatter_changed)
     jitter: FloatProperty(name="Jitter", default=0.3, min=0.0, max=1.0, subtype='FACTOR', update=_scatter_changed)
@@ -45,7 +88,7 @@ class PSG_Layer(bpy.types.PropertyGroup):
     inner_width: FloatProperty(name="Inner Width", default=0.0, min=0.0, unit='LENGTH', update=_scatter_changed,
                                description="Keep this distance from the centerline clear (roads, rivers)")
     density: FloatProperty(name="Density", default=0.5, min=0.0, soft_max=10.0, update=_scatter_changed,
-                           description="Band mode: instances per square meter")
+                           description="Band / Scatter: instances per square meter")
     edge_falloff: FloatProperty(name="Edge Falloff", default=0.0, min=0.0, max=1.0, subtype='FACTOR',
                                 update=_scatter_changed, description="Thin out instances towards the outer edge")
     min_distance: FloatProperty(name="Min Distance", default=0.0, min=0.0, unit='LENGTH', update=_scatter_changed)
@@ -66,6 +109,7 @@ class PSG_Layer(bpy.types.PropertyGroup):
 
 class PSG_PathSettings(bpy.types.PropertyGroup):
     is_path: BoolProperty(name="PSG Path", default=False)
+    is_area: BoolProperty(name="PSG Area", default=False)
     target: PointerProperty(name="Ground", type=bpy.types.Object, poll=_poll_ground, update=_scatter_changed,
                             description="Mesh the instances snap to and that gets painted")
     live_update: BoolProperty(name="Live Update", default=True,

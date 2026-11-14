@@ -1,6 +1,6 @@
 # PSG: Path Scatter Generator (addon Blendera)
 
-Rysujesz linię adnotacją, addon zamienia ją w edytowalną krzywą, rozmieszcza wzdłuż niej assety (np. z biomów z [WSF_Biom.md](WSF_Biom.md)) i maluje pod nią podłoże vertex colorem z miękkim przejściem na krawędziach. Wynik eksportuje się do Unity 6 jako FBX ze współdzielonymi meshami.
+Dwa generatory: **obszar** (scatter na zaznaczonej płaszczyźnie, drzewa w klastrach, trawa i krzaki wokół nich) oraz **ścieżka**. Przy ścieżce rysujesz linię adnotacją, addon zamienia ją w edytowalną krzywą, rozmieszcza wzdłuż niej assety (np. z biomów z [WSF_Biom.md](WSF_Biom.md)) i maluje pod nią podłoże vertex colorem z miękkim przejściem na krawędziach. Wynik eksportuje się do Unity 6 jako FBX ze współdzielonymi meshami.
 
 Kod: [Tools/Blender/psg_scatter/](../Tools/Blender/psg_scatter/). Testowane w Blenderze 5.3 (minimum 4.2).
 
@@ -27,6 +27,34 @@ Każdy wygenerowany element to **zwykły obiekt** (linked duplicate), który **w
 5. Edytuj krzywą jak każdą inną (Tab, przesuwanie punktów). Przy włączonym **Live Update** instancje i malowanie odświeżają się same.
 
 Instancje trafiają do `PSG_Generated/PSG_<ścieżka>`, są osadzone na terenie (raycast w dół) i mają pivot na ziemi.
+
+## Scatter na płaszczyźnie (obszar)
+
+1. Zaznacz płaszczyznę albo teren i kliknij **Scatter on Selected Mesh**. W oknie wybierz biom i czy dodać preset.
+2. Preset biomu dodaje 5 warstw. Kolekcje bierze z `all_models.blend` (`<Biom>_Duze`, `_Srednie`, `_Drobne`):
+
+| Warstwa | Tryb | Co robi |
+|---|---|---|
+| Drzewa | Clusters | grupki 2–4 drzew w promieniu 4 m, 35% szans na pojedyncze drzewo |
+| Krzewy | Around → Drzewa | 0–2 krzaki, głazy, pniaki wokół każdego drzewa |
+| Trawa wokol | Around → Drzewa | 6–14 kęp trawy, paproci, kwiatów, grzybów wokół każdego drzewa |
+| Trawa | Scatter | rzadka trawa na całym obszarze, z dala od innych warstw |
+| Kamienie | Scatter | pojedyncze kamyki |
+
+3. Warstwy dodajesz, kopiujesz i ustawiasz tak samo jak na ścieżce. **Apply Biome Preset** podmienia warstwy obszaru na preset innego biomu.
+
+Tryby obszaru:
+
+- **Scatter**: równomiernie po powierzchni, *Density* = sztuk na m².
+- **Clusters**: *Clusters / 100 m²*, *Cluster Radius*, *Min/Max Count*, *Single Chance* (szansa na pojedynczy egzemplarz).
+- **Around** (także na ścieżkach): wokół każdego elementu warstwy *Parent*. Ustawiasz promień min/max, liczbę min/max i *Chance*. *Scale with Parent* mnoży promień przez skalę rodzica. Warstwa rodzica musi być wyżej na liście. Usunięcie drzewa usuwa przy regeneracji jego trawę i krzaki (chyba że są zablokowane).
+
+Wspólne dla wszystkich trybów:
+
+- **Filter**: które obiekty z kolekcji brać, po fragmentach nazw oddzielonych przecinkami, `!` wyklucza. Na przykład `Trawa, Kwiaty` albo `!Kamyki, !Grzyby`. Pod polem widać liczbę pasujących wariantów.
+- **Avoid Other Layers**: odległość od elementów warstw wyżej na liście (oprócz *Parent*), np. żeby kamienie nie wchodziły w drzewa.
+
+Elementy osadzają się na powierzchni obszaru (raycast z góry), więc teren może mieć pagórki. Obszar może też być terenem (*Ground*) dla ścieżek, a ścieżki malują na nim drogi.
 
 ## Warstwy scatteru (kilka na ścieżkę)
 
@@ -71,3 +99,5 @@ W Unity: Model Importer jak dla assetów biomów (Bake Axis Conversion, Normals:
 - Malowanie liczy odległość w płaszczyźnie XY, więc nadaje się do terenów „z góry”. Teren w kształcie torusa trzeba malować na płaskim kawałku przed wygięciem albo dopisać projekcję.
 - Modyfikatory obiektu źródłowego nie przechodzą na instancje (współdzielony jest tylko mesh). Zastosuj je w źródle.
 - Kreski adnotacji w trybie 2D (widok, obraz) są pomijane. Rysuj z umieszczaniem *Surface* albo *3D Cursor*.
+- Eksporter FBX wypisuje w konsoli ostrzeżenia „Cannot register a valid material index” przy współdzielonych meshach. Sprawdziłem ponowny import: materiały, indeksy ścian i współdzielenie meshy się zgadzają, więc ostrzeżenia nie mają skutków.
+- Obszar w trybie edycji (Tab) nie odświeża się na bieżąco. Scatter przelicza się po wyjściu z edycji.

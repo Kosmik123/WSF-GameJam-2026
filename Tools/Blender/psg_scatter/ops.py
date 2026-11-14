@@ -8,16 +8,17 @@ from . import core
 
 
 def active_path(context):
+    """Active generator: a path curve, an area mesh, or the generator of the active instance."""
     obj = context.active_object
     if obj is None:
         return None
-    if obj.type == 'CURVE' and obj.psg.is_path:
+    if core.is_generator(obj):
         return obj
     return obj.psg_inst.path
 
 
 def selected_paths(context):
-    paths = {o for o in context.selected_objects if o.type == 'CURVE' and o.psg.is_path}
+    paths = {o for o in context.selected_objects if core.is_generator(o)}
     current = active_path(context)
     if current is not None:
         paths.add(current)
@@ -101,14 +102,79 @@ class PSG_OT_make_path(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class PSG_OT_create_ground(PathOperator):
+BIOMES = [(b, b, "") for b in ("Las", "Pustynia", "Wybrzeze", "Lod", "Wulkan", "Bagno")]
+
+
+class PSG_OT_make_area(bpy.types.Operator):
+    bl_idname = "psg.make_area"
+    bl_label = "Scatter on Selected Mesh"
+    bl_description = "Turn the selected mesh (plane, terrain) into a PSG area with scatter layers"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    preset: BoolProperty(name="Biome Preset", default=True,
+                         description="Add trees in clusters + bushes and grass around them + grass and rocks")
+    biome: EnumProperty(name="Biome", items=BIOMES)
+
+    @classmethod
+    def poll(cls, context):
+        return any(o.type == 'MESH' and o.psg_inst.path is None for o in context.selected_objects)
+
+    def invoke(self, context, _event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        missing = []
+        for obj in context.selected_objects:
+            if obj.type != 'MESH' or obj.psg_inst.path is not None:
+                continue
+            obj.psg.is_area = True
+            if self.preset and not obj.psg.layers:
+                missing += core.apply_biome_preset(obj, self.biome, replace=False)
+            core.init_area(obj, context.scene.psg)
+            core.regenerate(obj, context.evaluated_depsgraph_get())
+        if missing:
+            self.report({'WARNING'}, "Missing collections: " + ", ".join(sorted(set(missing))))
+        return {'FINISHED'}
+
+
+class PSG_OT_area_preset(PathOperator):
+    bl_idname = "psg.area_preset"
+    bl_label = "Apply Biome Preset"
+    bl_description = "Replace the layers of the active area with the biome preset"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    biome: EnumProperty(name="Biome", items=BIOMES)
+    replace: BoolProperty(name="Replace Layers", default=True)
+
+    @classmethod
+    def poll(cls, context):
+        return core.is_area(active_path(context))
+
+    def invoke(self, context, _event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        area = active_path(context)
+        missing = core.apply_biome_preset(area, self.biome, self.replace)
+        core.regenerate(area, context.evaluated_depsgraph_get())
+        if missing:
+            self.report({'WARNING'}, "Missing collections: " + ", ".join(sorted(set(missing))))
+        return {'FINISHED'}
+
+
+class PSG_OT_create_ground(bpy.types.Operator):
     bl_idname = "psg.create_ground"
     bl_label = "Create Ground Plane"
     bl_description = "Grid plane under the selected paths, used for snapping and vertex-color paint"
     bl_options = {'REGISTER', 'UNDO'}
 
+    @classmethod
+    def poll(cls, context):
+        path = active_path(context)
+        return path is not None and path.type == 'CURVE'
+
     def execute(self, context):
-        paths = selected_paths(context)
+        paths = [p for p in selected_paths(context) if p.type == 'CURVE']
         defaults = context.scene.psg
         ground = core.create_ground(paths, defaults.ground_cell, defaults.ground_margin, context.scene)
         if ground is None:
@@ -131,7 +197,9 @@ class PSG_OT_generate(bpy.types.Operator):
     all_paths: BoolProperty(name="All Paths", default=False)
 
     def execute(self, context):
-        paths = core.all_paths() if self.all_paths else selected_paths(context)
+        paths = core.all_generators() if self.all_paths else selected_paths(context)
+        # areas first: paths may snap onto an area that also gets scattered
+        paths.sort(key=lambda p: (not core.is_area(p), p.name))
         depsgraph = context.evaluated_depsgraph_get()
         total = sum(core.regenerate(path, depsgraph) for path in paths)
         self.report({'INFO'}, "PSG: %d path(s), %d new instance(s)" % (len(paths), total))
@@ -148,7 +216,8 @@ class PSG_OT_clear(PathOperator):
     def execute(self, context):
         for path in selected_paths(context):
             core.clear(path, self.include_locked)
-            core.repaint_targets(path)
+            if not core.is_area(path):
+                core.repaint_targets(path)
         return {'FINISHED'}
 
 
@@ -383,12 +452,14 @@ class PSG_OT_export_unity(bpy.types.Operator, ExportHelper):
     include_ground: BoolProperty(name="Include Ground", default=True)
 
     def execute(self, context):
-        paths = core.all_paths() if self.scope == 'ALL' else selected_paths(context)
+        paths = core.all_generators() if self.scope == 'ALL' else selected_paths(context)
         objects = []
         for path in paths:
             objects.extend(core.path_instances(path))
-            if self.include_ground and path.psg.target is not None:
-                objects.append(path.psg.target)
+            if self.include_ground:
+                ground = path if core.is_area(path) else path.psg.target
+                if ground is not None:
+                    objects.append(ground)
         view_layer = context.view_layer
         objects = [o for o in dict.fromkeys(objects) if o.name in view_layer.objects and o.visible_get()]
         if not objects:
@@ -424,7 +495,8 @@ def select_only(context, objects):
 
 
 CLASSES = (
-    PSG_OT_draw_annotation, PSG_OT_annotation_to_path, PSG_OT_make_path, PSG_OT_create_ground,
+    PSG_OT_draw_annotation, PSG_OT_annotation_to_path, PSG_OT_make_path, PSG_OT_make_area,
+    PSG_OT_area_preset, PSG_OT_create_ground,
     PSG_OT_generate, PSG_OT_clear, PSG_OT_reset_edits, PSG_OT_bake, PSG_OT_repaint,
     PSG_OT_select_instances, PSG_OT_select_path,
     PSG_OT_layer_add, PSG_OT_layer_remove, PSG_OT_layer_move, PSG_OT_layer_reseed,

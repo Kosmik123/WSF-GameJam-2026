@@ -4,6 +4,7 @@ import json
 import math
 import random
 import time
+import zlib
 
 import bpy
 import numpy as np
@@ -120,6 +121,18 @@ def all_paths():
     return [o for o in bpy.data.objects if o.type == 'CURVE' and o.psg.is_path]
 
 
+def is_area(obj):
+    return obj is not None and obj.type == 'MESH' and obj.psg.is_area
+
+
+def is_generator(obj):
+    return obj is not None and ((obj.type == 'CURVE' and obj.psg.is_path) or is_area(obj))
+
+
+def all_generators():
+    return [o for o in bpy.data.objects if is_generator(o)]
+
+
 def path_instances(path_obj):
     return [o for o in bpy.data.objects if o.psg_inst.path == path_obj]
 
@@ -131,11 +144,29 @@ def find_layer(path_obj, uid):
     return None
 
 
-def source_objects(collection):
+def name_matches(name, name_filter):
+    tokens = [t.strip().lower() for t in name_filter.split(",") if t.strip()]
+    if not tokens:
+        return True
+    name = name.lower()
+    include = [t for t in tokens if not t.startswith("!")]
+    exclude = [t[1:] for t in tokens if t.startswith("!") and len(t) > 1]
+    if any(t in name for t in exclude):
+        return False
+    return not include or any(t in name for t in include)
+
+
+def source_objects(collection, name_filter=""):
     if collection is None:
         return []
-    objects = [o for o in collection.all_objects if o.type == 'MESH' and o.psg_inst.path is None]
+    objects = [o for o in collection.all_objects
+               if o.type == 'MESH' and o.psg_inst.path is None and not o.psg.is_area
+               and name_matches(o.name, name_filter)]
     return sorted(objects, key=lambda o: o.name)
+
+
+def layer_sources(layer):
+    return source_objects(layer.source, layer.source_filter)
 
 
 def source_weight(obj):
@@ -497,16 +528,115 @@ def placement_matrix(layer, position, tangent, normal, rolls, source):
             @ Matrix.Scale(scale, 4) @ source_basis)
 
 
-def layer_placements(path, layer, polylines, raycast, occupied):
-    """Yield (index, source, matrix) for one layer."""
-    sources = source_objects(layer.source)
+class SurfaceSampler:
+    """Uniform sampling and top-down ray casting on a mesh surface (world space)."""
+
+    def __init__(self, obj, depsgraph):
+        evaluated = obj.evaluated_get(depsgraph)
+        mesh = evaluated.to_mesh()
+        try:
+            mesh.calc_loop_triangles()
+            count = len(mesh.vertices)
+            co = np.empty(count * 3, dtype=np.float32)
+            mesh.vertices.foreach_get("co", co)
+            co = co.reshape(-1, 3).astype(np.float64)
+            tris = np.empty(len(mesh.loop_triangles) * 3, dtype=np.int32)
+            mesh.loop_triangles.foreach_get("vertices", tris)
+            tris = tris.reshape(-1, 3)
+        finally:
+            evaluated.to_mesh_clear()
+        matrix = np.array(obj.matrix_world, dtype=np.float64)
+        self.verts = co @ matrix[:3, :3].T + matrix[:3, 3]
+        self.tris = tris
+        a, b, c = (self.verts[tris[:, i]] for i in range(3))
+        areas = 0.5 * np.linalg.norm(np.cross(b - a, c - a), axis=1) if len(tris) else np.zeros(0)
+        self.cumulative = np.cumsum(areas)
+        self.area = float(self.cumulative[-1]) if len(areas) else 0.0
+        self.tree = BVHTree.FromPolygons([tuple(v) for v in self.verts], [tuple(t) for t in tris]) if len(tris) else None
+        self.top = float(self.verts[:, 2].max()) + 100.0 if count else 100.0
+
+    def sample(self, rng):
+        tri = int(np.searchsorted(self.cumulative, rng.random() * self.area, side='right'))
+        tri = min(tri, len(self.tris) - 1)
+        u, v = rng.random(), rng.random()
+        if u + v > 1.0:
+            u, v = 1.0 - u, 1.0 - v
+        a, b, c = (self.verts[self.tris[tri, i]] for i in range(3))
+        return Vector(a + (b - a) * u + (c - a) * v)
+
+    def raycast(self, x, y):
+        if self.tree is None:
+            return None, None
+        location, normal, _index, _dist = self.tree.ray_cast(Vector((x, y, self.top)), Vector((0.0, 0.0, -1.0)))
+        if location is None:
+            return None, None
+        if normal.z < 0.0:
+            normal = -normal
+        return location, normal.normalized()
+
+
+def stable_index(*parts):
+    return zlib.crc32(":".join(str(p) for p in parts).encode()) & 0x7FFFFFFF
+
+
+def random_rolls(rng):
+    return (rng.random(), rng.random(), rng.random(), rng.random())
+
+
+def area_candidates(layer, sampler):
+    rng = random.Random("psg:%d:%d" % (layer.seed, layer.uid))
+    no_tangent = Vector((1.0, 0.0, 0.0))
+    if sampler is None or sampler.area <= 0.0:
+        return []
+    candidates = []
+    if layer.mode == 'SCATTER':
+        for index in range(int(round(layer.density * sampler.area))):
+            candidates.append((index, sampler.sample(rng), no_tangent, random_rolls(rng)))
+    elif layer.mode == 'CLUSTER':
+        clusters = int(round(layer.cluster_density * sampler.area / 100.0))
+        low, high = sorted((layer.cluster_min, layer.cluster_max))
+        for cluster in range(clusters):
+            center = sampler.sample(rng)
+            single = rng.random() < layer.single_chance
+            count = 1 if single else rng.randint(low, high)
+            for k in range(count):
+                angle = rng.random() * math.tau
+                radius = 0.0 if single else layer.cluster_radius * math.sqrt(rng.random())
+                offset = Vector((math.cos(angle) * radius, math.sin(angle) * radius, 0.0))
+                candidates.append((cluster * 128 + k, center + offset, no_tangent, random_rolls(rng)))
+    return candidates
+
+
+def around_candidates(layer, parents):
+    """Candidates around parent instances; index derives from the parent index (stable per parent)."""
+    candidates = []
+    no_tangent = Vector((1.0, 0.0, 0.0))
+    low, high = sorted((layer.around_count_min, layer.around_count_max))
+    r_low, r_high = sorted((layer.around_min, layer.around_max))
+    for parent_index, parent_position, parent_scale in sorted(parents, key=lambda p: p[0]):
+        rng = random.Random("psg:%d:%d:%d" % (layer.seed, layer.uid, parent_index))
+        if rng.random() > layer.around_chance:
+            continue
+        factor = parent_scale if layer.around_scale_radius else 1.0
+        for k in range(rng.randint(low, high)):
+            angle = rng.random() * math.tau
+            radius = math.sqrt(r_low * r_low + (r_high * r_high - r_low * r_low) * rng.random()) * factor
+            offset = Vector((math.cos(angle) * radius, math.sin(angle) * radius, 0.0))
+            candidates.append((stable_index(parent_index, k), parent_position + offset, no_tangent,
+                               random_rolls(rng)))
+    return candidates
+
+
+def layer_placements(layer, candidates, raycast, occupied, avoid):
+    """Yield (index, source, matrix, position, scale) for one layer."""
+    sources = layer_sources(layer)
     if not sources:
         return
     spatial = SpatialHash(layer.min_distance)
     for p in occupied:
         spatial.add(p)
     max_slope_cos = math.cos(layer.max_slope)
-    for index, position, tangent, rolls in layer_candidates(layer, polylines):
+    for index, position, tangent, rolls in candidates:
         normal = None
         if raycast is not None:
             hit, normal = raycast(position.x, position.y)
@@ -517,11 +647,12 @@ def layer_placements(path, layer, polylines, raycast, occupied):
                 position = hit
                 if normal.z < max_slope_cos - 1e-6:
                     continue
-        if spatial.blocked(position):
+        if spatial.blocked(position) or (avoid is not None and avoid.blocked(position)):
             continue
         spatial.add(position)
         source = pick_weighted(sources, rolls[0])
-        yield index, source, placement_matrix(layer, position, tangent, normal, rolls, source)
+        scale = layer.scale_min + (layer.scale_max - layer.scale_min) * rolls[2]
+        yield index, source, placement_matrix(layer, position, tangent, normal, rolls, source), position, scale
 
 
 def make_instance(path, layer, index, source, matrix, collection):
@@ -529,6 +660,7 @@ def make_instance(path, layer, index, source, matrix, collection):
     name = "%s__%s_%s_%04d" % (source.name, path.name, layer.name, index)
     obj = bpy.data.objects.new(name, source.data)
     collection.objects.link(obj)
+    copy_material_slots(source, obj)
     obj.matrix_basis = matrix
     inst = obj.psg_inst
     inst.path = path
@@ -540,6 +672,14 @@ def make_instance(path, layer, index, source, matrix, collection):
     return obj
 
 
+def copy_material_slots(source, obj):
+    """Match the source's slot layout (object-linked materials), otherwise FBX loses material indices."""
+    for src_slot, slot in zip(source.material_slots, obj.material_slots):
+        slot.link = src_slot.link
+        if src_slot.link == 'OBJECT':
+            slot.material = src_slot.material
+
+
 def remove_object(obj):
     bpy.data.objects.remove(obj, do_unlink=True)
 
@@ -548,17 +688,35 @@ _busy = False
 
 
 def regenerate(path, depsgraph=None):
-    """Rebuild a path's instances, keeping locked/edited ones and remembering deletions."""
+    """Rebuild a generator's (path or area) instances, keeping locked/edited ones and remembering deletions."""
     global _busy
-    if path is None or not path.psg.is_path:
+    if not is_generator(path):
         return 0
     _busy = True
     try:
         return _regenerate(path, depsgraph or bpy.context.evaluated_depsgraph_get())
     finally:
         _busy = False
-        _signatures[path.name] = path_signature(path)
+        _signatures[path.name] = generator_signature(path)
         _mute_until[0] = time.monotonic() + 0.25
+
+
+def generator_signature(obj):
+    if is_area(obj):
+        return area_signature(obj)
+    return path_signature(obj)
+
+
+def area_signature(obj):
+    mesh = obj.data
+    co = np.empty(len(mesh.vertices) * 3, dtype=np.float32)
+    mesh.vertices.foreach_get("co", co)
+    matrix = tuple(round(v, 5) for row in obj.matrix_world for v in row)
+    return hash((matrix, len(mesh.polygons), np.round(co, 4).tobytes()))
+
+
+def scale_of(matrix):
+    return sum(matrix.to_scale()) / 3.0
 
 
 def _regenerate(path, depsgraph):
@@ -584,7 +742,7 @@ def _regenerate(path, depsgraph):
                 excluded.setdefault(uid, set()).update(missing)
 
     kept = {}
-    occupied = {}
+    placed = {}  # uid -> [(index, position, scale)], feeds Around layers and avoidance
     for obj in instances:
         inst = obj.psg_inst
         uid = str(inst.layer_uid)
@@ -592,34 +750,53 @@ def _regenerate(path, depsgraph):
             if uid in layer_uids:
                 inst.locked = True
                 kept.setdefault(uid, set()).add(inst.index)
-                occupied.setdefault(uid, []).append(obj.matrix_basis.translation.copy())
+                placed.setdefault(uid, []).append(
+                    (inst.index, obj.matrix_basis.translation.copy(), scale_of(obj.matrix_basis)))
                 continue
             if inst.locked:
                 continue
         remove_object(obj)
 
-    polylines = path_polylines(path)
-    raycast = ground_raycaster(settings.target, depsgraph)
+    area = is_area(path)
+    polylines = [] if area else path_polylines(path)
+    sampler = SurfaceSampler(path, depsgraph) if area else None
+    raycast = sampler.raycast if area else ground_raycaster(settings.target, depsgraph)
     collection = output_collection(path)
     state = {}
     created = 0
     for layer in settings.layers:
         uid = str(layer.uid)
         state[uid] = set(kept.get(uid, set()))
+        occupied = [p for _i, p, _s in placed.get(uid, [])]
         if not layer.enabled:
             continue
+        if layer.mode == 'AROUND':
+            candidates = around_candidates(layer, placed.get(layer.parent, []))
+        elif area:
+            candidates = area_candidates(layer, sampler)
+        else:
+            candidates = layer_candidates(layer, polylines)
+        avoid = None
+        if layer.avoid_distance > 0.0:
+            avoid = SpatialHash(layer.avoid_distance)
+            for other_uid, items in placed.items():
+                if other_uid != uid and not (layer.mode == 'AROUND' and other_uid == layer.parent):
+                    for _i, p, _s in items:
+                        avoid.add(p)
         skip = kept.get(uid, set()) | excluded.get(uid, set())
-        for index, source, matrix in layer_placements(path, layer, polylines, raycast, occupied.get(uid, [])):
+        for index, source, matrix, position, scale in layer_placements(layer, candidates, raycast, occupied, avoid):
             if index in skip:
                 continue
             make_instance(path, layer, index, source, matrix, collection)
             state[uid].add(index)
+            placed.setdefault(uid, []).append((index, position, scale))
             created += 1
 
     settings.state_json = dump_json(state)
     settings.excluded_json = dump_json({k: v for k, v in excluded.items() if k in layer_uids})
 
-    repaint_targets(path)
+    if not area:
+        repaint_targets(path)
     return created
 
 
@@ -669,7 +846,7 @@ def swap_variant(obj, mode, rng):
     path, layer = instance_layer(obj)
     if layer is None:
         return False
-    sources = source_objects(layer.source)
+    sources = layer_sources(layer)
     if not sources:
         return False
     meshes = [s.data for s in sources]
@@ -683,6 +860,9 @@ def swap_variant(obj, mode, rng):
         others = [s for s in sources if s.data != obj.data] or sources
         new_mesh = pick_weighted(others, rng.random()).data
     obj.data = new_mesh
+    source = next((s for s in sources if s.data == new_mesh), None)
+    if source is not None:
+        copy_material_slots(source, obj)
     obj.psg_inst.locked = True
     return True
 
@@ -703,7 +883,10 @@ def reroll_transform(obj, rng):
 
 def snap_to_ground(obj, depsgraph):
     path = obj.psg_inst.path
-    ground = path.psg.target if path is not None else None
+    if is_area(path):
+        ground = path
+    else:
+        ground = path.psg.target if path is not None else None
     raycast = ground_raycaster(ground, depsgraph)
     if raycast is None:
         return False
@@ -801,22 +984,88 @@ def init_path(obj, defaults):
         add_layer(obj, defaults.source)
 
 
+def init_area(obj, defaults):
+    obj.psg.is_area = True
+    if not obj.psg.layers:
+        add_layer(obj, defaults.source)
+
+
 def add_layer(path, source=None, copy_from=None):
     settings = path.psg
     layer = settings.layers.add()
+    settings.next_uid += 1
+    layer.uid = settings.next_uid
     if copy_from is not None:
         for prop in copy_from.bl_rna.properties:
             if not prop.is_readonly and prop.identifier not in {"uid", "rna_type"}:
-                setattr(layer, prop.identifier, getattr(copy_from, prop.identifier))
+                try:
+                    setattr(layer, prop.identifier, getattr(copy_from, prop.identifier))
+                except TypeError:
+                    pass
         layer.name = copy_from.name + "_copy"
     else:
         layer.name = source.name if source is not None else "Layer"
         layer.source = source
-    settings.next_uid += 1
-    layer.uid = settings.next_uid
+        if is_area(path):
+            layer.mode = 'SCATTER'
+            layer.density = 0.05
     layer.seed = layer.uid
     settings.active_layer = len(settings.layers) - 1
     return layer
+
+
+# Biome preset: (layer name, collection suffix, filter, mode, settings)
+BIOME_PRESET = (
+    ("Drzewa", "_Duze", "", 'CLUSTER',
+     dict(cluster_density=0.6, cluster_radius=4.0, cluster_min=2, cluster_max=4, single_chance=0.35,
+          min_distance=2.5, scale_min=0.85, scale_max=1.2)),
+    ("Krzewy", "_Srednie", "", 'AROUND',
+     dict(parent="Drzewa", around_min=1.5, around_max=4.0, around_count_min=0, around_count_max=2,
+          around_chance=0.8, min_distance=1.0, scale_min=0.7, scale_max=1.1)),
+    ("Trawa wokol", "_Drobne", "!Kamyki, !Otoczaki", 'AROUND',
+     dict(parent="Drzewa", around_min=0.7, around_max=3.5, around_count_min=6, around_count_max=14,
+          min_distance=0.3, scale_min=0.7, scale_max=1.2)),
+    ("Trawa", "_Drobne", "!Kamyki, !Otoczaki, !Grzyby", 'SCATTER',
+     dict(density=0.03, min_distance=0.5, avoid_distance=1.0, scale_min=0.7, scale_max=1.1)),
+    ("Kamienie", "_Drobne", "Kamyki, Otoczaki", 'SCATTER',
+     dict(density=0.008, min_distance=2.0, avoid_distance=1.5, scale_min=0.6, scale_max=1.3)),
+)
+
+# Per biome: name filter for the cluster (tree) layer, so big rocks do not form forests.
+BIOME_TREE_FILTERS = {
+    "Las": "Drzewo, !Martwe",
+    "Pustynia": "Kaktus, Palma",
+    "Wybrzeze": "Palma",
+    "Lod": "Sosna",
+    "Wulkan": "",
+    "Bagno": "Drzewo",
+}
+
+
+def apply_biome_preset(area, biome, replace):
+    settings = area.psg
+    if replace:
+        for obj in path_instances(area):
+            remove_object(obj)
+        settings.layers.clear()
+        settings.state_json = ""
+        settings.excluded_json = ""
+    uids = {}
+    missing = []
+    for name, suffix, name_filter, mode, values in BIOME_PRESET:
+        collection = bpy.data.collections.get(biome + suffix)
+        if collection is None:
+            missing.append(biome + suffix)
+        layer = add_layer(area, collection)
+        layer.name = name
+        layer.mode = mode
+        layer.source_filter = BIOME_TREE_FILTERS.get(biome, "") if mode == 'CLUSTER' else name_filter
+        for key, value in values.items():
+            if key == "parent":
+                value = str(uids.get(value, 0))
+            setattr(layer, key, value)
+        uids[name] = layer.uid
+    return missing
 
 
 # --------------------------------------------------------------------------------------------
@@ -829,7 +1078,9 @@ _mute_until = [0.0]
 
 
 def schedule(path, scatter=True):
-    if _busy or path is None or not path.psg.is_path or not path.psg.live_update:
+    if _busy or not is_generator(path) or not path.psg.live_update:
+        return
+    if not scatter and is_area(path):
         return
     _pending[path.name] = _pending.get(path.name, False) or scatter
     if not bpy.app.timers.is_registered(_flush):
@@ -851,7 +1102,7 @@ def _flush():
             repaint_ground(bpy.data.objects.get(key[len("\0ground:"):]))
             continue
         path = bpy.data.objects.get(key)
-        if path is None or not path.psg.is_path:
+        if not is_generator(path):
             continue
         try:
             if scatter:
@@ -872,11 +1123,13 @@ def on_depsgraph_update(_scene, depsgraph):
         if not isinstance(obj, bpy.types.Object):
             continue
         obj = obj.original
-        if obj.type != 'CURVE' or not obj.psg.is_path or not obj.psg.live_update:
+        if not is_generator(obj) or not obj.psg.live_update:
             continue
         if not (update.is_updated_geometry or update.is_updated_transform):
             continue
-        signature = path_signature(obj)
+        if is_area(obj) and obj.mode == 'EDIT':
+            continue
+        signature = generator_signature(obj)
         if _signatures.get(obj.name) != signature:
             _signatures[obj.name] = signature
             schedule(obj, scatter=True)
@@ -886,8 +1139,8 @@ def on_depsgraph_update(_scene, depsgraph):
 def on_load(_dummy):
     _signatures.clear()
     _pending.clear()
-    for path in all_paths():
-        _signatures[path.name] = path_signature(path)
+    for generator in all_generators():
+        _signatures[generator.name] = generator_signature(generator)
 
 
 def register():

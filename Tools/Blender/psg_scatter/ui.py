@@ -2,6 +2,7 @@ import bpy
 
 from . import core
 from .ops import active_path
+from .props import AREA_MODES, PATH_MODES
 
 
 class PSG_UL_layers(bpy.types.UIList):
@@ -28,6 +29,7 @@ class PSG_PT_main(PSGPanel, bpy.types.Panel):
         col.operator("psg.draw_annotation", icon='GREASEPENCIL')
         col.operator("psg.annotation_to_path", icon='CURVE_PATH')
         col.operator("psg.make_path", icon='OUTLINER_OB_CURVE')
+        col.operator("psg.make_area", icon='MESH_PLANE')
         box = layout.box()
         box.label(text="Defaults for new paths")
         box.prop(defaults, "source")
@@ -43,7 +45,7 @@ class PSG_PT_main(PSGPanel, bpy.types.Panel):
 
 
 class PSG_PT_path(PSGPanel, bpy.types.Panel):
-    bl_label = "Path"
+    bl_label = "Generator"
     bl_parent_id = "PSG_PT_main"
 
     @classmethod
@@ -54,10 +56,13 @@ class PSG_PT_path(PSGPanel, bpy.types.Panel):
         layout = self.layout
         path = active_path(context)
         settings = path.psg
-        layout.label(text=path.name, icon='CURVE_PATH')
-        row = layout.row(align=True)
-        row.prop(settings, "target")
-        layout.operator("psg.create_ground", icon='MESH_GRID')
+        if core.is_area(path):
+            layout.label(text="Area: " + path.name, icon='MESH_PLANE')
+            layout.operator("psg.area_preset", icon='PRESET')
+        else:
+            layout.label(text="Path: " + path.name, icon='CURVE_PATH')
+            layout.prop(settings, "target")
+            layout.operator("psg.create_ground", icon='MESH_GRID')
         row = layout.row(align=True)
         row.prop(settings, "live_update", toggle=True)
         row.prop(settings, "auto_lock_edited", toggle=True)
@@ -100,28 +105,54 @@ class PSG_PT_layers(PSGPanel, bpy.types.Panel):
         if not settings.layers:
             return
         layer = settings.layers[settings.active_layer]
+        area = core.is_area(active_path(context))
         layout.prop(layer, "source")
-        layout.prop(layer, "mode", expand=True)
+        layout.prop(layer, "source_filter")
+        sources = core.layer_sources(layer)
+        layout.label(text="%d variant(s)" % len(sources), icon='MESH_DATA')
+        row = layout.row(align=True)
+        for mode in (AREA_MODES if area else PATH_MODES):
+            row.prop_enum(layer, "mode", mode)
         row = layout.row(align=True)
         row.prop(layer, "seed")
         row.operator("psg.layer_reseed", text="", icon='FILE_REFRESH')
         col = layout.column(align=True)
-        if layer.mode == 'BAND':
+        if layer.mode == 'AROUND':
+            col.prop(layer, "parent")
+            row = col.row(align=True)
+            row.prop(layer, "around_min")
+            row.prop(layer, "around_max")
+            row = col.row(align=True)
+            row.prop(layer, "around_count_min")
+            row.prop(layer, "around_count_max")
+            col.prop(layer, "around_chance")
+            col.prop(layer, "around_scale_radius")
+        elif layer.mode == 'CLUSTER':
+            col.prop(layer, "cluster_density")
+            col.prop(layer, "cluster_radius")
+            row = col.row(align=True)
+            row.prop(layer, "cluster_min")
+            row.prop(layer, "cluster_max")
+            col.prop(layer, "single_chance")
+        elif layer.mode in {'BAND', 'SCATTER'}:
             col.prop(layer, "density")
         else:
             col.prop(layer, "spacing")
             col.prop(layer, "jitter")
-        col.prop(layer, "width")
-        col.prop(layer, "inner_width")
-        col.prop(layer, "edge_falloff")
+        if not area and layer.mode != 'AROUND':
+            col.prop(layer, "width")
+            col.prop(layer, "inner_width")
+            col.prop(layer, "edge_falloff")
         col.prop(layer, "min_distance")
+        col.prop(layer, "avoid_distance")
         col = layout.column(align=True)
         row = col.row(align=True)
         row.prop(layer, "scale_min")
         row.prop(layer, "scale_max")
         col.prop(layer, "yaw_random")
         col.prop(layer, "yaw_offset")
-        col.prop(layer, "align_to_path")
+        if not area:
+            col.prop(layer, "align_to_path")
         col.prop(layer, "align_to_normal")
         col.prop(layer, "max_slope")
         col.prop(layer, "z_offset")
@@ -134,7 +165,8 @@ class PSG_PT_paint(PSGPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return active_path(context) is not None
+        path = active_path(context)
+        return path is not None and path.type == 'CURVE'
 
     def draw_header(self, context):
         self.layout.prop(active_path(context).psg, "paint_enabled", text="")
