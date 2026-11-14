@@ -17,6 +17,7 @@ MonoBehaviour:
   aroundTiling: 1
   seamBlendWidth: 0
   terrainMesh: {fileID: -5061271460343029401, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
+  decorationModel: {fileID: 919132149155446097, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
   gridResolutionAlong: 158
   gridResolutionAround: 178
   heightScale: 1
