@@ -276,8 +276,11 @@ MonoBehaviour:
   moveAction: {fileID: -1680190386980627800, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   moveSpeed: 8
   inputResponse: 8
-  turnSpeed: 720
-  groundOffset: 0.1
+  turnSpeed: 100
+  groundOffset: 0.01
+  slopeSampleDistance: 1.5
+  heightSharpness: 25
+  tiltSharpness: 12
   startTheta: 0
   startPhi: 90
   theta: 0

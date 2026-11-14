@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: New Heightmap Torus Segment Profile
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.HeightmapTorusSegmentProfile
   lengthResolution: 32
-  materialOverride: {fileID: 0}
+  materialOverride: {fileID: 2100000, guid: 5854642ddecaea04d9192a9ef2623643, type: 2}
   aroundTiling: 1
   seamBlendWidth: 0.15
   heightmap: {fileID: 10300, guid: 0000000000000000f000000000000000, type: 0}
