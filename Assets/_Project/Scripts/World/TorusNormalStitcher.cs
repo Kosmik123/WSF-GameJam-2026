@@ -30,7 +30,7 @@ namespace WSFGameJam2026.World
                             continue;
 
                         var key = GetKey(segment, row, column, rows, segmentCount, sidesResolution);
-                        sums.TryGetValue(key, out Vector3 sum);
+                        sums.TryGetValue(key, out var sum);
                         sums[key] = sum + allNormals[segment][row * columns + column];
                     }
                 }

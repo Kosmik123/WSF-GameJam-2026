@@ -67,8 +67,8 @@ namespace WSFGameJam2026.World
         /// <summary>Outward surface normal including terrain height.</summary>
         public Vector3 GetNormal(float theta, float phi)
         {
-            Vector3 alongTheta = GetPoint(theta + DerivativeStep, phi) - GetPoint(theta - DerivativeStep, phi);
-            Vector3 alongPhi = GetPoint(theta, phi + DerivativeStep) - GetPoint(theta, phi - DerivativeStep);
+            var alongTheta = GetPoint(theta + DerivativeStep, phi) - GetPoint(theta - DerivativeStep, phi);
+            var alongPhi = GetPoint(theta, phi + DerivativeStep) - GetPoint(theta, phi - DerivativeStep);
             return Vector3.Cross(alongPhi, alongTheta).normalized;
         }
 
@@ -94,7 +94,7 @@ namespace WSFGameJam2026.World
             if (segmentProfiles == null || segmentProfiles.Count == 0)
                 return FlatTorusSegmentProfile.Instance;
 
-            TorusSegmentProfile profile = segmentProfiles[segmentIndex % segmentProfiles.Count];
+            var profile = segmentProfiles[segmentIndex % segmentProfiles.Count];
             return profile ? profile : FlatTorusSegmentProfile.Instance;
         }
     }
