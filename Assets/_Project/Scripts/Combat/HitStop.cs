@@ -21,10 +21,31 @@ namespace WSFGameJam2026.Combat
             instance = this;
         }
 
-        private void OnDestroy()
+        /// <summary>Freezes the game for the given real time seconds. Ignored during a pause and during another freeze.</summary>
+        public static void Freeze(float seconds)
         {
-            if (instance == this)
-                instance = null;
+            if (instance)
+                instance.StartFreeze(seconds);
+        }
+
+        private void StartFreeze(float seconds)
+        {
+            if (running != null || Time.timeScale <= 0f || isActiveAndEnabled == false || seconds <= 0f)
+                return;
+
+            running = StartCoroutine(FreezingCo(seconds));
+        }
+
+        private IEnumerator FreezingCo(float seconds)
+        {
+            float previousScale = Time.timeScale;
+            Time.timeScale = FrozenScale;
+            yield return new WaitForSecondsRealtime(seconds);
+
+            if (Mathf.Approximately(Time.timeScale, FrozenScale))
+                Time.timeScale = previousScale;
+
+            running = null;
         }
 
         private void OnDisable()
@@ -36,31 +57,10 @@ namespace WSFGameJam2026.Combat
             running = null;
         }
 
-        /// <summary>Freezes the game for the given real time seconds. Ignored during a pause and during another freeze.</summary>
-        public static void Freeze(float seconds)
+        private void OnDestroy()
         {
-            if (instance != null)
-                instance.StartFreeze(seconds);
-        }
-
-        private void StartFreeze(float seconds)
-        {
-            if (running != null || Time.timeScale <= 0f || isActiveAndEnabled == false || seconds <= 0f)
-                return;
-
-            running = StartCoroutine(FreezeRoutine(seconds));
-        }
-
-        private IEnumerator FreezeRoutine(float seconds)
-        {
-            float previousScale = Time.timeScale;
-            Time.timeScale = FrozenScale;
-            yield return new WaitForSecondsRealtime(seconds);
-
-            if (Mathf.Approximately(Time.timeScale, FrozenScale))
-                Time.timeScale = previousScale;
-
-            running = null;
+            if (instance == this)
+                instance = null;
         }
     }
 }

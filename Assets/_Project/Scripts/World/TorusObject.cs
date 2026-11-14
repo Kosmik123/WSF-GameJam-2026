@@ -174,7 +174,7 @@ namespace WSFGameJam2026.World
             float thetaDistance = Vector3.Dot(localDirection, localRunDirection) * distance;
             float phiDistance = Vector3.Dot(localDirection, phiDirection) * distance;
 
-            Vector2 delta = TorusGeometry.GetAngleDelta(surface.MajorRadius, surface.MinorRadius, phi, thetaDistance, phiDistance);
+            var delta = TorusGeometry.GetAngleDelta(surface.MajorRadius, surface.MinorRadius, phi, thetaDistance, phiDistance);
             angles = angles.Add(delta.x, delta.y);
             Refresh();
         }

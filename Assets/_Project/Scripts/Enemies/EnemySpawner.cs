@@ -17,17 +17,25 @@ namespace WSFGameJam2026.Enemies
         [Serializable]
         private class SpawnEntry
         {
-            public Enemy prefab;
+            [SerializeField]
+            private Enemy prefab;
+            public Enemy Prefab => prefab;
 
+            [SerializeField]
             [Min(0f)]
-            public float weight = 1f;
+            private float weight = 1f;
+            public float Weight => weight;
 
             [Tooltip("The enemy appears only where the difficulty (0-1) is at least this.")]
+            [SerializeField]
             [Range(0f, 1f)]
-            public float minDifficulty;
+            private float minDifficulty;
+            public float MinDifficulty => minDifficulty;
 
             [Tooltip("Size of the group (min, max).")]
-            public Vector2Int groupSize = new Vector2Int(1, 1);
+            [SerializeField]
+            private Vector2Int groupSize = new Vector2Int(1, 1);
+            public Vector2Int GroupSize => groupSize;
         }
 
         [SerializeField]
@@ -91,12 +99,12 @@ namespace WSFGameJam2026.Enemies
         private AnimationCurve difficultyCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
         private readonly List<Enemy> alive = new List<Enemy>();
+        public IReadOnlyList<Enemy> Alive => alive;
+
         private float nextSpawnTime;
 
         /// <summary>Set by the round loop. Scales the enemy level and the number of enemies at once. 1 = first round.</summary>
         public float RoundMultiplier { get; set; } = 1f;
-
-        public IReadOnlyList<Enemy> Alive => alive;
 
         private void Reset()
         {
@@ -108,11 +116,6 @@ namespace WSFGameJam2026.Enemies
         {
             nextSpawnTime = Time.time + firstSpawnDelay;
             Enemy.OnAnyEnemyDied += Enemy_OnAnyEnemyDied;
-        }
-
-        private void OnDisable()
-        {
-            Enemy.OnAnyEnemyDied -= Enemy_OnAnyEnemyDied;
         }
 
         /// <summary>Difficulty 0-1 of a place along the body: 0 just ahead of the jaw, 1 right behind it (GDD 9).</summary>
@@ -136,7 +139,7 @@ namespace WSFGameJam2026.Enemies
         public void Clear()
         {
             for (int i = alive.Count - 1; i >= 0; i--)
-                if (alive[i] != null)
+                if (alive[i])
                     alive[i].Despawn();
 
             alive.Clear();
@@ -179,11 +182,11 @@ namespace WSFGameJam2026.Enemies
 
             float difficulty = GetDifficulty(theta);
             var entry = PickEntry(difficulty);
-            if (entry == null || entry.prefab == null)
+            if (entry == null || entry.Prefab == null)
                 return;
 
             int level = GetLevel(theta);
-            int count = Mathf.Min(capacity, UnityEngine.Random.Range(entry.groupSize.x, entry.groupSize.y + 1));
+            int count = Mathf.Min(capacity, UnityEngine.Random.Range(entry.GroupSize.x, entry.GroupSize.y + 1));
             for (int i = 0; i < count; i++)
             {
                 var offset = UnityEngine.Random.insideUnitCircle * groupSpread;
@@ -194,7 +197,7 @@ namespace WSFGameJam2026.Enemies
                 // Facing back, towards the incoming player.
                 var facing = world.transform.TransformDirection(TorusGeometry.GetThetaDirection(memberTheta)) * -sign;
 
-                var enemy = Instantiate(entry.prefab, transform);
+                var enemy = Instantiate(entry.Prefab, transform);
                 enemy.Initialize(world, angles, facing, player, level);
                 alive.Add(enemy);
             }
@@ -204,8 +207,8 @@ namespace WSFGameJam2026.Enemies
         {
             float totalWeight = 0f;
             for (int i = 0; i < entries.Count; i++)
-                if (entries[i].minDifficulty <= difficulty)
-                    totalWeight += entries[i].weight;
+                if (entries[i].MinDifficulty <= difficulty)
+                    totalWeight += entries[i].Weight;
 
             if (totalWeight <= 0f)
                 return null;
@@ -214,11 +217,11 @@ namespace WSFGameJam2026.Enemies
             SpawnEntry lastAllowed = null;
             for (int i = 0; i < entries.Count; i++)
             {
-                if (entries[i].minDifficulty > difficulty)
+                if (entries[i].MinDifficulty > difficulty)
                     continue;
 
                 lastAllowed = entries[i];
-                pick -= entries[i].weight;
+                pick -= entries[i].Weight;
                 if (pick <= 0f)
                     return entries[i];
             }
@@ -246,6 +249,11 @@ namespace WSFGameJam2026.Enemies
                     alive.RemoveAt(i);
                 }
             }
+        }
+
+        private void OnDisable()
+        {
+            Enemy.OnAnyEnemyDied -= Enemy_OnAnyEnemyDied;
         }
     }
 }
