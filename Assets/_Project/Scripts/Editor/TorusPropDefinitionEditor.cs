@@ -13,6 +13,7 @@ namespace WSFGameJam2026.Editor
     {
         private const int RingSegments = 64;
         private const float GroundLift = 0.01f;
+        private const float DragSpeed = 0.5f;
 
         private static readonly Color DiscColor = new Color(1f, 0.2f, 0.2f, 0.18f);
         private static readonly Color RingColor = new Color(1f, 0.25f, 0.2f, 1f);
@@ -45,11 +46,7 @@ namespace WSFGameJam2026.Editor
                 return;
             }
 
-            var oldOrbit = orbit;
-            orbit = PreviewGUI.Drag2D(orbit, rect);
-            orbit.y = Mathf.Clamp(orbit.y, -89f, 89f);
-            if (orbit != oldOrbit)
-                Repaint();
+            HandleOrbit(rect);
 
             if (Event.current.type != EventType.Repaint)
                 return;
@@ -75,6 +72,44 @@ namespace WSFGameJam2026.Editor
 
             var texture = previewUtility.EndPreview();
             GUI.DrawTexture(rect, texture, ScaleMode.StretchToFill, false);
+        }
+
+        // Dragging with the mouse inside the preview rotates the view (PreviewGUI.Drag2D is internal, so it is done by hand).
+        private void HandleOrbit(Rect rect)
+        {
+            int controlId = GUIUtility.GetControlID(FocusType.Passive);
+            var current = Event.current;
+            switch (current.GetTypeForControl(controlId))
+            {
+                case EventType.MouseDown:
+                    if (rect.Contains(current.mousePosition))
+                    {
+                        GUIUtility.hotControl = controlId;
+                        current.Use();
+                    }
+
+                    break;
+
+                case EventType.MouseUp:
+                    if (GUIUtility.hotControl == controlId)
+                    {
+                        GUIUtility.hotControl = 0;
+                        current.Use();
+                    }
+
+                    break;
+
+                case EventType.MouseDrag:
+                    if (GUIUtility.hotControl == controlId)
+                    {
+                        orbit.x -= current.delta.x * DragSpeed;
+                        orbit.y = Mathf.Clamp(orbit.y - current.delta.y * DragSpeed, -89f, 89f);
+                        current.Use();
+                        Repaint();
+                    }
+
+                    break;
+            }
         }
 
         private void EnsureResources(TorusPropDefinition definition)
