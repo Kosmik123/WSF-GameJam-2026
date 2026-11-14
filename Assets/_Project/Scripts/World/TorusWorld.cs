@@ -105,7 +105,7 @@ namespace WSFGameJam2026.World
 
         private void CreateSegment(int segmentIndex, Mesh mesh)
         {
-            TorusSegmentProfile profile = surface.GetProfile(segmentIndex);
+            var profile = surface.GetProfile(segmentIndex);
 
             var segmentObject = new GameObject($"Segment_{segmentIndex}", typeof(MeshFilter), typeof(MeshRenderer));
             segmentObject.hideFlags = HideFlags.DontSave;
@@ -126,7 +126,7 @@ namespace WSFGameJam2026.World
             if (defaultMaterial)
                 return defaultMaterial;
 
-            RenderPipelineAsset pipeline = GraphicsSettings.currentRenderPipeline;
+            var pipeline = GraphicsSettings.currentRenderPipeline;
             return pipeline ? pipeline.defaultMaterial : null;
         }
 

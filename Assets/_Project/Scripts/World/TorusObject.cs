@@ -84,7 +84,7 @@ namespace WSFGameJam2026.World
 
         private void Reset()
         {
-            world = FindFirstObjectByType<TorusWorld>();
+            world = FindAnyObjectByType<TorusWorld>();
         }
 
         private void OnEnable()
@@ -156,8 +156,8 @@ namespace WSFGameJam2026.World
             float thetaStep = slopeSampleDistance / GetRingRadius(surface);
             float phiStep = slopeSampleDistance / surface.MinorRadius;
 
-            Vector3 alongTheta = surface.GetPoint(theta + thetaStep, phi) - surface.GetPoint(theta - thetaStep, phi);
-            Vector3 alongPhi = surface.GetPoint(theta, phi + phiStep) - surface.GetPoint(theta, phi - phiStep);
+            var alongTheta = surface.GetPoint(theta + thetaStep, phi) - surface.GetPoint(theta - thetaStep, phi);
+            var alongPhi = surface.GetPoint(theta, phi + phiStep) - surface.GetPoint(theta, phi - phiStep);
 
             float heightBlend = shouldSnap ? 1f : 1f - Mathf.Exp(-heightSharpness * Time.deltaTime);
             float tiltBlend = shouldSnap ? 1f : 1f - Mathf.Exp(-tiltSharpness * Time.deltaTime);
@@ -165,7 +165,7 @@ namespace WSFGameJam2026.World
 
             smoothedHeight = Mathf.Lerp(smoothedHeight, surface.GetHeight(theta, phi), heightBlend);
 
-            Vector3 targetNormal = Vector3.Cross(alongPhi, alongTheta).normalized;
+            var targetNormal = Vector3.Cross(alongPhi, alongTheta).normalized;
             localNormal = Vector3.Slerp(localNormal, targetNormal, tiltBlend);
             localRunDirection = Vector3.ProjectOnPlane(alongTheta, localNormal).normalized;
 
@@ -176,20 +176,21 @@ namespace WSFGameJam2026.World
 
         private void UpdateFacing()
         {
-            Vector3 projected = Vector3.ProjectOnPlane(localFacing, localNormal);
+            var projected = Vector3.ProjectOnPlane(localFacing, localNormal);
             localFacing = projected.sqrMagnitude < 0.0001f ? localRunDirection : projected.normalized;
         }
 
         private void ApplyTransform()
         {
-            Transform worldTransform = world.transform;
+            var worldTransform = world.transform;
             SurfaceNormal = worldTransform.TransformDirection(localNormal);
             BaseNormal = worldTransform.TransformDirection(localBaseNormal);
             RunDirection = worldTransform.TransformDirection(localBaseRunDirection);
             Facing = worldTransform.TransformDirection(localFacing);
 
-            transform.position = worldTransform.TransformPoint(localPosition + localNormal * groundOffset);
-            transform.rotation = Quaternion.LookRotation(Facing, SurfaceNormal);
+            transform.SetPositionAndRotation(
+                worldTransform.TransformPoint(localPosition + localNormal * groundOffset), 
+                Quaternion.LookRotation(Facing, SurfaceNormal));
         }
     }
 }
