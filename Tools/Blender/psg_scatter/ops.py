@@ -29,6 +29,11 @@ def selected_instances(context):
     return [o for o in context.selected_objects if o.psg_inst.path is not None]
 
 
+def refresh_counts(context):
+    for path in {o.psg_inst.path for o in selected_instances(context)}:
+        core.update_counts(path)
+
+
 class PathOperator(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
@@ -246,6 +251,23 @@ class PSG_OT_bake(PathOperator):
                 core.detach(obj)
             path.psg.state_json = ""
             path.psg.excluded_json = ""
+            core.update_counts(path)
+        return {'FINISHED'}
+
+
+class PSG_OT_display_all(PathOperator):
+    bl_idname = "psg.display_all"
+    bl_label = "Display All Layers As"
+    bl_description = "Viewport display for every layer of the generator (Bounds is the fastest)"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    display_type: EnumProperty(items=[
+        ('TEXTURED', "Textured", ""), ('SOLID', "Solid", ""), ('WIRE', "Wire", ""), ('BOUNDS', "Bounds", "")])
+
+    def execute(self, context):
+        for path in selected_paths(context):
+            for layer in path.psg.layers:
+                layer.display_type = self.display_type
         return {'FINISHED'}
 
 
@@ -326,9 +348,7 @@ class PSG_OT_layer_remove(PathOperator):
         if not settings.layers:
             return {'CANCELLED'}
         uid = settings.layers[settings.active_layer].uid
-        for obj in core.path_instances(path):
-            if obj.psg_inst.layer_uid == uid:
-                core.remove_object(obj)
+        core.remove_objects(o for o in core.path_instances(path) if o.psg_inst.layer_uid == uid)
         settings.layers.remove(settings.active_layer)
         settings.active_layer = max(min(settings.active_layer, len(settings.layers) - 1), 0)
         core.regenerate(path, context.evaluated_depsgraph_get())
@@ -384,6 +404,7 @@ class PSG_OT_lock(InstanceOperator):
             if not self.lock:
                 obj.psg_inst.gen_matrix = core.matrix_to_list(obj.matrix_basis)
                 obj.psg_inst.source_mesh = obj.data.name if obj.data else ""
+        refresh_counts(context)
         return {'FINISHED'}
 
 
@@ -408,6 +429,7 @@ class PSG_OT_reroll(InstanceOperator):
                 changed += core.reroll_transform(obj, rng)
             else:
                 changed += core.swap_variant(obj, self.mode, rng)
+        refresh_counts(context)
         self.report({'INFO'}, "Rerolled %d instance(s)" % changed)
         return {'FINISHED'}
 
@@ -431,8 +453,11 @@ class PSG_OT_detach(InstanceOperator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
+        paths = {o.psg_inst.path for o in selected_instances(context)}
         for obj in selected_instances(context):
             core.detach(obj)
+        for path in paths:
+            core.update_counts(path)
         return {'FINISHED'}
 
 
@@ -497,7 +522,7 @@ def select_only(context, objects):
 CLASSES = (
     PSG_OT_draw_annotation, PSG_OT_annotation_to_path, PSG_OT_make_path, PSG_OT_make_area,
     PSG_OT_area_preset, PSG_OT_create_ground,
-    PSG_OT_generate, PSG_OT_clear, PSG_OT_reset_edits, PSG_OT_bake, PSG_OT_repaint,
+    PSG_OT_generate, PSG_OT_clear, PSG_OT_reset_edits, PSG_OT_bake, PSG_OT_display_all, PSG_OT_repaint,
     PSG_OT_select_instances, PSG_OT_select_path,
     PSG_OT_layer_add, PSG_OT_layer_remove, PSG_OT_layer_move, PSG_OT_layer_reseed,
     PSG_OT_lock, PSG_OT_reroll, PSG_OT_snap, PSG_OT_detach, PSG_OT_export_unity,

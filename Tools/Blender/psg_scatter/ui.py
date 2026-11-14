@@ -10,6 +10,8 @@ class PSG_UL_layers(bpy.types.UIList):
         row = layout.row(align=True)
         row.prop(item, "enabled", text="")
         row.prop(item, "name", text="", emboss=False)
+        bounds = item.display_type == 'BOUNDS'
+        row.label(text="", icon='SHADING_BBOX' if bounds else 'BLANK1')
         row.label(text=item.source.name if item.source else "-", icon='OUTLINER_COLLECTION')
 
 
@@ -73,9 +75,11 @@ class PSG_PT_path(PSGPanel, bpy.types.Panel):
         row = layout.row(align=True)
         row.operator("psg.reset_edits", icon='LOOP_BACK')
         row.operator("psg.bake", icon='CHECKMARK')
-        instances = core.path_instances(path)
-        locked = sum(1 for o in instances if o.psg_inst.locked)
-        layout.label(text="%d instances, %d locked" % (len(instances), locked), icon='INFO')
+        layout.label(text="%d instances, %d locked" % (settings.instance_count, settings.locked_count), icon='INFO')
+        row = layout.row(align=True)
+        row.label(text="Display all layers:")
+        for display, icon in (('TEXTURED', 'SHADING_TEXTURE'), ('WIRE', 'SHADING_WIRE'), ('BOUNDS', 'SHADING_BBOX')):
+            row.operator("psg.display_all", text="", icon=icon).display_type = display
         row = layout.row(align=True)
         row.operator("psg.select_instances", text="Select All").layer_only = False
         op = row.operator("psg.select_instances", text="Select Locked")
@@ -106,6 +110,7 @@ class PSG_PT_layers(PSGPanel, bpy.types.Panel):
             return
         layer = settings.layers[settings.active_layer]
         area = core.is_area(active_path(context))
+        layout.prop(layer, "display_type", expand=True)
         layout.prop(layer, "source")
         layout.prop(layer, "source_filter")
         sources = core.layer_sources(layer)

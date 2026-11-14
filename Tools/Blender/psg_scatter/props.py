@@ -15,6 +15,10 @@ def _paint_changed(self, _context):
     core.schedule(self.id_data, scatter=False)
 
 
+def _display_changed(self, _context):
+    core.apply_layer_display(self.id_data, self)
+
+
 def _ground_changed(self, _context):
     core.schedule_ground(self.id_data)
 
@@ -47,6 +51,15 @@ class PSG_Layer(bpy.types.PropertyGroup):
     source: PointerProperty(
         name="Source", type=bpy.types.Collection, update=_scatter_changed,
         description="Collection with source meshes (variants). Custom prop 'psg_weight' on an object sets its pick weight")
+    display_type: EnumProperty(
+        name="Display As", update=_display_changed, default='TEXTURED',
+        description="Viewport display of this layer's instances (Bounds is the fastest). Not exported",
+        items=[
+            ('TEXTURED', "Textured", "Full display"),
+            ('SOLID', "Solid", "Solid shading only"),
+            ('WIRE', "Wire", "Wireframe"),
+            ('BOUNDS', "Bounds", "Bounding box only, fastest"),
+        ])
     source_filter: StringProperty(
         name="Filter", update=_scatter_changed,
         description="Comma-separated name parts to use from the collection, '!' excludes (e.g. 'Trawa, Kwiaty, !v3')")
@@ -123,6 +136,8 @@ class PSG_PathSettings(bpy.types.PropertyGroup):
     next_uid: IntProperty()
     output: PointerProperty(type=bpy.types.Collection)
     state_json: StringProperty()
+    instance_count: IntProperty()
+    locked_count: IntProperty()
     excluded_json: StringProperty()
     painted_target: StringProperty()
 

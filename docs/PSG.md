@@ -81,6 +81,14 @@ Waga wariantu: własność `psg_weight` (Custom Property) na obiekcie źródłow
 - Na ścieżce: **Regenerate**, **Clear**, **Reset Edits** (zapomina usunięcia i blokady), **Make Permanent** (odpina wszystkie elementy od generatora), **Select All / Select Locked**.
 - Zmiana parametrów warstwy (spacing, seed, tryb) zmienia numerację kandydatów, więc zapamiętane usunięcia mogą trafić w inne miejsca. Zablokowane elementy zostają tam, gdzie są.
 
+## Wydajność
+
+- Regeneracja aktualizuje istniejące obiekty w miejscu (pozycja, mesh) zamiast usuwać je i tworzyć od nowa, a niepotrzebne usuwa hurtowo. Pomiar na 1300 obiektach w `all_models.blend`: ok. 0,4 s zamiast 4 s.
+- **Display As** w każdej warstwie: Textured, Solid, Wire albo **Bounds** (sam prostopadłościan, najszybciej). Działa od razu, bez regeneracji, i jest zachowywane przy kolejnych regeneracjach. Przyciski w panelu Generator ustawiają tryb dla wszystkich warstw naraz. Na eksport nie wpływa.
+- Live Update czeka 0,35 s ciszy po ostatniej zmianie (np. po puszczeniu suwaka), zanim przeliczy scatter.
+- Na laptopie z dwiema kartami przypnij Blendera do karty NVIDIA: Ustawienia Windows → System → Ekran → Grafika → `blender.exe` → Wysoka wydajność.
+- Kolekcje, nad którymi nie pracujesz, wykluczaj z widoku checkboxem w Outlinerze. Samo ukrycie oczkiem nie zdejmuje obiektów z obliczeń.
+
 ## Malowanie podłoża
 
 - Kolor trafia do atrybutu `Col` (Face Corner, Float Color), tak samo jak w assetach biomów. Teren dostaje materiał `LD57 Stylized` (Color Attribute → Base Color), jeśli w pliku nie ma żadnego.

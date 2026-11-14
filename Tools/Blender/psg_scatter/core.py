@@ -655,21 +655,51 @@ def layer_placements(layer, candidates, raycast, occupied, avoid):
         yield index, source, placement_matrix(layer, position, tangent, normal, rolls, source), position, scale
 
 
-def make_instance(path, layer, index, source, matrix, collection):
-    """Linked duplicate: a real object sharing the source mesh (exports as shared mesh to FBX)."""
-    name = "%s__%s_%s_%04d" % (source.name, path.name, layer.name, index)
-    obj = bpy.data.objects.new(name, source.data)
-    collection.objects.link(obj)
-    copy_material_slots(source, obj)
+def instance_name(path, layer, index, source):
+    return "%s__%s_%s_%04d" % (source.name, path.name, layer.name, index)
+
+
+def make_instance(path, layer, index, source, matrix, collection, reuse=None):
+    """Linked duplicate: a real object sharing the source mesh (exports as shared mesh to FBX).
+
+    With `reuse`, an existing instance is updated in place instead of creating a new object,
+    which is much cheaper than removing and re-adding objects.
+    """
+    if reuse is None:
+        obj = bpy.data.objects.new(instance_name(path, layer, index, source), source.data)
+        collection.objects.link(obj)
+        copy_material_slots(source, obj)
+    else:
+        obj = reuse
+        if obj.data != source.data:
+            obj.data = source.data
+            obj.name = instance_name(path, layer, index, source)
+            copy_material_slots(source, obj)
     obj.matrix_basis = matrix
+    if obj.display_type != layer.display_type:
+        obj.display_type = layer.display_type
     inst = obj.psg_inst
-    inst.path = path
-    inst.layer_uid = layer.uid
-    inst.index = index
+    if reuse is None:
+        inst.path = path
+        inst.layer_uid = layer.uid
+        inst.index = index
     inst.locked = False
     inst.source_mesh = source.data.name
     inst.gen_matrix = matrix_to_list(matrix)
     return obj
+
+
+def apply_layer_display(path, layer):
+    for obj in path_instances(path):
+        if obj.psg_inst.layer_uid == layer.uid and obj.display_type != layer.display_type:
+            obj.display_type = layer.display_type
+
+
+def remove_objects(objects):
+    """Batch removal: removing objects one by one is O(n^2) in Blender."""
+    objects = list(objects)
+    if objects:
+        bpy.data.batch_remove(objects)
 
 
 def copy_material_slots(source, obj):
@@ -678,10 +708,6 @@ def copy_material_slots(source, obj):
         slot.link = src_slot.link
         if src_slot.link == 'OBJECT':
             slot.material = src_slot.material
-
-
-def remove_object(obj):
-    bpy.data.objects.remove(obj, do_unlink=True)
 
 
 _busy = False
@@ -726,11 +752,13 @@ def _regenerate(path, depsgraph):
     layer_uids = {str(layer.uid) for layer in settings.layers}
 
     instances = []
+    orphans = []
     for obj in path_instances(path):
         if obj.users == 0 or not obj.users_collection:
-            remove_object(obj)  # deleted/unlinked by the user, counts as a deletion
+            orphans.append(obj)  # deleted/unlinked by the user, counts as a deletion
         else:
             instances.append(obj)
+    remove_objects(orphans)
     present = {}
     for obj in instances:
         present.setdefault(str(obj.psg_inst.layer_uid), set()).add(obj.psg_inst.index)
@@ -743,6 +771,8 @@ def _regenerate(path, depsgraph):
 
     kept = {}
     placed = {}  # uid -> [(index, position, scale)], feeds Around layers and avoidance
+    reusable = {}  # (uid, index) -> unedited instance, updated in place if still generated
+    leftovers = []
     for obj in instances:
         inst = obj.psg_inst
         uid = str(inst.layer_uid)
@@ -755,7 +785,11 @@ def _regenerate(path, depsgraph):
                 continue
             if inst.locked:
                 continue
-        remove_object(obj)
+        key = (uid, inst.index)
+        if key in reusable:
+            leftovers.append(obj)  # duplicate (e.g. Shift+D copy that was not edited)
+        else:
+            reusable[key] = obj
 
     area = is_area(path)
     polylines = [] if area else path_polylines(path)
@@ -787,13 +821,20 @@ def _regenerate(path, depsgraph):
         for index, source, matrix, position, scale in layer_placements(layer, candidates, raycast, occupied, avoid):
             if index in skip:
                 continue
-            make_instance(path, layer, index, source, matrix, collection)
+            reuse = reusable.pop((uid, index), None)
+            make_instance(path, layer, index, source, matrix, collection, reuse)
             state[uid].add(index)
             placed.setdefault(uid, []).append((index, position, scale))
-            created += 1
+            if reuse is None:
+                created += 1
+
+    leftovers.extend(reusable.values())
+    remove_objects(leftovers)
 
     settings.state_json = dump_json(state)
     settings.excluded_json = dump_json({k: v for k, v in excluded.items() if k in layer_uids})
+    settings.instance_count = sum(len(v) for v in state.values())
+    settings.locked_count = sum(len(v) for v in kept.values())
 
     if not area:
         repaint_targets(path)
@@ -811,10 +852,16 @@ def repaint_targets(path):
 
 
 def clear(path, include_locked=False):
-    for obj in path_instances(path):
-        if include_locked or not obj.psg_inst.locked:
-            remove_object(obj)
+    instances = path_instances(path)
+    remove_objects(o for o in instances if include_locked or not o.psg_inst.locked)
     path.psg.state_json = ""
+    update_counts(path)
+
+
+def update_counts(path):
+    instances = path_instances(path)
+    path.psg.instance_count = len(instances)
+    path.psg.locked_count = sum(1 for o in instances if o.psg_inst.locked)
 
 
 def reset_edits(path):
@@ -1043,10 +1090,20 @@ BIOME_TREE_FILTERS = {
 
 
 def apply_biome_preset(area, biome, replace):
+    """Adds the preset layers. Caller regenerates (live-update scheduling is suppressed here)."""
+    global _busy
+    previous_busy = _busy
+    _busy = True
+    try:
+        return _apply_biome_preset(area, biome, replace)
+    finally:
+        _busy = previous_busy
+
+
+def _apply_biome_preset(area, biome, replace):
     settings = area.psg
     if replace:
-        for obj in path_instances(area):
-            remove_object(obj)
+        remove_objects(path_instances(area))
         settings.layers.clear()
         settings.state_json = ""
         settings.excluded_json = ""
@@ -1075,6 +1132,14 @@ def apply_biome_preset(area, biome, replace):
 _pending = {}
 _signatures = {}
 _mute_until = [0.0]
+_last_request = [0.0]
+DEBOUNCE = 0.35  # seconds of quiet (e.g. after releasing a slider) before regenerating
+
+
+def _request():
+    _last_request[0] = time.monotonic()
+    if not bpy.app.timers.is_registered(_flush):
+        bpy.app.timers.register(_flush, first_interval=DEBOUNCE)
 
 
 def schedule(path, scatter=True):
@@ -1083,18 +1148,19 @@ def schedule(path, scatter=True):
     if not scatter and is_area(path):
         return
     _pending[path.name] = _pending.get(path.name, False) or scatter
-    if not bpy.app.timers.is_registered(_flush):
-        bpy.app.timers.register(_flush, first_interval=0.15)
+    _request()
 
 
 def schedule_ground(ground):
     if not _busy and ground is not None:
         _pending["\0ground:" + ground.name] = False
-        if not bpy.app.timers.is_registered(_flush):
-            bpy.app.timers.register(_flush, first_interval=0.15)
+        _request()
 
 
 def _flush():
+    wait = DEBOUNCE - (time.monotonic() - _last_request[0])
+    if wait > 0.01:
+        return wait  # still changing: run again later
     jobs = dict(_pending)
     _pending.clear()
     for key, scatter in jobs.items():
