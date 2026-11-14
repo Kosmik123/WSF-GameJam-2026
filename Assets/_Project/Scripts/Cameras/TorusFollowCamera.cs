@@ -89,18 +89,40 @@ namespace WSFGameJam2026.Cameras
             return 2f * strength * noise;
         }
 
+        /// <summary>
+        /// The pose the camera aims for behind the player, without smoothing and shake.
+        /// Used by <see cref="CameraIntro"/> to fly into the follow view. Gives the current pose when there is no target.
+        /// </summary>
+        public void GetTargetPose(out Vector3 position, out Quaternion rotation)
+        {
+            if (target == null)
+            {
+                position = transform.position;
+                rotation = transform.rotation;
+                return;
+            }
+
+            GetDesiredPlacement(out var focus, out position, out var up);
+            rotation = Quaternion.LookRotation(focus - position, up);
+        }
+
+        private void GetDesiredPlacement(out Vector3 focus, out Vector3 desiredPosition, out Vector3 up)
+        {
+            // The smooth base tube is used instead of the terrain, so bumps don't shake the camera.
+            up = target.Up;
+            var forward = Vector3.ProjectOnPlane(target.Facing, up).normalized;
+            focus = target.transform.position + up * lookAtHeight;
+
+            float pitchRadians = pitchDegrees * Mathf.Deg2Rad;
+            desiredPosition = focus + up * (distance * Mathf.Sin(pitchRadians)) - forward * (distance * Mathf.Cos(pitchRadians));
+        }
+
         private void LateUpdate()
         {
             if (target == null)
                 return;
 
-            // The smooth base tube is used instead of the terrain, so bumps don't shake the camera.
-            var up = target.Up;
-            var forward = Vector3.ProjectOnPlane(target.Facing, up).normalized;
-            var focus = target.transform.position + up * lookAtHeight;
-
-            float pitchRadians = pitchDegrees * Mathf.Deg2Rad;
-            var desiredPosition = focus + up * (distance * Mathf.Sin(pitchRadians)) - forward * (distance * Mathf.Cos(pitchRadians));
+            GetDesiredPlacement(out var focus, out var desiredPosition, out var up);
 
             if (shouldSnap)
             {

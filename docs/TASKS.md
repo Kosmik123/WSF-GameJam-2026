@@ -68,7 +68,8 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [x] **Postać gracza i modele wrogów z LD57:** gracz z paczki *RPG Tiny Hero Duo* (`Assets/RPG Tiny Hero Duo`, tylko potrzebne pliki): Wojownik = postać męska z mieczem i tarczą, Mag = postać kobieca bez broni z niebieskim materiałem. Animacje (bieg do przodu i do tyłu, 3 ciosy combo, rzucanie, unik, trafienie, śmierć) w `Animations/Player/Player.controller`, sterowane przez `PlayerAnimator`; model wstawia `PlayerClassApplier`. Wrogowie: slime (biegacz) i strzelec z LD57 z prymitywów i materiałów LD57, z animacją proceduralną `EnemyVisualAnimator` (port SlimeAnimator, ShooterAnimator i HitReaction bez DOTween). Menu *WSF GameJam/Setup/Apply LD57 Models* (uruchamia się też na końcu *Create Skills And Mage*). Nie testowane w Unity. `C`
 - [ ] **Test i balans skilli maga w Unity** (obrażenia z LD57 ×4, cooldowny, zasięgi). `?`
 - [ ] **Efekty skilli i strzału maga** (zamiast placeholderów `SkillVfx`), ikony skilli (`SkillDefinition.Icon`), animacja rzucania czaru dla maga (teraz cios mieczem `Attack04`). Zdarzenia: `SkillUser.OnSkillExecuted`, `RangedAttack.OnShot`. `G`
-- [ ] **Wybór klasy** na ekranie startowym (`PlayerClassApplier.Apply`) i ewentualnie skille Wojownika z LD57 (wir, szarża, uderzenie w ziemię, rzut toporem, okrzyk). `?`
+- [x] **Wybór klasy** na ekranie startowym: przyciski Mag i Wojownik w `MainMenu` wołają `PlayerClassApplier.Apply`. Nie testowane w Unity. `C`
+- [ ] **Skille Wojownika** z LD57 (wir, szarża, uderzenie w ziemię, rzut toporem, okrzyk). `?`
 
 ## Etap 2b: progresja (MUST)
 
@@ -83,8 +84,10 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [ ] **HUD:** pasek HP i numer rundy (reszta HUD-u: wskaźnik paszczy, ekrany poniżej). `P`
   - [x] Numer rundy: `RoundState` (numer rundy, `StartNextRound`, `ResetRounds`) i `RoundLabel`, ten sam menu *Create HUD*. `RoundState` czeka na podpięcie pod pętlę rund. `C`
   - [x] Pasek HP gracza z opóźnionym „śladem” obrażeń: `HealthBar`, menu *WSF GameJam/Setup/Create HUD* (nie testowane w Unity). `C`
-- [ ] **Wskaźnik paszczy:** kierunek i odległość, pasek postępu okrążenia. `P`
+- [x] **Wskaźnik paszczy:** pierścień okrążenia z odległością do paszczy (`LapRing`) i czerwona, pulsująca winieta z ostrzeżeniem, gdy paszcza jest blisko (`MawWarning`). Menu *WSF GameJam/Setup/Create Aztec UI*. Nie testowane w Unity. `C`
 - [ ] **Ekrany:** start, zwycięstwo rundy, śmierć, pauza. `G` (grafika), `P` (logika)
+  - [x] UI w stylu azteckim (projekt: [canvas „Uroboros — propozycja UI”](https://claude.ai/artifact/VR4j8GK12A2xV2qYbzkG7V)): menu startowe z ładowaniem, wyborem klasy i rekordem, kamera z góry torusa zjeżdża za plecy bohatera (`MainMenu`, `CameraIntro`), pauza pod Escape (`PauseMenu`; `GamePause` jest jedynym właścicielem pauzy), baner „Runda N” (`RoundBanner`), kropki rundy (`RoundDots`), restyling HUD-u i ekranów rund. Sprite’y rysowane w kodzie (`AztecUiSprites`, zapis do `Assets/_Project/Ui/Sprites`). Menu *WSF GameJam/Setup/Create Aztec UI* (po *Create HUD*, *Create Round Loop*, *Create Round Screens*). Skompilowane poza Unity, nie testowane w Unity. `C`
+  - [ ] Font nagłówków (teraz domyślny TMP, w projekcie był Cinzel), ikony skilli, pasek XP i ekran awansu po systemie poziomów. `G`, `C`
 - [ ] **Efekty paszczy w świecie:** poświata, drgania kamery, zmiana kolorów przy zbliżaniu się. `C`
 
 ## Etap 4: więcej zawartości (SHOULD / COULD)

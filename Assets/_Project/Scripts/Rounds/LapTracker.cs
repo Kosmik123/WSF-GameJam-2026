@@ -35,6 +35,24 @@ namespace WSFGameJam2026.Rounds
         /// <summary>Lap progress: 0 at the start, 1 at the goal behind the head. Negative when the head passed the player.</summary>
         public float Progress => Mathf.Min(1f, travelledDegrees / GoalDegrees);
 
+        /// <summary>True between <see cref="Begin"/> and the end of the lap (won or stopped).</summary>
+        public bool IsRunning => isRunning;
+
+        /// <summary>
+        /// How far the player is in front of the jaw, in metres along the centre line of the torus.
+        /// The lead the player has over the jaw; negative when the jaw passed the player.
+        /// </summary>
+        public float MetersAheadOfHead
+        {
+            get
+            {
+                if (head == null || head.World == null)
+                    return 0f;
+
+                return travelledDegrees * Mathf.Deg2Rad * head.World.MajorRadius;
+            }
+        }
+
         private float GoalDegrees => Mathf.Max(1f, 360f - goalBehindHeadDegrees);
 
         private void Reset()
