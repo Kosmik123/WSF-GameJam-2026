@@ -67,6 +67,14 @@ namespace WSFGameJam2026.Editor
             if (choice == 1)
                 return;
 
+            Run(playerCombat, choice == 0);
+        }
+
+        /// <summary>The whole setup without dialogs (also used by <see cref="SkillsAutoSetup"/>).</summary>
+        internal static void Run(PlayerCombat playerCombat, bool startAsMage)
+        {
+            int choice = startAsMage ? 0 : 2;
+
             EnsureFolder(PrefabsFolder);
             EnsureFolder(MaterialsFolder);
             EnsureFolder(MageSkillsFolder);
