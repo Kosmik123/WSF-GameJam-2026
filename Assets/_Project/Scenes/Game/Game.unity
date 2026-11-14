@@ -157,7 +157,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8746362065382489076, guid: 7c98492b493e7bc46b6d7b158a144fac, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 229.98183
+      value: 249.61522
       objectReference: {fileID: 0}
     - target: {fileID: 8746362065382489076, guid: 7c98492b493e7bc46b6d7b158a144fac, type: 3}
       propertyPath: m_LocalRotation.w
@@ -416,7 +416,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
   Priority:
     Enabled: 1
-    m_Value: 1
+    m_Value: -1
   OutputChannel: 1
   StandbyUpdate: 2
   m_StreamingVersion: 20241001
@@ -490,16 +490,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusWorld
   majorRadius: 200
-  minorRadius: 30
-  segmentCount: 22
-  sidesResolution: 57
+  minorRadius: 50
+  segmentCount: 16
+  sidesResolution: 60
   segmentProfiles:
   - {fileID: 11400000, guid: fdf2e221983bfb6458ee27b4316bea44, type: 2}
   - {fileID: 11400000, guid: 2f3c84b6e09517f4ea6a6a2030fd290d, type: 2}
   blendWidth: 0.2
   defaultMaterial: {fileID: 0}
   generateColliders: 1
-  shouldRebuildOnValidate: 1
+  shouldRebuildOnValidate: 0
 --- !u!4 &1142851115
 Transform:
   m_ObjectHideFlags: 0
@@ -709,7 +709,7 @@ PrefabInstance:
     - target: {fileID: 5024990559671578796, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 9a14f5c2e236d1b44b507837755b216f, type: 2}
+      objectReference: {fileID: 2100000, guid: 6c391b4fb4959fc4a89f9beb533cfabd, type: 2}
     - target: {fileID: 6194550203131202499, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0.8660252
@@ -809,31 +809,31 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -18
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 450
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 259.61523
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071068
+      value: 0.35355335
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0.7071068
+      value: 0.61237246
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: 0.61237246
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: 0.35355335
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

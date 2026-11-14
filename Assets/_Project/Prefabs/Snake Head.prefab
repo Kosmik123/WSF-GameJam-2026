@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   world: {fileID: 0}
-  angularMoveSpeedDegrees: 0.15
+  angularMoveSpeedDegrees: 0.5
   startThetaDegrees: 0
   theta: 0
 --- !u!114 &3418072956140283771
@@ -65,7 +65,7 @@ MonoBehaviour:
   world: {fileID: 0}
   headBlendLengthDegrees: 50
   neckSliceDepth: 20
-  headFrontOffset: -80
+  headFrontOffset: -160
   neckHeightOffset: 1
   tailTaperLengthDegrees: 50
   tailTaperCurve:
@@ -342,7 +342,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 8, y: 0, z: 0}
-  m_LocalScale: {x: 22, y: 22, z: 22}
+  m_LocalScale: {x: 35, y: 35, z: 35}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5640738918670016037}
