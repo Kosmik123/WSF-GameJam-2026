@@ -65,9 +65,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   world: {fileID: 0}
   headBlendLengthDegrees: 50
-  neckSliceDepthDegrees: 6
+  neckSliceDepthDegrees: 4.5
   headFrontOffsetDegrees: -27
   neckHeightOffset: 2
+  rollReference: {fileID: 0}
+  useHeadHeightMap: 1
+  headMapCellSize: 0.25
+  headMapColumns: 128
   tailTaperLengthDegrees: 60
   tailTaperCurve:
     serializedVersion: 2
@@ -511,7 +515,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0.5, w: 0.8660254}
   m_LocalPosition: {x: 8, y: 0, z: 0}
-  m_LocalScale: {x: 35, y: 35, z: 35}
+  m_LocalScale: {x: 40, y: 40, z: 40}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 5640738918670016037}
