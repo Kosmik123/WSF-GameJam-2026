@@ -84,6 +84,7 @@ namespace WSFGameJam2026.World
                 GetProfile(index - 1),
                 GetProfile(index + 1),
                 scaled - index,
+                Mathf.Repeat(phi, TwoPi) / TwoPi,
                 BlendWidth,
                 GetBasePoint(wrapped, phi));
         }

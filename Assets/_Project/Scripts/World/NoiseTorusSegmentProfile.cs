@@ -41,7 +41,7 @@ namespace WSFGameJam2026.World
         private Vector3 noiseOffset;
         public Vector3 NoiseOffset => noiseOffset;
 
-        public override float SampleHeight(Vector3 basePoint)
+        public override float SampleHeight(float along, float around, Vector3 basePoint)
         {
             Vector3 samplePoint = basePoint * frequency + noiseOffset;
             float value = Mathf.Clamp01(FractalNoise(samplePoint));
