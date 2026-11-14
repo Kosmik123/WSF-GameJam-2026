@@ -52,12 +52,12 @@ namespace WSFGameJam2026.World
                     int d = c + 1;
 
                     triangles[index++] = a;
+                    triangles[index++] = c;
+                    triangles[index++] = b;
+                    
                     triangles[index++] = b;
                     triangles[index++] = c;
-
-                    triangles[index++] = b;
                     triangles[index++] = d;
-                    triangles[index++] = c;
                 }
             }
 
