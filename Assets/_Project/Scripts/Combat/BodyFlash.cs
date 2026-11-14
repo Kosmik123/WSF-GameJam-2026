@@ -13,6 +13,7 @@ namespace WSFGameJam2026.Combat
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private static readonly int ColorId = Shader.PropertyToID("_Color");
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
+        private static readonly int TintId = Shader.PropertyToID("_Tint");
 
         [SerializeField]
         private Health health;
@@ -98,6 +99,7 @@ namespace WSFGameJam2026.Combat
             block.SetColor(BaseColorId, color);
             block.SetColor(ColorId, color);
             block.SetColor(EmissionColorId, color);
+            block.SetColor(TintId, color);
             for (int i = 0; i < renderers.Length; i++)
                 if (renderers[i])
                     renderers[i].SetPropertyBlock(block);

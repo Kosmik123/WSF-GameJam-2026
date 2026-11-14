@@ -5,7 +5,7 @@
 
 ## 1. Wizja w jednym zdaniu
 
-Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą, która go pożera. Musisz okrążyć cały świat i stanąć za paszczą, na czubku głowy.
+Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą, która go pożera. Musisz okrążyć cały świat, dotrzeć za paszczę i zniszczyć wrażliwy punkt węża.
 
 ## 2. Temat i odniesienie do tematu (Uroboros)
 
@@ -41,11 +41,11 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 1. Start: gracz stoi z przodu paszczy.
 2. Gracz biegnie wzdłuż torusa, przed nim pojawiają się wrogowie.
 3. Gracz walczy lub ich omija. Straty HP i czas spędzony w walce zmniejszają przewagę nad paszczą.
-4. Gracz okrąża cały torus i dociera na czubek głowy węża (za paszczą).
+4. Gracz okrąża cały torus, dociera do wrażliwego punktu węża (za paszczą) i niszczy go: punkt ma życie, maleje wraz z jego utratą i miga na czerwono po trafieniu.
 5. **Zwycięstwo rundy.** Zaczyna się kolejna runda: paszcza jest szybsza, wrogów jest więcej.
 6. Śmierć (paszcza albo HP = 0) **kończy całe przejście**: kasuje rundę i cały postęp (poziom, sprzęt). Gracz zaczyna od rundy 1, a ekran śmierci pokazuje, ile rund przetrwał.
 
-**Runda** to jedno pełne okrążenie: od startu przed paszczą do dotarcia na czubek głowy. Po każdej wygranej rundzie kolejna ma szybszą paszczę i więcej wrogów. Rund jest tyle, ile gracz wytrzyma. **Rekord gracza to liczba ukończonych rund**: im więcej, tym lepszy wynik. Rekord zapisujemy i pokazujemy na ekranie startowym i śmierci.
+**Runda** to jedno pełne okrążenie: od startu przed paszczą do zniszczenia wrażliwego punktu za głową. Po każdej wygranej rundzie kolejna ma szybszą paszczę i więcej wrogów. Rund jest tyle, ile gracz wytrzyma. **Rekord gracza to liczba ukończonych rund**: im więcej, tym lepszy wynik. Rekord zapisujemy i pokazujemy na ekranie startowym i śmierci.
 
 ## 7. Gracz
 
@@ -84,7 +84,7 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 - **Trudność zależy od bliskości paszczy.** Liczymy ją dla każdego segmentu z jego odległości od paszczy, mierzonej w kierunku biegu gracza:
   - blisko paszczy: wrogowie najsłabsi (dobre miejsce na zdobywanie XP),
   - dalej: coraz silniejsi,
-  - tuż za paszczą, przy czubku głowy: najsilniejsi (cel okrążenia jest najtrudniejszy).
+  - tuż za paszczą, przy czubku głowy: najsilniejsi (dojście do wrażliwego punktu jest najtrudniejsze).
 - **Paszcza osłabia segmenty, które pożera.** Gdy paszcza zbliża się do kolejnych segmentów, trudność każdego z nich spada, bo dzieli go od niej coraz mniej. Jest to też nagroda za wolne tempo: zostawanie z tyłu oznacza łatwiejszych wrogów, ale mniej czasu.
 - **Kolejne rundy:** do trudności z odległości dochodzi mnożnik rundy (liczniejsi i silniejsi wrogowie, szybsza paszcza).
 - **Wróg dostaje siłę raz, w momencie pojawienia się**, na podstawie trudności segmentu, w którym powstaje. Później jej nie zmienia, więc gracz może ocenić ryzyko walki. Wrogów pojawiamy blisko gracza (kilka sekund przed nim), żeby ich poziom odpowiadał miejscu, w którym naprawdę walczy.
@@ -95,7 +95,7 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 
 ## 10. Czytelność i interfejs
 
-- Wskaźniki na ekranie: **kierunek i odległość do paszczy** oraz **pasek postępu okrążenia** (gdzie jest cel).
+- Wskaźniki na ekranie: **kierunek i odległość do paszczy** oraz **pasek postępu okrążenia i życie wrażliwego punktu** (gdzie jest cel).
 - Efekty w świecie: poświata, dźwięk i drgania kamery przy zbliżaniu się paszczy.
 - UI: HP gracza, numer rundy, ekran startowy, ekran zwycięstwa rundy, ekran śmierci.
 

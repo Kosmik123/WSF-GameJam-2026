@@ -13,6 +13,9 @@ namespace WSFGameJam2026.Combat
 
         /// <summary>Takes hit points over time.</summary>
         Gradual,
+
+        /// <summary>The jaw does nothing to it (the weak point of the snake).</summary>
+        Immune,
     }
 
     /// <summary>
@@ -41,7 +44,7 @@ namespace WSFGameJam2026.Combat
         private int maxHealth = 30;
         public int MaxHealth => maxHealth;
 
-        [Tooltip("What the jaw does to this body. Instant = dies at once (NPCs), Gradual = loses hit points over time (the player).")]
+        [Tooltip("What the jaw does to this body. Instant = dies at once (NPCs), Gradual = loses hit points over time (the player), Immune = nothing (the weak point).")]
         [SerializeField]
         private MawDamageMode mawDamageMode = MawDamageMode.Instant;
 

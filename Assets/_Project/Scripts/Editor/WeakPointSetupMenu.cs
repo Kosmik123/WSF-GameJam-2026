@@ -1,45 +1,68 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using WSFGameJam2026.Combat;
 using WSFGameJam2026.Head;
-using WSFGameJam2026.Player;
 using WSFGameJam2026.Rounds;
 using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Editor
 {
     /// <summary>
-    /// Adds the weak point of the snake to the open scene: an object with TorusObject and WeakPoint and a placeholder sphere
-    /// as its model, connected to the head, the lap tracker and the player. Safe to run again: it connects the existing object.
+    /// Adds the weak point of the snake to the open scene: an object with TorusObject, Health (team of the enemies, immune to the jaw),
+    /// BodyFlash (red) and WeakPoint, with a placeholder sphere as its model, connected to the head. The round controller
+    /// is connected to it too. Safe to run again: it adds what is missing and connects the existing object.
     /// Replace the "Model" child with the real model.
     /// </summary>
     public static class WeakPointSetupMenu
     {
+        private const int WeakPointHealth = 60;
+
         [MenuItem("WSF GameJam/Setup/Create Weak Point")]
         private static void CreateWeakPoint()
         {
             var head = Object.FindAnyObjectByType<HeadMovement>();
-            var lapTracker = Object.FindAnyObjectByType<LapTracker>();
             var world = Object.FindAnyObjectByType<TorusWorld>();
-            var movement = Object.FindAnyObjectByType<TorusPlayerMovement>();
-            if (head == null || lapTracker == null || world == null || movement == null)
+            if (head == null || world == null)
             {
-                EditorUtility.DisplayDialog("Weak point setup", "The scene needs the world, the head, the player and the round loop (WSF GameJam/Setup/Create Round Loop).", "OK");
+                EditorUtility.DisplayDialog("Weak point setup", "The scene needs the world and the head.", "OK");
                 return;
             }
 
             var weakPoint = Object.FindAnyObjectByType<WeakPoint>();
             var weakPointObject = weakPoint ? weakPoint.gameObject : CreateWeakPointObject();
             weakPoint = GetOrAdd<WeakPoint>(weakPointObject);
+            var health = GetOrAdd<Health>(weakPointObject);
+            var flash = GetOrAdd<BodyFlash>(weakPointObject);
 
             Connect(weakPointObject.GetComponent<TorusObject>(), "world", world);
             Connect(weakPoint, "head", head);
-            Connect(weakPoint, "lapTracker", lapTracker);
-            Connect(weakPoint, "player", movement.GetComponent<TorusObject>());
+
+            // The attacks of the player hit it (enemy team), the jaw ignores it.
+            var healthSerialized = new SerializedObject(health);
+            healthSerialized.FindProperty("team").enumValueIndex = (int)CombatTeam.Enemy;
+            healthSerialized.FindProperty("maxHealth").intValue = WeakPointHealth;
+            healthSerialized.FindProperty("mawDamageMode").enumValueIndex = (int)MawDamageMode.Immune;
+            healthSerialized.FindProperty("bodyRadius").floatValue = 1.5f;
+            healthSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            Connect(flash, "health", health);
+            var flashSerialized = new SerializedObject(flash);
+            flashSerialized.FindProperty("damageFlashColor").colorValue = Color.red;
+            flashSerialized.FindProperty("damageFlashDuration").floatValue = 0.15f;
+            flashSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+            var model = weakPointObject.transform.Find("Model");
+            if (model)
+                Connect(weakPoint, "visual", model);
+
+            var roundController = Object.FindAnyObjectByType<RoundController>();
+            if (roundController)
+                Connect(roundController, "weakPoint", weakPoint);
 
             EditorSceneManager.MarkSceneDirty(weakPointObject.scene);
             Selection.activeObject = weakPointObject;
-            Debug.Log("Weak point setup done: replace the Model child with the real model.");
+            Debug.Log("Weak point setup done: destroying it wins the round. Replace the Model child with the real model.");
         }
 
         private static GameObject CreateWeakPointObject()
