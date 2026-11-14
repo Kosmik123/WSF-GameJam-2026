@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Head
@@ -20,16 +21,17 @@ namespace WSFGameJam2026.Head
         [Tooltip("Length of the transition from the head outline to the normal terrain behind the neck, in degrees along the snake body.")]
         [SerializeField]
         [Min(0f)]
-        private float headBlendLengthDegrees = 25f;
+        private float neckBlendLengthDegrees = 25f;
 
         [Tooltip("Thickness of the slice of the head, measured from its rear end, whose widest points make the outline.")]
         [SerializeField]
         [Min(0.01f)]
         private float neckSliceDepth = 1f;
 
-        [Tooltip("Added to the measured length of the head, in world units. Negative moves the front end (white gizmo) back, so the terrain stops blending earlier.")]
+        [Tooltip("Added to the measured length of the head, in degrees along the snake body. Negative moves the front end (white gizmo) back, so the terrain stops blending earlier.")]
+        [FormerlySerializedAs("headFrontOffset")]
         [SerializeField]
-        private float headFrontOffset;
+        private float headFrontOffsetDegrees;
 
         [Tooltip("Added to the measured height of the outline. Positive lifts the terrain at the neck.")]
         [SerializeField]
@@ -45,7 +47,8 @@ namespace WSFGameJam2026.Head
         [Tooltip("Factor of the tail's tube radius along the taper zone. X: 0 = start of the zone (away from the head), 1 = the front of the head. Y: 0 = centre of the tube, 1 = original radius.")]
         [SerializeField]
         private AnimationCurve tailTaperCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
-        
+
+
         private HeadMovement movement;
         private bool isMeasured;
 
@@ -97,8 +100,8 @@ namespace WSFGameJam2026.Head
             var majorRadius = gizmoWorld.MajorRadius;
             var neckTheta = theta - neckOffset;
             var sliceTheta = neckTheta + neckSliceDepth / majorRadius;
-            var headEndTheta = neckTheta + GetAdjustedHeadLength(headLength, majorRadius);
-            var blendLength = headBlendLengthDegrees * Mathf.Deg2Rad;
+            var headEndTheta = neckTheta + GetAdjustedHeadLength(headLength);
+            var blendLength = neckBlendLengthDegrees * Mathf.Deg2Rad;
 
             var previousMatrix = Gizmos.matrix;
             Gizmos.matrix = gizmoWorld.transform.localToWorldMatrix;
@@ -173,10 +176,10 @@ namespace WSFGameJam2026.Head
             return TorusGeometry.GetCenterPoint(world.MajorRadius, theta) + TorusGeometry.GetNormal(theta, phi) * (world.MinorRadius + height);
         }
 
-        /// <summary>Measured head length (radians) with <see cref="headFrontOffset"/> applied.</summary>
-        private float GetAdjustedHeadLength(float measuredLength, float majorRadius)
+        /// <summary>Measured head length (radians) with <see cref="headFrontOffsetDegrees"/> applied.</summary>
+        private float GetAdjustedHeadLength(float measuredLength)
         {
-            return Mathf.Max(0f, measuredLength + headFrontOffset / majorRadius);
+            return Mathf.Max(0f, measuredLength + headFrontOffsetDegrees * Mathf.Deg2Rad);
         }
 
         private bool Measure()
@@ -195,8 +198,8 @@ namespace WSFGameJam2026.Head
             for (int i = 0; i < heights.Length; i++)
                 heights[i] += neckHeightOffset;
 
-            headLength = GetAdjustedHeadLength(headLength, world.MajorRadius);
-            world.HeadTerrain.Configure(neckOffset, headLength, headBlendLengthDegrees * Mathf.Deg2Rad, heights);
+            headLength = GetAdjustedHeadLength(headLength);
+            world.HeadTerrain.Configure(neckOffset, headLength, neckBlendLengthDegrees * Mathf.Deg2Rad, heights);
             world.HeadTerrain.ConfigureTail(tailTaperLengthDegrees * Mathf.Deg2Rad, tailTaperCurve);
             world.HeadTerrain.SetTheta(movement.Theta);
             return true;
