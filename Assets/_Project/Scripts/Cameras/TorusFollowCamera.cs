@@ -41,7 +41,7 @@ namespace WSFGameJam2026.Cameras
 
         private void Reset()
         {
-            target = FindFirstObjectByType<TorusObject>();
+            target = FindAnyObjectByType<TorusObject>();
         }
 
         private void OnEnable()
@@ -55,12 +55,12 @@ namespace WSFGameJam2026.Cameras
                 return;
 
             // The smooth base tube is used instead of the terrain, so bumps don't shake the camera.
-            Vector3 up = target.Up;
-            Vector3 forward = Vector3.ProjectOnPlane(target.Facing, up).normalized;
-            Vector3 focus = target.transform.position + up * lookAtHeight;
+            var up = target.Up;
+            var forward = Vector3.ProjectOnPlane(target.Facing, up).normalized;
+            var focus = target.transform.position + up * lookAtHeight;
 
             float pitchRadians = pitch * Mathf.Deg2Rad;
-            Vector3 desiredPosition = focus + up * (distance * Mathf.Sin(pitchRadians)) - forward * (distance * Mathf.Cos(pitchRadians));
+            var desiredPosition = focus + up * (distance * Mathf.Sin(pitchRadians)) - forward * (distance * Mathf.Cos(pitchRadians));
 
             if (shouldSnap)
             {
@@ -70,11 +70,11 @@ namespace WSFGameJam2026.Cameras
                 return;
             }
 
-            transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref velocity, positionSmoothTime);
+            var newPosition = Vector3.SmoothDamp(transform.position, desiredPosition, ref velocity, positionSmoothTime);
 
-            Quaternion desiredRotation = Quaternion.LookRotation(focus - transform.position, up);
+            var desiredRotation = Quaternion.LookRotation(focus - newPosition, up);
             float blend = 1f - Mathf.Exp(-rotationSharpness * Time.deltaTime);
-            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, blend);
+            transform.SetPositionAndRotation(newPosition, Quaternion.Slerp(transform.rotation, desiredRotation, blend));
         }
     }
 }

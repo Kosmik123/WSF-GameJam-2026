@@ -95,8 +95,8 @@ namespace WSFGameJam2026.World
 
         private Mesh CreateMesh(int segmentIndex)
         {
-            TorusSegmentProfile profile = surface.GetProfile(segmentIndex);
-            Mesh mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, profile.LengthResolution, sidesResolution);
+            var profile = surface.GetProfile(segmentIndex);
+            var mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, profile.LengthResolution, sidesResolution);
             mesh.hideFlags = HideFlags.DontSave;
 
             profile.Deform(mesh, surface.GetProfile(segmentIndex - 1), surface.GetProfile(segmentIndex + 1), surface.BlendWidth);
@@ -134,11 +134,11 @@ namespace WSFGameJam2026.World
         {
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
-                GameObject child = transform.GetChild(i).gameObject;
+                var child = transform.GetChild(i).gameObject;
                 if (child.hideFlags != HideFlags.DontSave)
                     continue;
 
-                if (child.TryGetComponent(out MeshFilter meshFilter))
+                if (child.TryGetComponent(out var meshFilter))
                     DestroyObject(meshFilter.sharedMesh);
 
                 DestroyObject(child);

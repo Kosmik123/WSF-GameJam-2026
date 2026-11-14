@@ -38,9 +38,9 @@ namespace WSFGameJam2026.World
         /// </summary>
         public virtual void Deform(Mesh mesh, TorusSegmentProfile previous, TorusSegmentProfile next, float blendWidth)
         {
-            Vector3[] vertices = mesh.vertices;
-            Vector3[] normals = mesh.normals;
-            Vector2[] uvs = mesh.uv;
+            var vertices = mesh.vertices;
+            var normals = mesh.normals;
+            var uvs = mesh.uv;
 
             for (int i = 0; i < vertices.Length; i++)
             {

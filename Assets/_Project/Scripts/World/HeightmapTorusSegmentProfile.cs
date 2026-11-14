@@ -40,7 +40,7 @@ namespace WSFGameJam2026.World
                 return false;
             }
 
-            Color[] pixels = heightmap.GetPixels();
+            var pixels = heightmap.GetPixels();
             width = heightmap.width;
             height = heightmap.height;
 

@@ -12,6 +12,9 @@ Instrukcje dla agentów (Claude i inni) pracujących w tym repozytorium. W razie
 
 - Stosuj skill `bipolar-rules` (styl kodu C#, hermetyzacja, struktura folderów). Nasze pliki trafiają wyłącznie do `Assets/_Project/`.
 - Pytanie to nie polecenie: gdy użytkownik pyta, odpowiedz i niczego nie zmieniaj.
+- Zmienne lokalne deklarujemy przez `var`. Wyjątek: typy wbudowane (`int`, `float`, `bool`, `string` i tablice takich typów) zostają zapisane jawnie. Pól klas to nie dotyczy.
+- Szukanie obiektu na scenie: `FindAnyObjectByType` zamiast `FindFirstObjectByType`.
+- Pozycję i rotację transformu ustawiamy razem przez `transform.SetPositionAndRotation(...)`, a nie osobnymi przypisaniami.
 
 ## Git
 

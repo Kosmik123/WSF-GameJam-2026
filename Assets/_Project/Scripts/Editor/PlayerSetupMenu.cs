@@ -16,7 +16,7 @@ namespace WSFGameJam2026.Editor
         [MenuItem("WSF GameJam/Setup/Create Player And Camera")]
         private static void CreatePlayerAndCamera()
         {
-            var world = Object.FindFirstObjectByType<TorusWorld>();
+            var world = Object.FindAnyObjectByType<TorusWorld>();
             if (world == null)
             {
                 EditorUtility.DisplayDialog("Player setup", "Add a TorusWorld to the scene first.", "OK");
@@ -24,9 +24,9 @@ namespace WSFGameJam2026.Editor
             }
 
             var actionsAsset = AssetDatabase.LoadAssetAtPath<InputActionAsset>(InputAssetPath);
-            InputActionReference moveReference = FindActionReference("Player", "Move");
+            var moveReference = FindActionReference("Player", "Move");
 
-            GameObject player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            var player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             player.name = "Player";
             Undo.RegisterCreatedObjectUndo(player, "Create Player");
 
@@ -38,7 +38,7 @@ namespace WSFGameJam2026.Editor
             SetReference(movement, "moveAction", moveReference);
             SetReference(enabler, "actions", actionsAsset);
 
-            Camera camera = Camera.main;
+            var camera = Camera.main;
             if (camera == null)
             {
                 var cameraObject = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener));
@@ -47,7 +47,7 @@ namespace WSFGameJam2026.Editor
                 camera = cameraObject.GetComponent<Camera>();
             }
 
-            if (camera.TryGetComponent(out TorusFollowCamera followCamera) == false)
+            if (camera.TryGetComponent(out var followCamera) == false)
                 followCamera = Undo.AddComponent<TorusFollowCamera>(camera.gameObject);
 
             SetReference(followCamera, "target", torusObject);
@@ -58,7 +58,7 @@ namespace WSFGameJam2026.Editor
 
         private static InputActionReference FindActionReference(string mapName, string actionName)
         {
-            foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(InputAssetPath))
+            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(InputAssetPath))
                 if (asset is InputActionReference reference && reference.action != null)
                     if (reference.action.actionMap.name == mapName && reference.action.name == actionName)
                         return reference;

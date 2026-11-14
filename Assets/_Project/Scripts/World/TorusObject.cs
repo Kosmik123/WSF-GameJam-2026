@@ -70,7 +70,7 @@ namespace WSFGameJam2026.World
 
         private void Reset()
         {
-            world = FindFirstObjectByType<TorusWorld>();
+            world = FindAnyObjectByType<TorusWorld>();
         }
 
         private void OnEnable()
@@ -111,7 +111,7 @@ namespace WSFGameJam2026.World
             // Directions of growing theta and phi are perpendicular, so the speed stays constant.
             var phiDirection = new Vector3(-Mathf.Sin(phi) * Mathf.Cos(theta), Mathf.Cos(phi), -Mathf.Sin(phi) * Mathf.Sin(theta));
 
-            TorusSurface surface = world.Surface;
+            var surface = world.Surface;
             float thetaDistance = Vector3.Dot(localFacing, localRunDirection) * distance;
             float phiDistance = Vector3.Dot(localFacing, phiDirection) * distance;
 
@@ -145,19 +145,20 @@ namespace WSFGameJam2026.World
 
         private void UpdateFacing()
         {
-            Vector3 projected = Vector3.ProjectOnPlane(localFacing, localUp);
+            var projected = Vector3.ProjectOnPlane(localFacing, localUp);
             localFacing = projected.sqrMagnitude < 0.0001f ? localRunDirection : projected.normalized;
         }
 
         private void ApplyTransform()
         {
-            Transform worldTransform = world.transform;
+            var worldTransform = world.transform;
             Up = worldTransform.TransformDirection(localUp);
             RunDirection = worldTransform.TransformDirection(localRunDirection);
             Facing = worldTransform.TransformDirection(localFacing);
 
-            transform.position = worldTransform.TransformPoint(localPosition + localUp * groundOffset);
-            transform.rotation = Quaternion.LookRotation(Facing, Up);
+            transform.SetPositionAndRotation(
+                worldTransform.TransformPoint(localPosition + localUp * groundOffset),
+                Quaternion.LookRotation(Facing, Up));
         }
     }
 }

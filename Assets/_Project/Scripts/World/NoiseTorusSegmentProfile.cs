@@ -43,7 +43,7 @@ namespace WSFGameJam2026.World
 
         public override float SampleHeight(float along, float around, Vector3 basePoint)
         {
-            Vector3 samplePoint = basePoint * frequency + noiseOffset;
+            var samplePoint = basePoint * frequency + noiseOffset;
             float value = Mathf.Clamp01(FractalNoise(samplePoint));
             return amplitude * (heightCurve.Evaluate(value) - 0.5f);
         }
