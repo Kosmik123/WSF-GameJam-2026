@@ -45,6 +45,27 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private bool receiveShadows = true;
 
+        [Header("Toppling Before The Head")]
+        [Tooltip("Tall assets (trees, columns) fall over when the head comes this close to them, in meters along the body ahead of the head's front.")]
+        [SerializeField]
+        [Min(0f)]
+        private float toppleDistance = 70f;
+
+        [Tooltip("An asset topples when it is taller than this, in meters.")]
+        [SerializeField]
+        [Min(0f)]
+        private float toppleMinHeight = 2f;
+
+        [Tooltip("Angle of a fallen asset, in degrees.")]
+        [SerializeField]
+        [Range(0f, 110f)]
+        private float toppleAngle = 82f;
+
+        [Tooltip("Random spread of the fall direction to the sides, in degrees (plus and minus). 0 = everything falls straight away from the head.")]
+        [SerializeField]
+        [Range(0f, 90f)]
+        private float toppleSpreadDegrees = 35f;
+
         private readonly List<Batch> batches = new List<Batch>();
         private readonly List<Placement> placements = new List<Placement>();
         private int appliedHeadVersion = -1;
@@ -64,6 +85,9 @@ namespace WSFGameJam2026.World
             public Vector3 Up;
             public Matrix4x4 BaseMatrix;
             public bool IsMoved;
+            public bool CanTopple;
+            public float FallYaw; // radians, sideways from the direction away from the head
+            public float FallDelay; // 0-1, part of the topple distance the asset withstands before it starts to fall
             public readonly List<Slot> Slots = new List<Slot>();
         }
 
@@ -242,6 +266,11 @@ namespace WSFGameJam2026.World
         {
             var placement = new Placement();
             placement.BaseMatrix = GetTorusMatrix(surface, segmentPosition, around, onTerrain, placement);
+            float height = mesh.bounds.max.y * onTerrain.lossyScale.y;
+            placement.CanTopple = height >= toppleMinHeight;
+            int seed = Mathf.RoundToInt(segmentPosition * 10007f + around * 7919f);
+            placement.FallYaw = (Hash01(seed, placements.Count, 2) * 2f - 1f) * toppleSpreadDegrees * Mathf.Deg2Rad;
+            placement.FallDelay = Hash01(seed, placements.Count, 3) * 0.45f;
             AddInstance(mesh, materials, placement, batchLookup);
             placements.Add(placement);
             InstanceCount++;
@@ -470,6 +499,9 @@ namespace WSFGameJam2026.World
             appliedHeadVersion = headTerrain.Version;
             headTerrain.GetAffectedRange(out float rangeStart, out float rangeLength);
             float minorRadius = world.MinorRadius;
+            float toppleReach = toppleDistance / Mathf.Max(world.MajorRadius, 1f);
+            float headFront = headTerrain.NeckTheta + headTerrain.HeadLength;
+            rangeLength = Mathf.Max(rangeLength, headFront + toppleReach - rangeStart);
 
             foreach (var placement in placements)
             {
@@ -481,6 +513,8 @@ namespace WSFGameJam2026.World
                 if (isInRange)
                 {
                     matrix = GetMovedMatrix(headTerrain, placement, minorRadius);
+                    if (placement.CanTopple && toppleReach > 0f)
+                        matrix = Topple(matrix, placement, headTerrain, headFront, toppleReach);
                     placement.IsMoved = true;
                 }
                 else
@@ -494,6 +528,42 @@ namespace WSFGameJam2026.World
                     slot.Batch.WorldMatrices[slot.Index] = builtWorldMatrix * matrix;
                 }
             }
+        }
+
+        /// <summary>
+        /// Tips a tall asset over, around its pivot on the ground, away from the coming head (the head moves to growing theta).
+        /// It starts to lean when the head's front is within the topple reach, falls faster and faster (like a cut tree)
+        /// and lies on the ground when the head reaches it. Behind the head, where the terrain grows back, it stands up again.
+        /// </summary>
+        private Matrix4x4 Topple(Matrix4x4 matrix, Placement placement, TorusHeadTerrain headTerrain, float headFront, float toppleReach)
+        {
+            float aheadOfFront = Mathf.Repeat(placement.Theta - headFront + Mathf.PI, TorusGeometry.TwoPi) - Mathf.PI;
+            float fall;
+            if (aheadOfFront >= 0f)
+            {
+                // 0 at the edge of the reach, 1 at the front of the head; the delay makes some assets hold on longer.
+                float closeness = 1f - aheadOfFront / toppleReach;
+                fall = Mathf.Clamp01((closeness - placement.FallDelay) / (1f - placement.FallDelay));
+                fall *= fall; // the fall speeds up
+            }
+            else
+            {
+                // On and behind the head: lying while the head covers it, standing up again as the terrain blends back.
+                fall = headTerrain.GetWeight(placement.Theta);
+            }
+
+            if (fall <= 0f)
+                return matrix;
+
+            var away = TorusGeometry.GetThetaDirection(placement.Theta);
+            var fallDirection = Quaternion.AngleAxis(placement.FallYaw * Mathf.Rad2Deg, placement.Up) * away;
+            var axis = Vector3.Cross(placement.Up, fallDirection);
+            var tilt = Quaternion.AngleAxis(fall * toppleAngle, axis);
+
+            Vector3 position = matrix.GetColumn(3);
+            var shape = matrix;
+            shape.SetColumn(3, new Vector4(0f, 0f, 0f, 1f));
+            return Matrix4x4.TRS(position, tilt, Vector3.one) * shape;
         }
 
         private static Matrix4x4 GetMovedMatrix(TorusHeadTerrain headTerrain, Placement placement, float minorRadius)
