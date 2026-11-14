@@ -29,18 +29,18 @@ namespace WSFGameJam2026.World
         private string terrainPrefix = "Teren_";
 
         [Header("Rendering")]
-        [Tooltip("Shadow mode of the assets near the shadow target. All the other assets cast no shadows.")]
+        [Tooltip("Shadow mode used when there is no shadow target (it is found automatically, so normally this is not used).")]
         [SerializeField]
         private ShadowCastingMode shadowCasting = ShadowCastingMode.On;
 
-        [Tooltip("Only assets within the range below around this object (along the body) cast shadows. Empty = all assets use the shadow mode above.")]
+        [Tooltip("Only assets within the range below around this object (along the body) cast shadows, all the others cast none. Empty = the player is found automatically.")]
         [SerializeField]
         private TorusObject shadowTarget;
 
         [Tooltip("Range of theta around the shadow target in which assets cast shadows, in degrees (plus and minus).")]
         [SerializeField]
         [Range(1f, 180f)]
-        private float shadowRangeDegrees = 30f;
+        private float nearShadowRangeDegrees = 30f;
 
         [SerializeField]
         private bool receiveShadows = true;
@@ -93,10 +93,7 @@ namespace WSFGameJam2026.World
         private void Reset()
         {
             world = FindAnyObjectByType<TorusWorld>();
-
-            var player = FindAnyObjectByType<TorusPlayerMovement>();
-            if (player)
-                shadowTarget = player.GetComponent<TorusObject>();
+            shadowTarget = FindShadowTarget();
         }
 
         private void OnEnable()
@@ -104,8 +101,17 @@ namespace WSFGameJam2026.World
             if (world)
                 world.Rebuilt += MarkDirty;
 
+            if (shadowTarget == null)
+                shadowTarget = FindShadowTarget();
+
             RenderPipelineManager.beginCameraRendering += Draw;
             MarkDirty();
+        }
+
+        private static TorusObject FindShadowTarget()
+        {
+            var player = FindAnyObjectByType<TorusPlayerMovement>();
+            return player ? player.GetComponent<TorusObject>() : null;
         }
 
         private void OnDisable()
@@ -327,15 +333,21 @@ namespace WSFGameJam2026.World
         private void DrawBatch(Batch batch, Camera camera, Bounds bounds)
         {
             int count = batch.WorldMatrices.Length;
-            var shadowParams = CreateRenderParams(batch, camera, bounds, shadowCasting);
-            if (shadowTarget == null || shadowCasting == ShadowCastingMode.Off || shadowRangeDegrees >= 180f)
+            if (shadowTarget == null)
+            {
+                DrawRange(CreateRenderParams(batch, camera, bounds, shadowCasting), batch, 0, count);
+                return;
+            }
+
+            var shadowParams = CreateRenderParams(batch, camera, bounds, ShadowCastingMode.On);
+            if (nearShadowRangeDegrees >= 180f)
             {
                 DrawRange(shadowParams, batch, 0, count);
                 return;
             }
 
             var noShadowParams = CreateRenderParams(batch, camera, bounds, ShadowCastingMode.Off);
-            float range = shadowRangeDegrees * Mathf.Deg2Rad;
+            float range = nearShadowRangeDegrees * Mathf.Deg2Rad;
             float start = Mathf.Repeat(shadowTarget.Angles.Theta - range, TorusGeometry.TwoPi);
             float end = start + range * 2f;
             int first = FindFirstIndex(batch.Thetas, start, false);
