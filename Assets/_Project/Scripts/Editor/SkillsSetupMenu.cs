@@ -10,14 +10,16 @@ using WSFGameJam2026.Player;
 using WSFGameJam2026.Rounds;
 using WSFGameJam2026.Skills;
 using WSFGameJam2026.Skills.Mage;
+using WSFGameJam2026.Skills.Warrior;
 using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Editor
 {
     /// <summary>
-    /// Sets up the skills and the classes (port of the LD57 P9Wiring_Mage): placeholder projectile prefabs, the 5 mage skill
-    /// assets with the LD57 numbers (damage x4 for the WSF health scale), the Mage and Warrior classes, the skill components
-    /// on the player prefab, status effects on the enemy prefabs, the skill bar in the HUD.
+    /// Sets up the skills and the classes (port of the LD57 P9Wiring_Mage and P1Wiring_Skills): placeholder projectile prefabs,
+    /// the 5 mage and 5 warrior skill assets with the LD57 numbers (damage x4 for the WSF health scale), the Mage and Warrior
+    /// classes, the skill components on the player prefab, status effects on the enemy prefabs, the skill bar in the HUD and
+    /// the combat effects (<see cref="VfxSetupMenu"/>).
     /// Safe to run again: existing assets keep their (balanced) values, components are not duplicated.
     /// </summary>
     public static class SkillsSetupMenu
@@ -25,8 +27,10 @@ namespace WSFGameJam2026.Editor
         private const string PrefabsFolder = "Assets/_Project/Prefabs/Skills";
         private const string MaterialsFolder = "Assets/_Project/Materials/Skills";
         private const string MageSkillsFolder = "Assets/_Project/Data/Skills/Mage";
+        private const string WarriorSkillsFolder = "Assets/_Project/Data/Skills/Warrior";
         private const string ClassesFolder = "Assets/_Project/Data/Classes";
         private const string EnemiesFolder = "Assets/_Project/Prefabs/Enemies";
+        private const string WarriorDescription = "Melee combo and dodge, 100 HP. Skills: spin, charge, ground slam, axe throw, war cry.";
 
         private static readonly Color BackgroundColor = new Color(0.08f, 0.08f, 0.1f, 0.8f);
         private static readonly Color CooldownColor = new Color(0f, 0f, 0f, 0.65f);
@@ -40,8 +44,9 @@ namespace WSFGameJam2026.Editor
             public float Range { get; }
             public float Duration { get; }
             public float Stun { get; }
+            public float Knockback { get; }
 
-            public TierData(string name, string description, float cooldown, int damage, float range, float duration, float stun = 0f)
+            public TierData(string name, string description, float cooldown, int damage, float range, float duration, float stun = 0f, float knockback = 0f)
             {
                 Name = name;
                 Description = description;
@@ -50,6 +55,7 @@ namespace WSFGameJam2026.Editor
                 Range = range;
                 Duration = duration;
                 Stun = stun;
+                Knockback = knockback;
             }
         }
 
@@ -93,11 +99,14 @@ namespace WSFGameJam2026.Editor
             var mage = CreateClass("Mage", "Mage", "Shoots bolts from range, 80 HP. Skills: fireball, frost nova, chain lightning, blink, arcane orbs.",
                 true, 80, new SkillDefinition[] { fireballSkill, frostNova, chainLightning, blink, arcaneOrbs },
                 new SkillDefinition[] { fireballSkill, frostNova, chainLightning, blink });
-            var warrior = CreateClass("Warrior", "Warrior", "Melee combo and dodge, 100 HP. No skills yet.",
-                false, 100, new SkillDefinition[0], new SkillDefinition[0]);
+            var warrior = SetupWarrior();
 
             SetupPlayer(playerCombat.gameObject, choice == 0 ? mage : warrior, bolt);
             AddStatusEffectsToEnemies();
+
+            // Looks of the projectiles and the combat effects in the scene.
+            VfxSetupMenu.AddProjectileVisuals();
+            VfxSetupMenu.EnsureCombatVfx(playerCombat);
 
             // Player character (mage or warrior model, animations) and the LD57 enemy models.
             Ld57ModelsSetupMenu.ApplyModels();
@@ -111,12 +120,12 @@ namespace WSFGameJam2026.Editor
 
             EditorSceneManager.MarkSceneDirty(playerCombat.gameObject.scene);
             AssetDatabase.SaveAssets();
-            Debug.Log("Skills setup done: mage skills, classes, player skill components" + (hasSkillBar ? ", skill bar." : " (no skill bar without TextMeshPro Essentials)."));
+            Debug.Log("Skills setup done: mage and warrior skills, classes, player skill components, combat effects" + (hasSkillBar ? ", skill bar." : " (no skill bar without TextMeshPro Essentials)."));
         }
 
         private static FireballSkill CreateFireball(SkillProjectile projectile)
         {
-            return CreateSkill<FireballSkill>("Fireball", "Fireball", serialized => serialized.FindProperty("projectilePrefab").objectReferenceValue = projectile,
+            return CreateSkill<FireballSkill>(MageSkillsFolder, "Fireball", "Fireball", serialized => serialized.FindProperty("projectilePrefab").objectReferenceValue = projectile,
                 new TierData("Base", "Flies straight and explodes: 24 damage within 2 m.", 4f, 24, 2f, 0f),
                 new TierData("Upgrade I", "The explosion deals 32 damage.", 4f, 32, 2f, 0f),
                 new TierData("Upgrade II", "The explosion deals 40 damage.", 4f, 40, 2f, 0f),
@@ -125,7 +134,7 @@ namespace WSFGameJam2026.Editor
 
         private static FrostNovaSkill CreateFrostNova()
         {
-            return CreateSkill<FrostNovaSkill>("FrostNova", "Frost Nova", null,
+            return CreateSkill<FrostNovaSkill>(MageSkillsFolder, "FrostNova", "Frost Nova", null,
                 new TierData("Base", "Ring of ice within 3 m: 12 damage and 2 s of slow.", 8f, 12, 3f, 2f),
                 new TierData("Upgrade I", "Radius 3.5 m, 16 damage.", 8f, 16, 3.5f, 2f),
                 new TierData("Upgrade II", "Radius 4 m, 20 damage.", 8f, 20, 4f, 2f),
@@ -134,7 +143,7 @@ namespace WSFGameJam2026.Editor
 
         private static ArcaneOrbsSkill CreateArcaneOrbs(SkillProjectile shot)
         {
-            return CreateSkill<ArcaneOrbsSkill>("ArcaneOrbs", "Arcane Orbs", serialized => serialized.FindProperty("shotPrefab").objectReferenceValue = shot,
+            return CreateSkill<ArcaneOrbsSkill>(MageSkillsFolder, "ArcaneOrbs", "Arcane Orbs", serialized => serialized.FindProperty("shotPrefab").objectReferenceValue = shot,
                 new TierData("Base", "3 orbs circle you for 6 s and hurt enemies (8 damage).", 12f, 8, 1.8f, 6f),
                 new TierData("Upgrade I", "4 orbs, 12 damage.", 12f, 12, 1.8f, 6f),
                 new TierData("Upgrade II", "5 orbs, 16 damage.", 12f, 16, 1.8f, 6f),
@@ -143,7 +152,7 @@ namespace WSFGameJam2026.Editor
 
         private static BlinkSkill CreateBlink()
         {
-            return CreateSkill<BlinkSkill>("Blink", "Blink", null,
+            return CreateSkill<BlinkSkill>(MageSkillsFolder, "Blink", "Blink", null,
                 new TierData("Base", "Teleport 5 m in the direction of movement, 0.3 s of invulnerability, a blast at the end (12 damage).", 4f, 12, 5f, 0.3f),
                 new TierData("Upgrade I", "Teleport 6 m.", 4f, 12, 6f, 0.3f),
                 new TierData("Upgrade II", "Teleport 7 m.", 4f, 12, 7f, 0.3f),
@@ -152,16 +161,82 @@ namespace WSFGameJam2026.Editor
 
         private static ChainLightningSkill CreateChainLightning()
         {
-            return CreateSkill<ChainLightningSkill>("ChainLightning", "Chain Lightning", null,
+            return CreateSkill<ChainLightningSkill>(MageSkillsFolder, "ChainLightning", "Chain Lightning", null,
                 new TierData("Base", "Hits the nearest enemy (8 m) and jumps to 3 more: 16 damage, every jump 4 less.", 5f, 16, 8f, 0f),
                 new TierData("Upgrade I", "4 jumps, 20 damage.", 5f, 20, 8f, 0f),
                 new TierData("Upgrade II", "5 jumps, 24 damage.", 5f, 24, 8f, 0f),
                 new TierData("Evolution: Storm", "Every hit stuns the enemy for 0.5 s.", 5f, 24, 8f, 0f, 0.5f));
         }
 
-        private static T CreateSkill<T>(string fileName, string displayName, System.Action<SerializedObject> configure, params TierData[] tiers) where T : SkillDefinition
+        /// <summary>
+        /// The 5 warrior skills (LD57 Spin, Charge, GroundSlam, AxeThrow, WarCry with the LD57 numbers, damage x4) and the
+        /// Warrior class with them: all in the pool, all but the war cry from the start. Safe to run again: existing skill assets
+        /// keep their values and an existing Warrior class only gets the skills when its pool is empty.
+        /// </summary>
+        internal static PlayerClass SetupWarrior()
         {
-            string path = $"{MageSkillsFolder}/{fileName}.asset";
+            EnsureFolder(WarriorSkillsFolder);
+            EnsureFolder(ClassesFolder);
+
+            var spin = CreateSpin();
+            var charge = CreateCharge();
+            var groundSlam = CreateGroundSlam();
+            var axeThrow = CreateAxeThrow();
+            var warCry = CreateWarCry();
+
+            return CreateClass("Warrior", "Warrior", WarriorDescription, false, 100,
+                new SkillDefinition[] { spin, charge, groundSlam, axeThrow, warCry },
+                new SkillDefinition[] { spin, charge, groundSlam, axeThrow });
+        }
+
+        private static SpinSkill CreateSpin()
+        {
+            return CreateSkill<SpinSkill>(WarriorSkillsFolder, "Spin", "Spin", null,
+                new TierData("Base", "Spin with the sword: 8 damage every 0.25 s within 2.5 m for 1 s.", 5f, 8, 2.5f, 1f),
+                new TierData("Upgrade I", "Radius 3 m, 12 damage per tick.", 5f, 12, 3f, 1f),
+                new TierData("Upgrade II", "Radius 3.5 m, 16 damage per tick.", 5f, 16, 3.5f, 1f),
+                new TierData("Evolution: Tornado", "Spins for 2 s and pulls enemies to the middle.", 5f, 16, 3.5f, 2f));
+        }
+
+        private static ChargeSkill CreateCharge()
+        {
+            return CreateSkill<ChargeSkill>(WarriorSkillsFolder, "Charge", "Charge", null,
+                new TierData("Base", "Dash 6 m forward through enemies, 20 damage. Invulnerable on the way.", 4f, 20, 6f, 0f),
+                new TierData("Upgrade I", "Dash 8 m.", 4f, 20, 8f, 0f),
+                new TierData("Upgrade II", "28 damage.", 4f, 28, 8f, 0f),
+                new TierData("Evolution: Fire Charge", "Leaves a trail of fire for 3 s (8 damage per second).", 4f, 28, 8f, 3f));
+        }
+
+        private static GroundSlamSkill CreateGroundSlam()
+        {
+            return CreateSkill<GroundSlamSkill>(WarriorSkillsFolder, "GroundSlam", "Ground Slam", null,
+                new TierData("Base", "Slam the ground: 16 damage within 3 m, knockback 3 m.", 6f, 16, 3f, 0.5f, 0f, 3f),
+                new TierData("Upgrade I", "Radius 4 m.", 6f, 16, 4f, 0.5f, 0f, 3f),
+                new TierData("Upgrade II", "24 damage.", 6f, 24, 4f, 0.5f, 0f, 3f),
+                new TierData("Evolution: Fissure", "Also stuns enemies for 1 s.", 6f, 24, 4f, 0.5f, 1f, 3f));
+        }
+
+        private static AxeThrowSkill CreateAxeThrow()
+        {
+            return CreateSkill<AxeThrowSkill>(WarriorSkillsFolder, "AxeThrow", "Axe Throw", null,
+                new TierData("Base", "Throw an axe 10 m: 12 damage on the way out and 12 on the way back.", 3f, 12, 10f, 0f),
+                new TierData("Upgrade I", "Range 13 m.", 3f, 12, 13f, 0f),
+                new TierData("Upgrade II", "16 damage.", 3f, 16, 13f, 0f),
+                new TierData("Evolution: Two Axes", "Throw two axes 15 degrees apart.", 3f, 16, 13f, 0f));
+        }
+
+        private static WarCrySkill CreateWarCry()
+        {
+            return CreateSkill<WarCrySkill>(WarriorSkillsFolder, "WarCry", "War Cry", null,
+                new TierData("Base", "Pushes enemies within 4 m away by 4 m and stuns them for 1 s.", 8f, 0, 4f, 1f, 1f, 4f),
+                new TierData("Upgrade I", "Radius 5 m.", 8f, 0, 5f, 1f, 1f, 4f),
+                new TierData("Upgrade II", "Stun 1.5 s.", 8f, 0, 5f, 1f, 1.5f, 4f),
+                new TierData("Evolution: Roar", "Radius 6 m and 12 damage.", 8f, 12, 6f, 1f, 1.5f, 4f));
+        }
+
+        private static T CreateSkill<T>(string folder, string fileName, string displayName, System.Action<SerializedObject> configure, params TierData[] tiers) where T : SkillDefinition
+        {
+            string path = $"{folder}/{fileName}.asset";
             var skill = AssetDatabase.LoadAssetAtPath<T>(path);
             if (skill)
                 return skill;
@@ -189,7 +264,7 @@ namespace WSFGameJam2026.Editor
             tier.FindPropertyRelative("damage").intValue = data.Damage;
             tier.FindPropertyRelative("range").floatValue = data.Range;
             tier.FindPropertyRelative("duration").floatValue = data.Duration;
-            tier.FindPropertyRelative("knockback").floatValue = 0f;
+            tier.FindPropertyRelative("knockback").floatValue = data.Knockback;
             tier.FindPropertyRelative("stun").floatValue = data.Stun;
         }
 
@@ -199,7 +274,10 @@ namespace WSFGameJam2026.Editor
             string path = $"{ClassesFolder}/{fileName}.asset";
             var playerClass = AssetDatabase.LoadAssetAtPath<PlayerClass>(path);
             if (playerClass)
+            {
+                FillEmptySkills(playerClass, description, pool, startingSkills);
                 return playerClass;
+            }
 
             playerClass = ScriptableObject.CreateInstance<PlayerClass>();
             AssetDatabase.CreateAsset(playerClass, path);
@@ -215,6 +293,24 @@ namespace WSFGameJam2026.Editor
             SetArray(serialized.FindProperty("startingSkills"), startingSkills);
             serialized.ApplyModifiedPropertiesWithoutUndo();
             return playerClass;
+        }
+
+        /// <summary>An existing class without skills (the Warrior made before it had any) gets the pool, the starting skills and the description.</summary>
+        private static void FillEmptySkills(PlayerClass playerClass, string description, SkillDefinition[] pool, SkillDefinition[] startingSkills)
+        {
+            var serialized = new SerializedObject(playerClass);
+            var poolProperty = serialized.FindProperty("skillPool");
+            if (poolProperty.arraySize > 0 || pool.Length == 0)
+                return;
+
+            SetArray(poolProperty, pool);
+            var startingProperty = serialized.FindProperty("startingSkills");
+            if (startingProperty.arraySize == 0)
+                SetArray(startingProperty, startingSkills);
+
+            serialized.FindProperty("description").stringValue = description;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(playerClass);
         }
 
         private static void SetArray(SerializedProperty array, Object[] values)

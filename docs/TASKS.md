@@ -49,7 +49,7 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
   - [x] Ekran zwycięstwa rundy i ekran śmierci z wynikiem i rekordem: `RoundScreens` (zdarzenia `OnRoundCompleted`, `OnRunEnded`), menu *WSF GameJam/Setup/Create Round Screens*, nie testowane w Unity. `C`
   - [ ] Ładna grafika tych ekranów (teraz placeholder: przyciemnienie i tekst). `G`
 - [ ] **Model paszczy** (siatka, animacja otwierania i zamykania). `G`
-- [ ] **Model gracza** (low poly, animacje: bieg, atak, unik, obrażenia, śmierć). `G`
+- [ ] **Model gracza** (low poly, animacje: bieg, atak, unik, obrażenia, śmierć). Teraz jest postać z paczki RPG Tiny Hero Duo (z LD57), własny model opcjonalny. `G`
 - [ ] **Materiał i wygląd ciała węża** (łuski, kolory, różne warianty segmentów). `G`
 
 ## Etap 2: walka i wrogowie (MUST)
@@ -63,12 +63,16 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [x] **Spawner wrogów** przed graczem, poziom z odległości od paszczy (krzywa) × `RoundMultiplier`, usuwanie wrogów daleko za graczem: `EnemySpawner`. `C`
 - [ ] **Test i balans walki w Unity** (feel ataku i uniku, statystyki wrogów). `?`
 - [x] **Podpięcie pod pętlę rund:** `RoundController` ustawia `EnemySpawner.RoundMultiplier`, woła `Clear()` i `PlayerCombat.Revive()`, a ekran śmierci pokazuje `RoundScreens`. Nie testowane w Unity. `C`
-- [ ] **Modele i animacje wrogów 1 i 2** (teraz są placeholdery z prymitywów). Zdarzenia do animacji: `PlayerCombat.OnAttackStarted/OnDodgeStarted`. `G`
+- [ ] **Modele i animacje wrogów** (teraz bryły w stylu LD57 z animacją w kodzie, własne modele opcjonalne). Zdarzenia do animacji: `PlayerCombat.OnAttackStarted/OnDodgeStarted`. `G`
 - [x] **Skille i klasa Mag** (z LD57): sloty Q/E/R/F (akcje `Skill1`–`Skill4`), cooldowny, 4 poziomy skilla (`SkillDefinition` jako ScriptableObject, jedna podklasa na skill, bez enuma), 5 skilli maga (kula ognia, lodowa nova, łańcuch błyskawic, teleport, magiczne kule), strzał maga `RangedAttack`, klasy `PlayerClass` (Mag, Wojownik) i `PlayerClassApplier`, spowolnienie i ogłuszenie wrogów `StatusEffects`, pasek skilli `SkillBar`, reset skilli po śmierci w `RoundController`. Menu *WSF GameJam/Setup/Create Skills And Mage*. Efekty skilli to placeholdery z linii i kul (`SkillVfx`). Skompilowane poza Unity (ze stubami Input System, TMP, UI), nie testowane w Unity. `C`
 - [x] **Postać gracza i modele wrogów z LD57:** gracz z paczki *RPG Tiny Hero Duo* (`Assets/RPG Tiny Hero Duo`, tylko potrzebne pliki): Wojownik = postać męska z mieczem i tarczą, Mag = postać kobieca bez broni z niebieskim materiałem. Animacje (bieg do przodu i do tyłu, 3 ciosy combo, rzucanie, unik, trafienie, śmierć) w `Animations/Player/Player.controller`, sterowane przez `PlayerAnimator`; model wstawia `PlayerClassApplier`. Wrogowie: slime (biegacz) i strzelec z LD57 z prymitywów i materiałów LD57, z animacją proceduralną `EnemyVisualAnimator` (port SlimeAnimator, ShooterAnimator i HitReaction bez DOTween). Menu *WSF GameJam/Setup/Apply LD57 Models* (uruchamia się też na końcu *Create Skills And Mage*). Nie testowane w Unity. `C`
 - [ ] **Test i balans skilli maga w Unity** (obrażenia z LD57 ×4, cooldowny, zasięgi). `?`
-- [ ] **Efekty skilli i strzału maga** (zamiast placeholderów `SkillVfx`), ikony skilli (`SkillDefinition.Icon`), animacja rzucania czaru dla maga (teraz cios mieczem `Attack04`). Zdarzenia: `SkillUser.OnSkillExecuted`, `RangedAttack.OnShot`. `G`
-- [ ] **Wybór klasy** na ekranie startowym (`PlayerClassApplier.Apply`) i ewentualnie skille Wojownika z LD57 (wir, szarża, uderzenie w ziemię, rzut toporem, okrzyk). `?`
+- [x] **Efekty VFX z LD57:** `Vfx/StylizedFx` (port `MageStylizedFx`, `SkillImpactVfx`, `VoxelFxRecipes`, `HitSplash`, `DeathEffects`: wybuchy brył, błyski, pierścienie, błyskawice, lód, dym, spalona ziemia, fala uderzeniowa), efekty skilli maga i wojownika, wygląd pocisków `ProjectileVisual`, `CombatVfx` (iskry trafień w kolorze wroga, wybuch śmierci, trafienie gracza, smuga uniku, łuk cięcia miecza). Miejsce na ziemi liczone z torusa (`VfxGround`), bez raycastów. Menu *WSF GameJam/Setup/Add Combat Vfx*, uruchamia się samo raz (`VfxAutoSetup`). Nie testowane w Unity. `C`
+- [x] **Dźwięki z LD57:** synteza dźwięków w kodzie (`Audio/SfxSynthesizer`, port `ProceduralSfxBank`), dźwięki jako assety `SoundEffect` w `Data/Sounds` (z opcjonalnymi nagraniami, np. 3 cięcia miecza z LD57), `SfxPlayer`, `SfxHooks` (cios, unik, strzał maga, skille, trafienie i śmierć gracza, trafienie i śmierć wroga, wygrana runda, rekord), `EnemySfx` (zapowiedź i atak wroga, cięższe dźwięki golema). Menu *WSF GameJam/Setup/Create Audio*, uruchamia się samo raz (`AudioAutoSetup`). Nie testowane w Unity. `C`
+- [x] **Skille Wojownika z LD57** (obrażenia ×4): wir, szarża (z nietykalnością), uderzenie w ziemię, rzut toporem (wraca), okrzyk bojowy (odrzut i ogłuszenie). Wojownik zaczyna z 4, okrzyk w puli. `Skills/Warrior/`. Nie testowane w Unity. `C`
+- [ ] **Shader cząsteczek w buildzie:** `VfxMaterials` szuka `Universal Render Pipeline/Particles/Unlit` przez `Shader.Find`; przed buildem dodać go do *Always Included Shaders* albo podpiąć materiał w scenie. `?`
+- [ ] **Ikony skilli** (`SkillDefinition.Icon`), animacja rzucania czaru dla maga (teraz cios mieczem `Attack04`), ładniejsze efekty według uznania. Zdarzenia: `SkillUser.OnSkillExecuted`, `RangedAttack.OnShot`. `G`
+- [ ] **Wybór klasy** na ekranie startowym (`PlayerClassApplier.Apply`). `?`
 
 ## Etap 2b: progresja (MUST)
 
@@ -89,7 +93,7 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 
 ## Etap 4: więcej zawartości (SHOULD / COULD)
 
-- [ ] **Wróg 3 (pancerny) i wróg 4 (rój)**. `P`, modele: `G`
+- [x] **Wróg 3 (pancerny) i wróg 4 (rój)**, plus szaman: `GolemEnemy` (uderzenie w ziemię z zapowiedzią), `BatEnemy` (krążenie i przelot przez gracza, grupy 4-6), `ShamanEnemy` (dystans, leczenie wrogów, klątwa pod graczem). Modele z brył w stylu LD57, animacja `EnemyVisualAnimator` (doszło machanie skrzydłami i ramionami). Menu *WSF GameJam/Setup/Create Golem Bats Shaman*, uruchamia się samo raz (`EnemiesAutoSetup`), dodaje wrogów do spawnera. Nie testowane w Unity. `C`, ładniejsze modele: `G`
 - [ ] **Mini-boss na czubku głowy** (COULD).
 - [ ] **Różne profile terenu** dla segmentów (pagórki, kratery, grzbiety) jako nowe podklasy `TorusSegmentProfile`. `C`
 

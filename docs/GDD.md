@@ -67,6 +67,10 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 - Zakres: **4 lub więcej typów** (ambitnie, patrz ryzyka).
 - Wrogowie pojawiają się w współrzędnych `(θ, φ)` na torusie, przed graczem.
 - **Typy:** biegacz (szybki, słaby), strzelec (atak z dystansu), pancerny (wolny, wytrzymały), rój (wiele małych). Mini-boss na czubku głowy to opcja, jeśli zostanie czas.
+- **Golem** (pancerny): wolny, 80 HP, prawie nie da się go odepchnąć. Z bliska unosi pięści (pierścień na ziemi pokazuje zasięg) i uderza w ziemię wokół siebie z dużym odrzutem, potem chwilę stoi bezbronny.
+- **Nietoperze** (rój): grupy po 4-6, słabe i szybkie, krążą wokół gracza i co jakiś czas po błysku przelatują przez niego.
+- **Szaman** (wsparcie): trzyma dystans, co kilka sekund leczy rannych wrogów wokół siebie i rzuca klątwę: pod graczem pojawia się pierścień, który po chwili wybucha, więc trzeba z niego wyjść. Trafienie przerywa rzucanie.
+- Wygląd wszystkich wrogów w stylu LD57: bryły low poly z prostą animacją w kodzie (oddech, podskoki, kołysanie, machanie skrzydłami, nadymanie przed atakiem).
 - **[DO USTALENIA]** dokładne statystyki (ustalimy na prototypie).
 - Zachowania z prototypu (na bazie LD57): **biegacz** otacza gracza razem z innymi biegaczami, miga przed atakiem, wyskakuje do przodu i odskakuje. **Strzelec** trzyma dystans, chodzi bokiem, ucieka, gdy gracz jest blisko, i strzela po zapowiedzi (błysk i linia celowania). Trafienie w trakcie zapowiedzi przerywa atak wroga.
 - Trudność wrogów zależy od **odległości od paszczy** (patrz sekcja 9), a z kolejnymi rundami rośnie dodatkowo mnożnik: więcej wrogów i szybsza paszcza.
