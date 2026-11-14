@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace WSFGameJam2026.World
 {
@@ -11,8 +10,6 @@ namespace WSFGameJam2026.World
     /// </summary>
     public class TorusObject : MonoBehaviour
     {
-        private const float TwoPi = Mathf.PI * 2f;
-
         [SerializeField]
         private TorusWorld world;
 
@@ -28,19 +25,11 @@ namespace WSFGameJam2026.World
         private float heightSharpness = 25f;
 
         [Header("Start")]
-        [Tooltip("Start position along the snake body, in degrees (0-360).")]
-        [FormerlySerializedAs("startTheta")]
+        [Tooltip("Start position in degrees. Theta: along the snake body. Phi: around the tube, 0 = outer side of the torus, 90 = top.")]
         [SerializeField]
-        private float startThetaDegrees;
+        private TorusAngles startAngles = TorusAngles.FromDegrees(0f, 90f);
 
-        [Tooltip("Start position around the tube, in degrees. 0 = outer side of the torus, 90 = top.")]
-        [FormerlySerializedAs("startPhi")]
-        [SerializeField]
-        private float startPhiDegrees = 90f;
-
-        // Runtime angles are always in radians. Only Inspector fields (suffix Degrees) use degrees.
-        private float theta;
-        private float phi;
+        private TorusAngles angles;
 
         private float smoothedHeight;
         private bool shouldSnap = true;
@@ -53,11 +42,8 @@ namespace WSFGameJam2026.World
 
         public TorusWorld World => world;
 
-        /// <summary>Angle along the snake body, in radians.</summary>
-        public float Theta => theta;
-
-        /// <summary>Angle around the tube, in radians.</summary>
-        public float Phi => phi;
+        /// <summary>Current position on the surface of the torus.</summary>
+        public TorusAngles Angles => angles;
 
         /// <summary>Up of the object: the minor radius direction of the torus, in world space.</summary>
         public Vector3 Up { get; private set; } = Vector3.up;
@@ -78,16 +64,15 @@ namespace WSFGameJam2026.World
             if (world == null)
                 return;
 
-            SetPosition(startThetaDegrees * Mathf.Deg2Rad, startPhiDegrees * Mathf.Deg2Rad);
+            SetPosition(startAngles);
             localFacing = localRunDirection;
             ApplyTransform();
         }
 
-        /// <summary>Puts the object at the given surface angles (radians), without smoothing.</summary>
-        public void SetPosition(float thetaRadians, float phiRadians)
+        /// <summary>Puts the object at the given surface angles, without smoothing.</summary>
+        public void SetPosition(TorusAngles newAngles)
         {
-            theta = Mathf.Repeat(thetaRadians, TwoPi);
-            phi = Mathf.Repeat(phiRadians, TwoPi);
+            angles = newAngles;
             shouldSnap = true;
             Refresh();
         }
@@ -109,6 +94,8 @@ namespace WSFGameJam2026.World
                 return;
 
             // Directions of growing theta and phi are perpendicular, so the speed stays constant.
+            float theta = angles.Theta;
+            float phi = angles.Phi;
             var phiDirection = new Vector3(-Mathf.Sin(phi) * Mathf.Cos(theta), Mathf.Cos(phi), -Mathf.Sin(phi) * Mathf.Sin(theta));
 
             var surface = world.Surface;
@@ -116,8 +103,7 @@ namespace WSFGameJam2026.World
             float phiDistance = Vector3.Dot(localFacing, phiDirection) * distance;
 
             float ringRadius = Mathf.Max(0.1f, surface.MajorRadius + surface.MinorRadius * Mathf.Cos(phi));
-            theta = Mathf.Repeat(theta + thetaDistance / ringRadius, TwoPi);
-            phi = Mathf.Repeat(phi + phiDistance / surface.MinorRadius, TwoPi);
+            angles = angles.Add(thetaDistance / ringRadius, phiDistance / surface.MinorRadius);
             Refresh();
         }
 
@@ -136,11 +122,11 @@ namespace WSFGameJam2026.World
         {
             float heightBlend = shouldSnap ? 1f : 1f - Mathf.Exp(-heightSharpness * Time.deltaTime);
             shouldSnap = false;
-            smoothedHeight = Mathf.Lerp(smoothedHeight, surface.GetHeight(theta, phi), heightBlend);
+            smoothedHeight = Mathf.Lerp(smoothedHeight, surface.GetHeight(angles), heightBlend);
 
-            localUp = surface.GetBaseNormal(theta, phi);
-            localRunDirection = new Vector3(-Mathf.Sin(theta), 0f, Mathf.Cos(theta));
-            localPosition = surface.GetBasePoint(theta, phi) + localUp * smoothedHeight;
+            localUp = surface.GetBaseNormal(angles);
+            localRunDirection = new Vector3(-Mathf.Sin(angles.Theta), 0f, Mathf.Cos(angles.Theta));
+            localPosition = surface.GetBasePoint(angles) + localUp * smoothedHeight;
         }
 
         private void UpdateFacing()
