@@ -13,7 +13,7 @@ import bmesh
 import bpy
 import numpy as np
 from mathutils import Vector, noise
-from mathutils.kdtree import KDTree
+from mathutils.kdtree import KDTree  # noqa: F401  (used by edge_mask and lake_crossings)
 
 REST_ATTRIBUTE = "psg_rest"
 
@@ -274,10 +274,137 @@ def liquid_fields(settings, world_xy):
     return gap / np.maximum(width, 1e-3), id_a, id_b, site_a, site_b, width
 
 
+LAKE_DEPTH = 0.12  # noise units from the shore to the hottest / deepest part of a lake
+
+
+def lake_fields(settings, world_xy):
+    """Lakes of mixed sizes: big lakes, small pools, islands and peninsulas.
+
+    Returns (ratio, meters_per_ratio): ratio < 1 = liquid (0 = lake center), > 1 = land, growing
+    with the distance from the shore. World space, so it is seamless across pieces with the same
+    liquid settings.
+    """
+    size = max(settings.liquid_size, 1.0)
+    seed_z = settings.liquid_seed * 0.53
+    inv = 1.0 / size
+    warp_inv = 1.0 / (size * 1.6)
+    points = world_xy
+    warp = np.array([[_fbm(x * warp_inv, y * warp_inv, seed_z + 3.0, 2),
+                      _fbm(x * warp_inv + 31.7, y * warp_inv - 12.9, seed_z + 3.0, 2)] for x, y in points])
+    warped = points + warp * size * settings.liquid_warp
+    big = np.fromiter((_fbm(x * inv, y * inv, seed_z, 3) for x, y in warped), dtype=np.float64, count=len(points))
+    pools = np.fromiter((_fbm(x * inv * 2.7, y * inv * 2.7, seed_z + 9.0, 2) for x, y in warped),
+                        dtype=np.float64, count=len(points))
+    # a very large, slow field changes the character from region to region:
+    # here one huge lake, there a scatter of pools, elsewhere mostly dry land
+    region = np.fromiter((noise.noise(Vector((x * inv * 0.3 + 5.5, y * inv * 0.3 - 2.5, seed_z)))
+                          for x, y in points), dtype=np.float64, count=len(points))
+    field = big + pools * (0.35 + 0.4 * settings.liquid_variation) + region * settings.liquid_variation * 0.35
+    threshold = (0.5 - settings.liquid_coverage) * 0.55
+    ratio = 1.0 - (field - threshold) / LAKE_DEPTH
+    meters_per_ratio = LAKE_DEPTH * size / 1.4  # noise changes ~1.4 units per `size` meters
+    return ratio, meters_per_ratio
+
+
 def liquid_sample(settings, x, y):
-    """(ratio, width) at one world point."""
-    ratio, _a, _b, _sa, _sb, width = liquid_fields(settings, np.array([[x, y]], dtype=np.float64))
-    return float(ratio[0]), float(width[0])
+    """(ratio, meters per ratio unit) at one world point."""
+    point = np.array([[x, y]], dtype=np.float64)
+    if settings.liquid_style == 'LAKES':
+        ratio, meters = lake_fields(settings, point)
+        return float(ratio[0]), meters
+    ratio, _a, _b, _sa, _sb, width = liquid_fields(settings, point)
+    return float(ratio[0]), float(width[0]) * 0.5
+
+
+def liquid_blocked(settings, x, y, margin):
+    """True in the liquid or closer than `margin` meters to its shore."""
+    ratio, meters = liquid_sample(settings, x, y)
+    return ratio < 1.15 + margin / max(meters, 1e-3)
+
+
+def lake_crossings(settings, mesh, world_xy, ratios):
+    """Crossings over narrow straits between separate pieces of land (maze over the lakes).
+
+    Land vertices are split into connected regions; for every pair of regions the shortest
+    shore-to-shore gap that runs over the liquid becomes a candidate, then a random spanning tree
+    (plus Extra Routes) is kept. Returns [(x, y, dir_x, dir_y, length)].
+    """
+    land = ratios >= 1.0
+    edges = np.empty(len(mesh.edges) * 2, dtype=np.int32)
+    mesh.edges.foreach_get("vertices", edges)
+    edges = edges.reshape(-1, 2)
+    parent = np.arange(len(world_xy))
+
+    def find(i):
+        root = i
+        while parent[root] != root:
+            root = parent[root]
+        while parent[i] != root:
+            parent[i], i = root, parent[i]
+        return root
+
+    for a, b in edges[land[edges[:, 0]] & land[edges[:, 1]]]:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+    region = np.array([find(i) for i in range(len(world_xy))])
+    shore_flags = np.zeros(len(world_xy), dtype=bool)
+    mixed = edges[land[edges[:, 0]] != land[edges[:, 1]]]
+    shore_flags[mixed[land[mixed[:, 0]], 0]] = True
+    shore_flags[mixed[land[mixed[:, 1]], 1]] = True
+    shore = np.flatnonzero(shore_flags)
+    if len(shore) == 0:
+        return []
+    tree = KDTree(len(shore))
+    for i, index in enumerate(shore):
+        tree.insert((world_xy[index, 0], world_xy[index, 1], 0.0), i)
+    tree.balance()
+    max_span = settings.max_crossing
+    best = {}
+    for index in shore:
+        x, y = world_xy[index]
+        for (_co, j, dist) in tree.find_range((x, y, 0.0), max_span):
+            other = shore[j]
+            ra, rb = region[index], region[other]
+            if ra == rb or dist < 1.0:
+                continue
+            key = (ra, rb) if ra < rb else (rb, ra)
+            if key not in best or dist < best[key][0]:
+                best[key] = (dist, index, other)
+    rng = random.Random(settings.seed * 7919 + 17)
+    candidates = []
+    for key, (dist, a, b) in best.items():
+        pa, pb = world_xy[a], world_xy[b]
+        mid = (pa + pb) * 0.5
+        samples = np.array([pa + (pb - pa) * t for t in (0.3, 0.5, 0.7)])
+        if settings.liquid_style == 'LAKES':
+            over, _m = lake_fields(settings, samples)
+        else:
+            over = liquid_fields(settings, samples)[0]
+        if (over < 1.0).sum() < 2:
+            continue  # the gap is mostly land (e.g. a thin land bridge the mesh resolution missed)
+        direction = (pb - pa) / dist
+        weight = dist / max_span + rng.random() * 0.8  # prefer short crossings, still random
+        candidates.append((weight, key, (float(mid[0]), float(mid[1]), float(direction[0]), float(direction[1]),
+                                         float(dist))))
+    groups = {}
+
+    def find_group(key):
+        groups.setdefault(key, key)
+        while groups[key] != key:
+            groups[key] = groups[groups[key]]
+            key = groups[key]
+        return key
+
+    crossings = []
+    for _weight, (ra, rb), crossing in sorted(candidates):
+        ga, gb = find_group(ra), find_group(rb)
+        if ga != gb:
+            groups[ga] = gb
+            crossings.append(crossing)
+        elif rng.random() < settings.liquid_loops:
+            crossings.append(crossing)
+    return crossings
 
 
 def liquid_ratio_at(settings, x, y):
@@ -359,7 +486,7 @@ def ford_mask(world_xy, crossings, ford_width):
         rel = world_xy - np.array([x, y])
         along = rel @ np.array([dx, dy])
         across = np.abs(rel @ np.array([-dy, dx]))
-        length = width * 0.75 + 1.0
+        length = width * 0.5 + 1.0
         inside = (1.0 - _smoothstep(half * 0.6, half, across)) * (1.0 - _smoothstep(length * 0.8, length, np.abs(along)))
         mask = np.maximum(mask, inside)
     return mask
@@ -374,17 +501,21 @@ def apply_liquid(obj, settings, world_xy, lift, edge_level, border, local_xy):
     """
     mesh = obj.data
     count = len(world_xy)
-    ratios, id_a, id_b, site_a, site_b, widths = liquid_fields(settings, world_xy)
     dry = dry_border_mask(settings, local_xy)
-    ratios = ratios + (1.0 - dry) * 3.0
-    pairs = [None] * count
-    for i in np.flatnonzero(ratios < 1.0):
-        if id_a[i] < id_b[i]:
-            pairs[i] = (int(id_a[i]), int(id_b[i]), tuple(site_a[i]), tuple(site_b[i]))
-        else:
-            pairs[i] = (int(id_b[i]), int(id_a[i]), tuple(site_b[i]), tuple(site_a[i]))
-
-    crossings = build_maze(settings, world_xy, ratios, pairs, widths)
+    if settings.liquid_style == 'LAKES':
+        ratios, _meters = lake_fields(settings, world_xy)
+        ratios = np.maximum(ratios, (1.0 - dry) * 3.0)  # dry side: always land
+        crossings = lake_crossings(settings, mesh, world_xy, ratios)
+    else:
+        ratios, id_a, id_b, site_a, site_b, widths = liquid_fields(settings, world_xy)
+        ratios = np.maximum(ratios, (1.0 - dry) * 3.0)  # dry side: always land
+        pairs = [None] * count
+        for i in np.flatnonzero(ratios < 1.0):
+            if id_a[i] < id_b[i]:
+                pairs[i] = (int(id_a[i]), int(id_b[i]), tuple(site_a[i]), tuple(site_b[i]))
+            else:
+                pairs[i] = (int(id_b[i]), int(id_a[i]), tuple(site_b[i]), tuple(site_a[i]))
+        crossings = build_maze(settings, world_xy, ratios, pairs, widths)
     settings.crossings_json = json.dumps([[round(v, 4) for v in c] for c in crossings])
 
     level = settings.liquid_level
@@ -393,7 +524,8 @@ def apply_liquid(obj, settings, world_xy, lift, edge_level, border, local_xy):
     liquid = 1.0 - _smoothstep(0.85, 1.15, ratios)
     result = land + (level - land) * liquid
     fords = np.zeros(count)
-    if settings.liquid_type == 'BOG' and crossings:
+    if crossings:
+        # crossings are part of the terrain: a raised causeway over lava, a shallow ford in a bog
         fords = ford_mask(world_xy, crossings, settings.ford_width) * liquid
         fords[border] = 0.0
         result = result + (level + settings.ford_height - result) * fords

@@ -505,20 +505,24 @@ def liquid_colors(settings, liquid_type, rgb, points, ratios, fords):
 
     Land next to the liquid gets the shore tint (scorched rock / wet mud)."""
     count = len(points)
-    t = np.clip(ratios, 0.0, 1.0)
+    # depth below the shore (ratio units): shore = edge color, deep middle = core color, in soft bands
+    depth = np.maximum(1.0 - ratios, 0.0)
+    flow = _noise_field(points, max(settings.crust_scale, 1e-3) * 0.6, settings.seed * 3.7 + 2.0)
+    t = np.clip(np.exp(-depth * 0.4) + flow * 0.25, 0.0, 1.0)
     core_mid = _smoothstep(0.0, 0.55, t)
     mid_edge = _smoothstep(0.55, 1.0, t)
     liquid = _lerp(np.tile(np.array(settings.liquid_core), (count, 1)),
                    np.tile(np.array(settings.liquid_mid), (count, 1)), core_mid)
     liquid = _lerp(liquid, np.tile(np.array(settings.liquid_edge), (count, 1)), mid_edge)
     if settings.crust_amount > 0.0:
+        # floating crust plates everywhere, a bit thicker towards the cooler shore
         field = _noise_field(points, max(settings.crust_scale, 1e-3), settings.seed * 5.3 + 13.0)
-        crust = _smoothstep(0.05, 0.4, field) * settings.crust_amount * (0.35 + 0.65 * t)
+        crust = _smoothstep(0.12, 0.42, field) * settings.crust_amount * (0.6 + 0.4 * t)
         liquid = _lerp(liquid, np.tile(np.array(settings.liquid_crust), (count, 1)), crust)
-    if liquid_type == 'BOG':
-        mud = _noise_field(points, 0.9, settings.seed * 2.1 + 5.0) * 0.12 + 1.0
-        ford = np.tile(np.array(settings.ford_color), (count, 1)) * mud[:, None]
-        liquid = _lerp(liquid, ford, np.clip(fords * 1.6, 0.0, 1.0))
+    # crossings (lava causeway / bog ford) are part of the mesh, painted in their own color
+    grain = _noise_field(points, 0.9, settings.seed * 2.1 + 5.0) * 0.15 + 1.0
+    ford = np.tile(np.array(settings.ford_color), (count, 1)) * grain[:, None]
+    liquid = _lerp(liquid, ford, np.clip(fords * 1.6, 0.0, 1.0))
 
     is_liquid = ratios < 1.0
     shore = (1.0 - _smoothstep(1.0, 1.0 + max(settings.near_reach, 1e-3), ratios)) * settings.near_strength
@@ -563,8 +567,8 @@ def assign_liquid_material(ground, liquid_faces):
 
 LIQUID_PALETTES = {
     'LAVA': dict(liquid_core="#ffd23a", liquid_mid="#ff7a1a", liquid_edge="#b3200d", liquid_crust="#3a1d14",
-                 crust_amount=0.55, crust_scale=0.35, near_color="#5a1c10", near_reach=1.2,
-                 near_strength=0.55, liquid_glow=True),
+                 crust_amount=0.45, crust_scale=0.35, near_color="#5a1c10", near_reach=1.2,
+                 near_strength=0.55, ford_color="#4a3a36", liquid_glow=True),
     'BOG': dict(liquid_core="#0b120e", liquid_mid="#16201a", liquid_edge="#2c3320", liquid_crust="#45532a",
                 crust_amount=0.45, crust_scale=0.5, near_color="#2a2a18", near_reach=1.0,
                 near_strength=0.6, ford_color="#77704a", liquid_glow=False),
@@ -955,15 +959,24 @@ def crossing_candidates(layer, area, raycast):
     return candidates
 
 
-def liquid_checker(area, margin):
-    """Callable (x, y) -> True when the point is in the liquid or within `margin` meters of it."""
-    if area is None or not is_area(area) or not area.psg_shape.liquid_enabled:
+def liquid_checker(area, layer):
+    """Callable (x, y) -> True when the point is outside the layer's liquid zone."""
+    if area is None or not is_area(area) or not area.psg_shape.liquid_enabled or layer.liquid_zone == 'ANY':
         return None
     settings = area.psg_shape
+    ford_check = shape.crossings(area)
+
+    def on_crossing(x, y):
+        point = np.array([[x, y]])
+        return shape.ford_mask(point, ford_check, settings.ford_width)[0] > 0.3
 
     def blocked(x, y):
-        ratio, width = shape.liquid_sample(settings, x, y)
-        return ratio * width < width * 1.15 + 2.0 * margin  # gap grows ~2 m per meter from the border
+        ratio, meters = shape.liquid_sample(settings, x, y)
+        if layer.liquid_zone == 'LAND':
+            return ratio < 1.15 + layer.liquid_margin / max(meters, 1e-3)
+        if layer.liquid_zone == 'SHORE':
+            return not (1.08 <= ratio < 1.0 + layer.shore_band / max(meters, 1e-3))
+        return ratio > 0.85 or on_crossing(x, y)  # LIQUID: on the surface, not on a crossing
 
     return blocked
 
@@ -1171,7 +1184,7 @@ def _regenerate(path, depsgraph):
                     for _i, p, _s in items:
                         avoid.add(p)
         skip = kept.get(uid, set()) | excluded.get(uid, set())
-        liquid = liquid_checker(path, layer.liquid_margin) if layer.avoid_liquid and area else None
+        liquid = liquid_checker(path, layer) if area else None
         for index, source, matrix, position, scale in layer_placements(layer, candidates, raycast, occupied, avoid,
                                                                        liquid):
             if index in skip:

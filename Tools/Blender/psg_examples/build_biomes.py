@@ -18,10 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 import psg_scatter  # noqa: E402
-from bridges import build_bridges  # noqa: E402
 from psg_scatter import core, shape  # noqa: E402
-
-BRIDGES = "PSG_Kladki"
 
 REPO = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 LIBRARY = os.path.join(REPO, "Assets", "Blender", "all_models.blend")
@@ -76,10 +73,6 @@ def link_biome_collections():
     bpy.context.scene.collection.children.link(sources)
     for collection in data_to.collections:
         sources.children.link(collection)
-    bridges = bpy.data.collections.new(BRIDGES)
-    sources.children.link(bridges)
-    material = bpy.data.materials.get("LD57 Stylized") or core.ground_material()
-    build_bridges(bridges, material)
     layer = bpy.context.view_layer.layer_collection.children[sources.name]
     layer.exclude = True  # the library assets are only sources, keep them out of the viewport
     return data_to.collections
@@ -127,58 +120,113 @@ def add_layer(piece, name, collection, mode, **values):
     return layer
 
 
-def volcano_layers(piece, index):
-    """Big lava lakes and channels split the ground into islands; bridges form the only routes (a maze)."""
-    drobne = bpy.data.collections.get("Wulkan_Drobne")
-    for layer in piece.psg.layers:
-        if layer.source == drobne:
-            layer.source_filter = ", ".join(t for t in (layer.source_filter, "!Kaluza") if t)
-    shape_settings = piece.psg_shape
-    shape_settings.liquid_enabled = True
-    shape_settings.liquid_type = 'LAVA'
-    shape_settings.liquid_size = 16.0
-    shape_settings.liquid_width = 4.0
-    shape_settings.liquid_variation = 0.5
-    shape_settings.liquid_level = 0.2
-    shape_settings.bank_height = 0.3
-    shape_settings.liquid_loops = 0.1
-    core.set_liquid_palette(piece, 'LAVA')
-    add_layer(piece, "Kladki", bpy.data.collections.get(BRIDGES), 'CROSSING', scale_min=1.0, scale_max=1.0)
+def clear_layers(piece):
+    core.remove_objects(core.path_instances(piece))
+    piece.psg.layers.clear()
+    piece.psg.state_json = ""
+    piece.psg.excluded_json = ""
 
 
-def swamp_layers(piece, index):
-    """Dead-marsh style: deep bog you sink in, islands joined only by narrow shallow fords."""
-    shape_settings = piece.psg_shape
-    shape_settings.liquid_enabled = True
-    shape_settings.liquid_type = 'BOG'
-    shape_settings.liquid_size = 11.0
-    shape_settings.liquid_width = 2.6
-    shape_settings.liquid_variation = 0.5
-    shape_settings.liquid_level = 0.2
-    shape_settings.bank_height = 0.25
-    shape_settings.liquid_loops = 0.08
-    shape_settings.ford_width = 1.5
-    shape_settings.ford_height = 0.05
-    core.set_liquid_palette(piece, 'BOG')
+def collection(name):
+    return bpy.data.collections.get(name)
 
 
-def biome_liquid(piece, index, seed):
-    """Same liquid seed on all 3 pieces (channels run across their seams); the outer sides of the
-    biome are dry, so the neighbouring biomes (no liquid) still meet it on flat land."""
-    shape_settings = piece.psg_shape
-    shape_settings.liquid_seed = seed
-    shape_settings.dry_x_min = index == 0
-    shape_settings.dry_x_max = index == 2
+def deg(value):
+    return math.radians(value)
+
+
+def lakes(piece, liquid_type, seed, size, coverage, variation, max_crossing, crossing_width, crossing_height):
+    """Liquid lakes on the same settings for all 3 pieces of the biome, so they continue across the
+    seams; crossings are raised strips of the terrain itself (lava causeway / bog ford)."""
+    s = piece.psg_shape
+    s.liquid_enabled = True
+    s.liquid_type = liquid_type
+    s.liquid_style = 'LAKES'
+    s.liquid_seed = seed
+    s.liquid_size = size
+    s.liquid_coverage = coverage
+    s.liquid_variation = variation
+    s.liquid_warp = 0.5
+    s.max_crossing = max_crossing
+    s.liquid_level = 0.2
+    s.bank_height = 0.3
+    s.liquid_loops = 0.15
+    s.ford_width = crossing_width
+    s.ford_height = crossing_height
+    core.set_liquid_palette(piece, liquid_type)
+
+
+def biome_sides(piece, index):
+    """The outer sides of the biome are dry, so neighbouring biomes (no liquid) meet it on land."""
+    piece.psg_shape.dry_x_min = index == 0
+    piece.psg_shape.dry_x_max = index == 2
 
 
 def volcano(piece, index):
-    volcano_layers(piece, index)
-    biome_liquid(piece, index, 61)
+    """Big glowing lava lakes; land pieces joined only by raised basalt causeways (a maze)."""
+    clear_layers(piece)
+    lakes(piece, 'LAVA', seed=61, size=20.0, coverage=0.63, variation=0.6, max_crossing=9.0,
+          crossing_width=2.2, crossing_height=0.3)
+    biome_sides(piece, index)
+    landmarks, big, medium, small = (collection("Wulkan_" + n) for n in ("Landmarki", "Duze", "Srednie", "Drobne"))
+    add_layer(piece, "Iglice", landmarks, 'SCATTER', source_filter="Iglica", density=0.003, min_distance=14.0,
+              scale_min=0.7, scale_max=1.15, max_slope=deg(25), liquid_margin=2.0)
+    columns = add_layer(piece, "Kolumny bazaltowe", big, 'CLUSTER', source_filter="Kolumny",
+                        cluster_density=1.2, cluster_radius=3.5, cluster_min=2, cluster_max=5,
+                        single_chance=0.3, min_distance=1.6, scale_min=0.6, scale_max=1.5, max_slope=deg(30))
+    add_layer(piece, "Skaly z lawa (brzeg)", big, 'SCATTER', source_filter="Skala", density=0.02,
+              liquid_zone='SHORE', shore_band=3.0, min_distance=3.0, scale_min=0.5, scale_max=1.3)
+    burned = add_layer(piece, "Spalone drzewa", medium, 'CLUSTER', source_filter="Spalone",
+                       cluster_density=1.4, cluster_radius=4.0, cluster_min=2, cluster_max=6,
+                       single_chance=0.35, min_distance=1.5, scale_min=0.7, scale_max=1.3,
+                       max_slope=deg(30), avoid_distance=1.5)
+    add_layer(piece, "Obsydian", medium, 'AROUND', source_filter="Obsydian", parent=str(columns.uid),
+              around_min=1.5, around_max=4.0, around_count_min=0, around_count_max=2, around_chance=0.7,
+              scale_min=0.5, scale_max=1.2)
+    add_layer(piece, "Kominy", medium, 'SCATTER', source_filter="Komin", density=0.006, min_distance=10.0,
+              scale_min=0.8, scale_max=1.4, avoid_distance=3.0, max_slope=deg(20))
+    add_layer(piece, "Zuzel wokol drzew", small, 'AROUND', source_filter="Zuzel, Kamyki", parent=str(burned.uid),
+              around_min=0.6, around_max=2.5, around_count_min=2, around_count_max=5, scale_min=0.6,
+              scale_max=1.4, min_distance=0.4)
+    add_layer(piece, "Zuzel", small, 'SCATTER', source_filter="Zuzel, Kamyki", density=0.12, min_distance=0.6,
+              scale_min=0.5, scale_max=1.6, avoid_distance=0.8)
+    add_layer(piece, "Zuzel (brzeg)", small, 'SCATTER', source_filter="Zuzel", density=0.5,
+              liquid_zone='SHORE', shore_band=2.0, min_distance=0.5, scale_min=0.6, scale_max=1.5)
+    add_layer(piece, "Kaluze lawy", small, 'SCATTER', source_filter="Kaluza", density=0.004, min_distance=6.0,
+              scale_min=0.5, scale_max=1.4, max_slope=deg(10), avoid_distance=2.0, align_to_normal=1.0)
 
 
 def swamp(piece, index):
-    swamp_layers(piece, index)
-    biome_liquid(piece, index, 41)
+    """Dead marshes: deep bog you sink in, land pieces joined only by narrow shallow fords."""
+    clear_layers(piece)
+    lakes(piece, 'BOG', seed=41, size=15.0, coverage=0.6, variation=0.65, max_crossing=7.0,
+          crossing_width=1.4, crossing_height=0.05)
+    biome_sides(piece, index)
+    landmarks, big, medium, small = (collection("Bagno_" + n) for n in ("Landmarki", "Duze", "Srednie", "Drobne"))
+    add_layer(piece, "Stare cyprysy", landmarks, 'SCATTER', source_filter="Cyprys", density=0.004,
+              min_distance=12.0, scale_min=0.8, scale_max=1.2, liquid_zone='SHORE', shore_band=4.0)
+    add_layer(piece, "Powalone olbrzymy", landmarks, 'SCATTER', source_filter="Powalony", density=0.0015,
+              min_distance=15.0, scale_min=0.8, scale_max=1.1, max_slope=deg(15))
+    trees = add_layer(piece, "Drzewa", big, 'CLUSTER', source_filter="Drzewo_na", cluster_density=1.3,
+                      cluster_radius=4.0, cluster_min=2, cluster_max=4, single_chance=0.4, min_distance=2.2,
+                      scale_min=0.75, scale_max=1.3, max_slope=deg(25))
+    add_layer(piece, "Martwe drzewa (brzeg)", big, 'SCATTER', source_filter="Martwe", density=0.025,
+              liquid_zone='SHORE', shore_band=2.5, min_distance=3.0, scale_min=0.6, scale_max=1.3)
+    add_layer(piece, "Klody i pniaki", medium, 'AROUND', source_filter="Kloda, Pniak", parent=str(trees.uid),
+              around_min=1.5, around_max=4.0, around_count_min=0, around_count_max=2, around_chance=0.8,
+              scale_min=0.7, scale_max=1.2)
+    add_layer(piece, "Swiecace grzyby", medium, 'AROUND', source_filter="Grzyby", parent=str(trees.uid),
+              around_min=0.8, around_max=2.5, around_count_min=0, around_count_max=2, around_chance=0.5,
+              scale_min=0.6, scale_max=1.3)
+    add_layer(piece, "Trzciny (brzeg)", small, 'SCATTER', source_filter="Trzciny, Turzyca", density=0.9,
+              liquid_zone='SHORE', shore_band=2.2, min_distance=0.45, scale_min=0.7, scale_max=1.5)
+    add_layer(piece, "Lilie wodne", small, 'SCATTER', source_filter="Lilie", density=0.06,
+              liquid_zone='LIQUID', min_distance=1.2, scale_min=0.6, scale_max=1.6)
+    add_layer(piece, "Turzyca i paprocie", small, 'SCATTER', source_filter="Turzyca, Paproc", density=0.12,
+              min_distance=0.6, scale_min=0.6, scale_max=1.4, avoid_distance=0.8)
+    add_layer(piece, "Trawa wokol drzew", small, 'AROUND', source_filter="Turzyca, Paproc, Trzciny",
+              parent=str(trees.uid), around_min=0.8, around_max=3.0, around_count_min=3, around_count_max=8,
+              min_distance=0.35, scale_min=0.6, scale_max=1.3)
 
 
 CUSTOM_LAYERS = {"Wulkan": volcano, "Bagno": swamp}

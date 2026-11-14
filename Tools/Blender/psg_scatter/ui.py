@@ -112,10 +112,12 @@ class PSG_PT_layers(PSGPanel, bpy.types.Panel):
         layer = settings.layers[settings.active_layer]
         area = core.is_area(active_path(context))
         layout.prop(layer, "display_type", expand=True)
-        if area and layer.mode != 'CROSSING':
-            row = layout.row(align=True)
-            row.prop(layer, "avoid_liquid")
-            row.prop(layer, "liquid_margin")
+        if area and layer.mode != 'CROSSING' and active_path(context).psg_shape.liquid_enabled:
+            layout.prop(layer, "liquid_zone", expand=True)
+            if layer.liquid_zone == 'LAND':
+                layout.prop(layer, "liquid_margin")
+            elif layer.liquid_zone == 'SHORE':
+                layout.prop(layer, "shore_band")
         layout.prop(layer, "source")
         layout.prop(layer, "source_filter")
         sources = core.layer_sources(layer)
@@ -250,9 +252,14 @@ class PSG_PT_shape(PSGPanel, bpy.types.Panel):
         box.prop(settings, "liquid_enabled")
         if settings.liquid_enabled:
             box.prop(settings, "liquid_type", expand=True)
+            box.prop(settings, "liquid_style", expand=True)
             col = box.column(align=True)
             col.prop(settings, "liquid_size")
-            col.prop(settings, "liquid_width")
+            if settings.liquid_style == 'LAKES':
+                col.prop(settings, "liquid_coverage")
+                col.prop(settings, "max_crossing")
+            else:
+                col.prop(settings, "liquid_width")
             col.prop(settings, "liquid_variation")
             col.prop(settings, "liquid_loops")
             col.prop(settings, "liquid_warp")
@@ -264,13 +271,12 @@ class PSG_PT_shape(PSGPanel, bpy.types.Panel):
             row.label(text="Dry sides:")
             for key in ("dry_x_min", "dry_x_max", "dry_y_min", "dry_y_max"):
                 row.prop(settings, key, toggle=True)
-            if settings.liquid_type == 'BOG':
-                row = box.row(align=True)
-                row.prop(settings, "ford_width")
-                row.prop(settings, "ford_height")
+            row = box.row(align=True)
+            row.prop(settings, "ford_width")
+            row.prop(settings, "ford_height")
             count = len(shape.crossings(obj))
             box.label(text="%d crossings (%s)" % (count, "fords" if settings.liquid_type == 'BOG'
-                                                   else "add a Crossings layer for bridges"), icon='INFO')
+                                                   else "causeways"), icon='INFO')
             box.operator("psg.liquid_palette", icon='COLOR').liquid_type = settings.liquid_type
         box = layout.box()
         box.prop(settings, "flat_edges")
@@ -341,8 +347,7 @@ class PSG_PT_terrain(PSGPanel, bpy.types.Panel):
             row.prop(ground, "near_color", text="")
             row.prop(ground, "near_reach")
             box.prop(ground, "near_strength")
-            if ground_obj.psg_shape.liquid_type == 'BOG':
-                box.prop(ground, "ford_color")
+            box.prop(ground, "ford_color", text="Crossing")
             box.prop(ground, "liquid_glow")
         col = layout.column(align=True)
         col.prop(ground, "faceted")

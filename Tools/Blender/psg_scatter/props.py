@@ -75,9 +75,17 @@ class PSG_Layer(bpy.types.PropertyGroup):
             ('CROSSING', "Crossings", "Area: one instance across every crossing of the Liquid Maze (bridges), "
                                       "scaled to the channel width"),
         ])
-    avoid_liquid: BoolProperty(name="Avoid Liquid", default=True, update=_scatter_changed,
-                               description="Skip points in the lava / bog (Liquid Maze) and too close to it")
+    liquid_zone: EnumProperty(name="Zone", default='LAND', update=_scatter_changed,
+                              description="Where the layer may grow relative to the lava / bog (Liquid Maze)",
+                              items=[
+                                  ('LAND', "Land", "Only on land, at least Shore Margin from the liquid"),
+                                  ('SHORE', "Shore", "Only on land within Shore Band of the liquid "
+                                                     "(reeds, scorched rocks)"),
+                                  ('LIQUID', "Liquid", "Only on the liquid surface (water lilies, lava rocks)"),
+                                  ('ANY', "Anywhere", "Ignore the liquid"),
+                              ])
     liquid_margin: FloatProperty(name="Shore Margin", default=0.6, min=0.0, unit='LENGTH', update=_scatter_changed)
+    shore_band: FloatProperty(name="Shore Band", default=2.5, min=0.1, unit='LENGTH', update=_scatter_changed)
     cluster_density: FloatProperty(name="Clusters / 100 m²", default=0.5, min=0.0, soft_max=20.0,
                                    update=_scatter_changed)
     cluster_radius: FloatProperty(name="Cluster Radius", default=4.0, min=0.0, unit='LENGTH', update=_scatter_changed)
@@ -293,7 +301,16 @@ class PSG_Shape(bpy.types.PropertyGroup):
         ('LAVA', "Lava", "Glowing lava, islands joined by bridges (Crossing layer)"),
         ('BOG', "Bog", "Deep impassable bog, islands joined by shallow fords"),
     ])
-    liquid_size: FloatProperty(name="Island Size", default=13.0, min=2.0, unit='LENGTH', update=_shape_changed)
+    liquid_style: EnumProperty(name="Style", default='LAKES', update=_shape_changed, items=[
+        ('LAKES', "Lakes", "Lakes of mixed sizes, pools, islands; crossings over narrow straits"),
+        ('CHANNELS', "Channels", "Winding channel network around islands"),
+    ])
+    liquid_coverage: FloatProperty(name="Coverage", default=0.45, min=0.05, max=0.9, subtype='FACTOR',
+                                   update=_shape_changed, description="Lakes: roughly how much is liquid")
+    max_crossing: FloatProperty(name="Max Crossing", default=9.0, min=1.0, unit='LENGTH', update=_shape_changed,
+                                description="Lakes: longest gap a crossing (bridge / ford) may span")
+    liquid_size: FloatProperty(name="Feature Size", default=13.0, min=2.0, unit='LENGTH', update=_shape_changed,
+                               description="Lakes: size of the large lakes. Channels: size of the islands")
     liquid_width: FloatProperty(name="Channel Width", default=4.5, min=0.2, unit='LENGTH', update=_shape_changed)
     liquid_variation: FloatProperty(name="Width Variation", default=0.45, min=0.0, max=0.9, subtype='FACTOR',
                                     update=_shape_changed, description="Narrow channels and wide lakes")
@@ -303,9 +320,11 @@ class PSG_Shape(bpy.types.PropertyGroup):
     liquid_loops: FloatProperty(name="Extra Routes", default=0.15, min=0.0, max=1.0, subtype='FACTOR',
                                 update=_shape_changed,
                                 description="0 = a strict maze (one route between islands), 1 = every crossing")
-    ford_width: FloatProperty(name="Ford Width", default=1.6, min=0.2, unit='LENGTH', update=_shape_changed)
-    ford_height: FloatProperty(name="Ford Height", default=0.06, min=0.0, unit='LENGTH', update=_shape_changed,
-                               description="Shallow fords rise this much above the deep bog surface")
+    ford_width: FloatProperty(name="Crossing Width", default=1.6, min=0.2, unit='LENGTH', update=_shape_changed,
+                              description="Width of the walkable strip (lava causeway / bog ford)")
+    ford_height: FloatProperty(name="Crossing Height", default=0.06, min=0.0, unit='LENGTH', update=_shape_changed,
+                               description="How far the crossing rises above the liquid surface "
+                                           "(lava causeway ~0.3 m, shallow bog ford ~0.05 m)")
     liquid_warp: FloatProperty(name="Winding", default=0.45, min=0.0, max=1.5, update=_shape_changed,
                                description="Bends the channels into organic, winding shapes")
     liquid_seed: IntProperty(name="Liquid Seed", default=1, update=_shape_changed,

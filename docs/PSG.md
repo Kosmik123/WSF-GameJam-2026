@@ -127,10 +127,12 @@ Sześć biomów, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek),
 | Wulkan | tarasy lawowe (4 poziomy, 2,5 m) | ryft (wąskie doliny) | poszarpany Mixed |
 | Lód | dolina lodowcowa | Mixed z górkami | pole śnieżne (1,2 m) |
 
-- **Wulkan, labirynt lawy:** ok. 50% powierzchni to świecąca lawa (kanały 2–6 m, szersze jeziora na skrzyżowaniach). Lawa dzieli teren na wyspy, a jedyne przejścia to kładki (warstwa *Kladki*, tryb Crossings). Każda kładka ma długość dopasowaną do szerokości kanału.
-  - Kładki to 4 proceduralne warianty low poly z [Tools/Blender/psg_examples/bridges.py](../Tools/Blender/psg_examples/bridges.py): drewniana z łukiem i poręczami, płaska z jedną poręczą, z brakującymi deskami, kamienne płyty. Mają kolory w `Col`, materiał `LD57 Stylized` i leżą lokalnie w kolekcji `PSG_Kladki`.
-- **Bagno, Martwe Bagna:** ok. 45% to głęboka topiel (ciemna woda z plamami glonów), przez którą nie da się przejść. Wyspy łączą tylko wąskie, płytkie brody: jaśniejsze, błotniste pasy tuż nad powierzchnią wody.
+- **Wulkan, jeziora lawy:** 50–70% powierzchni to świecące jeziora lawy różnej wielkości, z wyspami i półwyspami. Lawa ma falujący gradient od żółtego środka przez pomarańcz do czerwieni przy brzegu, z płatami zastygłej skorupy. Osobne kawałki lądu łączą tylko **groble** na tym samym meshu: pasy 2,2 m podniesione 0,3 m nad lawę, w kolorze zastygłego bazaltu, bez emission.
+  - Scatter: iglice bazaltowe, skupiska kolumn bazaltowych z obsydianem wokół, spalone lasy z żużlem, kominy, skały z lawą i żużel przy brzegach, rzadkie kałuże lawy. Razem 180–330 elementów na kawałek.
+- **Bagno, Martwe Bagna:** ok. 50% to głęboka topiel (ciemna woda z plamami glonów), przez którą nie da się przejść. Ląd łączą tylko wąskie, płytkie **brody** na meshu: pasy 1,4 m tuż nad wodą, w kolorze błota.
+  - Scatter: trzciny i turzyca gęsto wzdłuż brzegów, lilie na wodzie, martwe drzewa i stare cyprysy przy brzegu, kępy drzew na korzeniach z kłodami, grzybami i trawą wokół, powalone olbrzymy. Razem 450–500 elementów na kawałek.
 - Obie ciecze płyną przez szwy wszystkich 3 kawałków biomu (wspólny *Liquid Seed*). Zewnętrzne brzegi biomu są suche, więc sąsiednie biomy dalej łączą się płaskim lądem.
+- Te dwa biomy nie używają presetu, tylko własnych warstw: funkcje `volcano()` i `swamp()` w skrypcie.
 - Kawałki nazywają się `Teren_<Biom>_<1-3>` i leżą w kolekcjach `Teren_<Biom>`. Instancje są w `PSG_Generated`.
 - Assety **nie są kopiowane**: kolekcje biomów są podlinkowane z `all_models.blend` (ścieżka względna, kolekcja `PSG_Sources (linked)` jest wykluczona z widoku). Zmiany modeli w `all_models.blend` od razu widać w biomach.
 - Plik buduje skrypt [Tools/Blender/psg_examples/build_biomes.py](../Tools/Blender/psg_examples/build_biomes.py). Ustawienia każdego kawałka (preset, nadpisania, seed) są w słowniku `BIOMES`. Ponowne uruchomienie nadpisuje plik:
@@ -141,11 +143,13 @@ Sześć biomów, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek),
 
 Panel **Terrain Shape → Liquid Maze**. Sieć kanałów cieczy dzieli teren na wyspy, a przejścia między nimi tworzą labirynt.
 
-- **Kształt kanałów:** komórki Voronoi 2D o wielkości *Island Size*, z wykrzywieniem domeny (*Winding*), więc kanały są kręte, a nie w kratkę. Ciecz ma szerokość *Channel Width* ± *Width Variation*. Na skrzyżowaniach powstają większe jeziora.
-- **Labirynt:** ze wszystkich możliwych przejść między sąsiednimi wyspami wybierane jest losowe drzewo rozpinające (algorytm Kruskala). Każda wyspa jest osiągalna dokładnie jedną drogą, a *Extra Routes* dodaje kilka dodatkowych pętli. Przejścia trafiają w wąskie miejsca kanału, ustawione w poprzek nurtu.
-- **Lava:** przejścia to kładki. Dodaj warstwę w trybie **Crossings**: jedna instancja na przejście, wydłużona tylko wzdłuż kanału, z końcami opartymi na brzegach.
-- **Bog:** przejścia to płytkie brody (*Ford Width*, *Ford Height* nad lustrem topieli), widoczne jako błotniste pasy.
-- **Teren:** ląd stoi zawsze co najmniej *Bank Height* nad lustrem cieczy (*Liquid Level*). Wszystkie warstwy scattera domyślnie omijają ciecz z marginesem (*Avoid Liquid*, *Shore Margin*).
+- **Styl Lakes (domyślny):** jeziora różnej wielkości. Duże jeziora z warstwy szumu *Feature Size* plus drobne oczka, a bardzo wolne pole zmienia charakter okolicy (tu jedno wielkie jezioro, tam rozsypane oczka, gdzie indziej sucho). *Coverage* ustawia przybliżony udział cieczy, *Width Variation* zróżnicowanie, *Winding* krętość brzegów.
+- **Styl Channels:** sieć krętych kanałów Voronoi wokół wysp (*Channel Width*).
+- **Labirynt:** ląd dzieli się na osobne kawałki. Dla każdej pary kawałków szukana jest najkrótsza cieśnina nad cieczą, do *Max Crossing* metrów. Z tych cieśnin wybierane jest losowe drzewo rozpinające (algorytm Kruskala), więc do każdego osiągalnego kawałka lądu prowadzi zasadniczo jedna droga. *Extra Routes* dodaje kilka pętli.
+- **Przejścia są częścią meshu** (bez osobnych obiektów): pas szerokości *Crossing Width* podniesiony o *Crossing Height* nad lustro cieczy i pomalowany kolorem *Crossing*. Nad lawą to grobla (~0,3 m), na bagnie płytki bród (~0,05 m). Grobla nie świeci.
+- **Teren:** ląd stoi zawsze co najmniej *Bank Height* nad lustrem cieczy (*Liquid Level*).
+- **Strefy scattera** (*Zone* w warstwie): **Land** (tylko ląd, z marginesem *Shore Margin*), **Shore** (pas *Shore Band* przy brzegu: trzciny, skały z lawą), **Liquid** (na lustrze cieczy: lilie wodne, nie na przejściach), **Anywhere**.
+- Tryb warstwy **Crossings** (jedna instancja na przejście, np. most) dalej istnieje, ale przykładowe biomy go nie używają.
 - **Szwy:** ten sam *Liquid Seed* na sąsiednich kawałkach sprawia, że kanały przechodzą przez wspólne krawędzie bez szczelin. *Dry sides* (±X, ±Y) wygaszają ciecz przy wybranych bokach, tam gdzie sąsiad nie ma cieczy.
 - **Kolory (panel Terrain Paint → Liquid, przycisk *Liquid Palette*):**
   - Lawa: środek żółty, dalej pomarańcz, przy brzegu ciemna czerwień, do tego pływająca, zastygła skorupa (*Crust*). Ląd przy lawie jest przypalony na czerwono-brązowo (*Shore*).
