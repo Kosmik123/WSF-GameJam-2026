@@ -239,6 +239,9 @@ GameObject:
   - component: {fileID: 1929964610123949250}
   - component: {fileID: 1929964610123949241}
   - component: {fileID: 978546507072093901}
+  - component: {fileID: 5120186563592950412}
+  - component: {fileID: 8537833341049418724}
+  - component: {fileID: 537380916835184776}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -308,8 +311,69 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aff09658c010e3448afc52978ca44f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Combat.Health
-  team: 1
-  maxHealth: 30200
+  team: 0
+  maxHealth: 100
   mawDamageMode: 1
   bodyRadius: 0.5
   currentHealth: 0
+--- !u!114 &5120186563592950412
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b96001312918ae844b67f036404caeed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Combat.Knockback
+  distanceMultiplier: 1
+  duration: 0.15
+--- !u!114 &8537833341049418724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3cbebdbaf5292647a2b29d5d484960c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Combat.BodyFlash
+  health: {fileID: 978546507072093901}
+  damageFlashDuration: 0.1
+  damageFlashColor: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &537380916835184776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea4888d88a382e64db0b9d2a33ff7897, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.PlayerCombat
+  attackAction: {fileID: 1120369429361536294, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  dodgeAction: {fileID: -2099379676528639254, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  damage: 10
+  range: 2.2
+  arcDegrees: 140
+  windup: 0.06
+  activeTime: 0.12
+  recovery: 0.18
+  knockback: 1.5
+  moveSpeedWhileAttacking: 0.35
+  attackLunge: 0.4
+  comboLength: 3
+  comboFinisherMultiplier: 1.5
+  comboWindow: 0.35
+  inputBuffer: 0.2
+  dodgeDistance: 5
+  dodgeDuration: 0.22
+  dodgeCooldown: 0.6
+  dodgeInvulnerabilityTail: 0.08
+  invulnerabilityAfterHit: 0.5

@@ -119,6 +119,102 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &66875074 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2207168790804239818, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+  m_PrefabInstance: {fileID: 1183390416463733785}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9cd4765cd92fe984e8420c0ee03ab6f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+--- !u!1 &96565503
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 96565504}
+  - component: {fileID: 96565505}
+  m_Layer: 0
+  m_Name: Battling Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &96565504
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 96565503}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &96565505
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 96565503}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a06e3570d92907844b7c1883b1f3f953, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Enemies.EnemySpawner
+  world: {fileID: 1142851114}
+  player: {fileID: 1703670343}
+  head: {fileID: 66875074}
+  entries:
+  - prefab: {fileID: -4683015714738786417, guid: 8da1431a12b3b2f42b3a5debb2850b0d, type: 3}
+    weight: 1
+    minDifficulty: 0
+    groupSize: {x: 1, y: 3}
+  spawnInterval: 4
+  firstSpawnDelay: 2
+  maxAlive: 8
+  runDirection: 1
+  spawnAheadDistance: {x: 20, y: 30}
+  phiSpreadDegrees: 50
+  groupSpread: 2.5
+  despawnDistanceBehind: 30
+  levelRange: {x: 1, y: 10}
+  difficultyCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &224383402
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -830,3 +926,4 @@ SceneRoots:
   - {fileID: 1183390416463733785}
   - {fileID: 1167247100}
   - {fileID: 1141028323}
+  - {fileID: 96565504}
