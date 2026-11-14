@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -9,23 +10,23 @@ namespace WSFGameJam2026.World
     {
         [Header("Shape")]
         [SerializeField]
-        [Min(1f)]
+        [Min(1f)] [Delayed]
         private float majorRadius = 40f;
         public float MajorRadius => majorRadius;
 
         [SerializeField]
-        [Min(0.5f)]
+        [Min(0.5f)] [Delayed]
         private float minorRadius = 10f;
         public float MinorRadius => minorRadius;
 
         [SerializeField]
-        [Range(3, 64)]
+        [Range(3, 64)][Delayed]
         private int segmentCount = 14;
         public int SegmentCount => segmentCount;
 
         [Tooltip("Subdivisions around the tube. Shared by all segments so their borders match.")]
         [SerializeField]
-        [Range(8, 256)]
+        [Range(8, 256)][Delayed]
         private int sidesResolution = 64;
 
         [Header("Terrain")]
@@ -56,15 +57,14 @@ namespace WSFGameJam2026.World
         {
             get
             {
-                if (surface == null)
-                    surface = new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
-
+                surface ??= new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
                 return surface;
             }
         }
 
         private void OnEnable()
         {
+            majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f);
             Rebuild();
         }
 
@@ -74,16 +74,39 @@ namespace WSFGameJam2026.World
             Clear();
             surface = new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
 
+            InvalidateProfiles();
+
+            var meshes = new Mesh[segmentCount];
             for (int i = 0; i < segmentCount; i++)
-                CreateSegment(i);
+                meshes[i] = CreateMesh(i);
+
+            TorusNormalStitcher.Stitch(meshes, sidesResolution);
+
+            for (int i = 0; i < segmentCount; i++)
+                CreateSegment(i, meshes[i]);
         }
 
-        private void CreateSegment(int segmentIndex)
+        private void InvalidateProfiles()
         {
-            TorusSegmentProfile profile = surface.GetProfile(segmentIndex);
-            int lengthResolution = profile ? profile.LengthResolution : 16;
-            Mesh mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, lengthResolution, sidesResolution);
+            var invalidated = new HashSet<TorusSegmentProfile>();
+            for (int i = 0; i < segmentCount; i++)
+                if (invalidated.Add(surface.GetProfile(i)))
+                    surface.GetProfile(i).Invalidate();
+        }
+
+        private Mesh CreateMesh(int segmentIndex)
+        {
+            var profile = surface.GetProfile(segmentIndex);
+            var mesh = TorusSegmentMeshBuilder.Build(surface, segmentIndex, profile.LengthResolution, sidesResolution);
             mesh.hideFlags = HideFlags.DontSave;
+
+            profile.Deform(mesh, surface.GetProfile(segmentIndex - 1), surface.GetProfile(segmentIndex + 1), surface.BlendWidth);
+            return mesh;
+        }
+
+        private void CreateSegment(int segmentIndex, Mesh mesh)
+        {
+            var profile = surface.GetProfile(segmentIndex);
 
             var segmentObject = new GameObject($"Segment_{segmentIndex}", typeof(MeshFilter), typeof(MeshRenderer));
             segmentObject.hideFlags = HideFlags.DontSave;
@@ -104,7 +127,7 @@ namespace WSFGameJam2026.World
             if (defaultMaterial)
                 return defaultMaterial;
 
-            RenderPipelineAsset pipeline = GraphicsSettings.currentRenderPipeline;
+            var pipeline = GraphicsSettings.currentRenderPipeline;
             return pipeline ? pipeline.defaultMaterial : null;
         }
 
@@ -112,11 +135,11 @@ namespace WSFGameJam2026.World
         {
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
-                GameObject child = transform.GetChild(i).gameObject;
+                var child = transform.GetChild(i).gameObject;
                 if (child.hideFlags != HideFlags.DontSave)
                     continue;
 
-                if (child.TryGetComponent(out MeshFilter meshFilter))
+                if (child.TryGetComponent<MeshFilter>(out var meshFilter))
                     DestroyObject(meshFilter.sharedMesh);
 
                 DestroyObject(child);
@@ -150,7 +173,7 @@ namespace WSFGameJam2026.World
 
         private void OnValidate()
         {
-            majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f);
+            //majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f);
             surface = null;
 
 #if UNITY_EDITOR

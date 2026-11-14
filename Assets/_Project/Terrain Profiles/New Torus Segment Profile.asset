@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: New Torus Segment Profile
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusSegmentProfile
   lengthResolution: 32
-  materialOverride: {fileID: 0}
-  amplitude: 12
+  materialOverride: {fileID: 2100000, guid: 9a14f5c2e236d1b44b507837755b216f, type: 2}
+  amplitude: 2
   frequency: 1
   octaves: 4
   persistence: 0.219
