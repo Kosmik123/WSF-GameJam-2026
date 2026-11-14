@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Head
@@ -15,15 +16,16 @@ namespace WSFGameJam2026.Head
         private TorusWorld world;
 
         [Tooltip("Speed along the snake body in degrees per second. Negative = opposite direction.")]
+        [FormerlySerializedAs("angularMoveSpeed")]
         [SerializeField]
-        private float angularMoveSpeed = 5f;
+        private float angularMoveSpeedDegrees = 5f;
 
         [Tooltip("Start position along the snake body, in degrees (0-360).")]
+        [FormerlySerializedAs("startTheta")]
         [SerializeField]
-        private float startTheta;
+        private float startThetaDegrees;
 
-        [Header("States")]
-        [SerializeField]
+        // Runtime angles are always in radians. Only Inspector fields (suffix Degrees) use degrees.
         private float theta;
 
         /// <summary>Angle along the snake body, in radians.</summary>
@@ -36,13 +38,13 @@ namespace WSFGameJam2026.Head
 
         private void OnEnable()
         {
-            theta = startTheta * Mathf.Deg2Rad;
+            theta = startThetaDegrees * Mathf.Deg2Rad;
             Refresh();
         }
 
         private void Update()
         {
-            theta = Mathf.Repeat(theta + angularMoveSpeed * Mathf.Deg2Rad * Time.deltaTime, TwoPi);
+            theta = Mathf.Repeat(theta + angularMoveSpeedDegrees * Mathf.Deg2Rad * Time.deltaTime, TwoPi);
             Refresh();
         }
 

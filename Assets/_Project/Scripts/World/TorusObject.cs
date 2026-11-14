@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace WSFGameJam2026.World
 {
@@ -28,18 +29,17 @@ namespace WSFGameJam2026.World
 
         [Header("Start")]
         [Tooltip("Start position along the snake body, in degrees (0-360).")]
+        [FormerlySerializedAs("startTheta")]
         [SerializeField]
-        private float startTheta;
+        private float startThetaDegrees;
 
         [Tooltip("Start position around the tube, in degrees. 0 = outer side of the torus, 90 = top.")]
+        [FormerlySerializedAs("startPhi")]
         [SerializeField]
-        private float startPhi = 90f;
+        private float startPhiDegrees = 90f;
 
-        [Header("States")]
-        [SerializeField]
+        // Runtime angles are always in radians. Only Inspector fields (suffix Degrees) use degrees.
         private float theta;
-
-        [SerializeField]
         private float phi;
 
         private float smoothedHeight;
@@ -78,27 +78,27 @@ namespace WSFGameJam2026.World
             if (world == null)
                 return;
 
-            SetPosition(startTheta * Mathf.Deg2Rad, startPhi * Mathf.Deg2Rad);
+            SetPosition(startThetaDegrees * Mathf.Deg2Rad, startPhiDegrees * Mathf.Deg2Rad);
             localFacing = localRunDirection;
             ApplyTransform();
         }
 
         /// <summary>Puts the object at the given surface angles (radians), without smoothing.</summary>
-        public void SetPosition(float newTheta, float newPhi)
+        public void SetPosition(float thetaRadians, float phiRadians)
         {
-            theta = Mathf.Repeat(newTheta, TwoPi);
-            phi = Mathf.Repeat(newPhi, TwoPi);
+            theta = Mathf.Repeat(thetaRadians, TwoPi);
+            phi = Mathf.Repeat(phiRadians, TwoPi);
             shouldSnap = true;
             Refresh();
         }
 
-        /// <summary>Turns around its up. A positive angle (degrees) turns right.</summary>
-        public void Turn(float degrees)
+        /// <summary>Turns around its up. A positive angle (radians) turns right.</summary>
+        public void Turn(float radians)
         {
             if (world == null)
                 return;
 
-            localFacing = Quaternion.AngleAxis(degrees, localUp) * localFacing;
+            localFacing = Quaternion.AngleAxis(radians * Mathf.Rad2Deg, localUp) * localFacing;
             ApplyTransform();
         }
 

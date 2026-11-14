@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Cameras
@@ -19,9 +20,10 @@ namespace WSFGameJam2026.Cameras
         private float distance = 14f;
 
         [Tooltip("Angle above the surface. 90 = straight from above, 0 = from behind.")]
+        [FormerlySerializedAs("pitch")]
         [SerializeField]
         [Range(10f, 89f)]
-        private float pitch = 55f;
+        private float pitchDegrees = 55f;
 
         [Tooltip("Height of the point the camera looks at, above the player's pivot.")]
         [SerializeField]
@@ -59,7 +61,7 @@ namespace WSFGameJam2026.Cameras
             var forward = Vector3.ProjectOnPlane(target.Facing, up).normalized;
             var focus = target.transform.position + up * lookAtHeight;
 
-            float pitchRadians = pitch * Mathf.Deg2Rad;
+            float pitchRadians = pitchDegrees * Mathf.Deg2Rad;
             var desiredPosition = focus + up * (distance * Mathf.Sin(pitchRadians)) - forward * (distance * Mathf.Cos(pitchRadians));
 
             if (shouldSnap)

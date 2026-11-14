@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Player
@@ -26,9 +27,10 @@ namespace WSFGameJam2026.Player
         private float inputResponse = 8f;
 
         [Tooltip("Turning speed of the character (left/right) in degrees per second.")]
+        [FormerlySerializedAs("turnSpeed")]
         [SerializeField]
         [Min(0f)]
-        private float turnSpeed = 180f;
+        private float turnSpeedDegrees = 180f;
 
         private TorusObject torusObject;
         private Vector2 smoothedInput;
@@ -49,7 +51,7 @@ namespace WSFGameJam2026.Player
         {
             smoothedInput = Vector2.MoveTowards(smoothedInput, ReadInput(), inputResponse * Time.deltaTime);
 
-            torusObject.Turn(smoothedInput.x * turnSpeed * Time.deltaTime);
+            torusObject.Turn(smoothedInput.x * turnSpeedDegrees * Mathf.Deg2Rad * Time.deltaTime);
             torusObject.Move(smoothedInput.y * moveSpeed * Time.deltaTime);
         }
 
