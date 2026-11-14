@@ -96,14 +96,14 @@ namespace WSFGameJam2026.World
             // Directions of growing theta and phi are perpendicular, so the speed stays constant.
             float theta = angles.Theta;
             float phi = angles.Phi;
-            var phiDirection = new Vector3(-Mathf.Sin(phi) * Mathf.Sin(theta), Mathf.Cos(phi), -Mathf.Sin(phi) * Mathf.Cos(theta));
+            var phiDirection = TorusGeometry.GetPhiDirection(theta, phi);
 
             var surface = world.Surface;
             float thetaDistance = Vector3.Dot(localFacing, localRunDirection) * distance;
             float phiDistance = Vector3.Dot(localFacing, phiDirection) * distance;
 
-            float ringRadius = Mathf.Max(0.1f, surface.MajorRadius + surface.MinorRadius * Mathf.Cos(phi));
-            angles = angles.Add(thetaDistance / ringRadius, phiDistance / surface.MinorRadius);
+            Vector2 delta = TorusGeometry.GetAngleDelta(surface.MajorRadius, surface.MinorRadius, phi, thetaDistance, phiDistance);
+            angles = angles.Add(delta.x, delta.y);
             Refresh();
         }
 
@@ -125,7 +125,7 @@ namespace WSFGameJam2026.World
             smoothedHeight = Mathf.Lerp(smoothedHeight, surface.GetHeight(angles), heightBlend);
 
             localUp = surface.GetBaseNormal(angles);
-            localRunDirection = new Vector3(Mathf.Cos(angles.Theta), 0f, -Mathf.Sin(angles.Theta));
+            localRunDirection = TorusGeometry.GetThetaDirection(angles.Theta);
             localPosition = surface.GetBasePoint(angles) + localUp * smoothedHeight;
         }
 

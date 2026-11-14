@@ -10,7 +10,7 @@ namespace WSFGameJam2026.Head
     /// </summary>
     public class HeadMovement : MonoBehaviour
     {
-        private const float TwoPi = Mathf.PI * 2f;
+        private const float TwoPi = TorusGeometry.TwoPi;
 
         [SerializeField]
         private TorusWorld world;
@@ -56,11 +56,8 @@ namespace WSFGameJam2026.Head
             if (world == null)
                 return;
 
-            float cos = Mathf.Cos(theta);
-            float sin = Mathf.Sin(theta);
-
-            var localPosition = new Vector3(world.MajorRadius * sin, 0f, world.MajorRadius * cos);
-            var localTangent = new Vector3(cos, 0f, -sin);
+            var localPosition = TorusGeometry.GetCenterPoint(world.MajorRadius, theta);
+            var localTangent = TorusGeometry.GetThetaDirection(theta);
 
             var worldTransform = world.transform;
             transform.SetPositionAndRotation(

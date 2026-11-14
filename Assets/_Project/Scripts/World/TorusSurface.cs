@@ -10,7 +10,7 @@ namespace WSFGameJam2026.World
     /// </summary>
     public class TorusSurface
     {
-        private const float TwoPi = Mathf.PI * 2f;
+        private const float TwoPi = TorusGeometry.TwoPi;
         private const float DerivativeStep = 0.0005f;
 
         private readonly TorusSegmentProfile[] profiles;
@@ -60,8 +60,7 @@ namespace WSFGameJam2026.World
         /// <summary>Point of the base tube for angles in radians.</summary>
         public Vector3 GetBasePoint(float theta, float phi)
         {
-            float ring = MajorRadius + MinorRadius * Mathf.Cos(phi);
-            return new Vector3(ring * Mathf.Sin(theta), MinorRadius * Mathf.Sin(phi), ring * Mathf.Cos(theta));
+            return TorusGeometry.GetPoint(MajorRadius, MinorRadius, theta, phi);
         }
 
         /// <summary>Outward normal of the base tube, without terrain height.</summary>
@@ -73,7 +72,7 @@ namespace WSFGameJam2026.World
         /// <summary>Outward normal of the base tube for angles in radians.</summary>
         public Vector3 GetBaseNormal(float theta, float phi)
         {
-            return new Vector3(Mathf.Cos(phi) * Mathf.Sin(theta), Mathf.Sin(phi), Mathf.Cos(phi) * Mathf.Cos(theta));
+            return TorusGeometry.GetNormal(theta, phi);
         }
 
         /// <summary>Surface point including terrain height.</summary>
@@ -99,7 +98,7 @@ namespace WSFGameJam2026.World
         {
             var alongTheta = GetPoint(theta + DerivativeStep, phi) - GetPoint(theta - DerivativeStep, phi);
             var alongPhi = GetPoint(theta, phi + DerivativeStep) - GetPoint(theta, phi - DerivativeStep);
-            return Vector3.Cross(alongPhi, alongTheta).normalized;
+            return TorusGeometry.GetNormalFromTangents(alongTheta, alongPhi);
         }
 
         /// <summary>Terrain height above the base tube. Neighbouring segment profiles are cross-faded near borders.</summary>
