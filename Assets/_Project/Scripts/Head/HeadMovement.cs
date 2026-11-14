@@ -48,7 +48,23 @@ namespace WSFGameJam2026.Head
 
         private void Update()
         {
-            theta = Mathf.Repeat(theta + angularMoveSpeedDegrees * Mathf.Deg2Rad * Time.deltaTime, TwoPi);
+            if (IsMoving == false)
+                return;
+
+            theta = Mathf.Repeat(theta + angularMoveSpeedDegrees * SpeedMultiplier * Mathf.Deg2Rad * Time.deltaTime, TwoPi);
+            Refresh();
+        }
+
+        /// <summary>Multiplies the speed of the head. Set by the round loop: every round the jaw is faster.</summary>
+        public float SpeedMultiplier { get; set; } = 1f;
+
+        /// <summary>False stops the head (between rounds, after the death of the player).</summary>
+        public bool IsMoving { get; set; } = true;
+
+        /// <summary>Puts the head back at its start position.</summary>
+        public void ResetPosition()
+        {
+            theta = startThetaDegrees * Mathf.Deg2Rad;
             Refresh();
         }
 

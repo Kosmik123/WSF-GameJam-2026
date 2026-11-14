@@ -28,27 +28,39 @@ namespace WSFGameJam2026.World
         /// <param name="basePoint">The same place as a point of the base torus, in world units.</param>
         public abstract float SampleHeight(float along, float around, Vector3 basePoint);
 
+        /// <summary>
+        /// Vertex color of the terrain at the same place as <see cref="SampleHeight"/>. White by default.
+        /// </summary>
+        public virtual Color SampleColor(float along, float around, Vector3 basePoint)
+        {
+            return Color.white;
+        }
+
         /// <summary>Forget cached data. Called before the world is rebuilt, so edited source assets are picked up.</summary>
         public virtual void Invalidate() { }
 
         /// <summary>
         /// Modifies vertices of a segment mesh made by <see cref="TorusSegmentMeshBuilder"/>
         /// (vertices on the base tube, radial normals, uv.x = position along the segment, uv.y = position around the tube).
-        /// Near the segment ends the height is cross-faded with the neighbouring profiles so borders match.
+        /// Near the segment ends the height and the color are cross-faded with the neighbouring profiles so borders match.
+        /// Vertex colors are set for every segment (white where a profile has none).
         /// </summary>
         public virtual void Deform(Mesh mesh, TorusSegmentProfile previous, TorusSegmentProfile next, float blendWidth)
         {
             var vertices = mesh.vertices;
             var normals = mesh.normals;
             var uvs = mesh.uv;
+            var colors = new Color[vertices.Length];
 
             for (int i = 0; i < vertices.Length; i++)
             {
                 float height = TorusSegmentBlend.GetHeight(this, previous, next, uvs[i].x, uvs[i].y, blendWidth, vertices[i]);
+                colors[i] = TorusSegmentBlend.GetColor(this, previous, next, uvs[i].x, uvs[i].y, blendWidth, vertices[i]);
                 vertices[i] += normals[i] * height;
             }
 
             mesh.vertices = vertices;
+            mesh.colors = colors;
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
         }

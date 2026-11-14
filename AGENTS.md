@@ -30,3 +30,7 @@ Instrukcje dla agentów (Claude i inni) pracujących w tym repozytorium. W razie
 - Nie modyfikuj zewnętrznych bibliotek ani modułów w `Assets/Bipolar/`. Rozszerzaj je w `Assets/_Project/`.
 - Pliki `.meta` commitujemy razem z assetami. Nie usuwaj ich ani nie zmieniaj GUID-ów istniejących assetów.
 - Kod nie jest kompilowany poza edytorem Unity. Zaznaczaj w raporcie, że zmiana nie była uruchomiona w Unity, jeśli tak jest.
+
+## Komunikacja między agentami
+
+- Plik [comms.md](comms.md) w katalogu głównym służy do przekazywania wiadomości między agentami i członkami zespołu. Na początku pracy i po każdym `git pull` przeczytaj go i przekaż swojemu użytkownikowi wpisy, które są do niego. Po przekazaniu usuń załatwiony wpis.

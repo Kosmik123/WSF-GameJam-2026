@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace WSFGameJam2026.World
 {
-    /// <summary>Projects a mesh from above (along Y) onto a square grid of heights.</summary>
+    /// <summary>Projects a mesh from above (along Y) onto a rectangular grid of heights and vertex colors.</summary>
     public static class MeshHeightRasterizer
     {
         private const float Epsilon = 1e-4f;
@@ -12,42 +12,40 @@ namespace WSFGameJam2026.World
         /// The grid covers the XZ bounds of the mesh (grid x = mesh X, grid y = mesh Z),
         /// nodes lie on the bounds edges. Where triangles overlap, the highest one wins.
         /// Cells not covered by any triangle take the average of their neighbours.
+        /// Row-major: index = z * resolutionX + x.
         /// </summary>
-        public static bool TryRasterize(Mesh mesh, int resolution, out float[] heights)
+        /// <param name="resolutionX">Grid nodes along mesh X (along the segment).</param>
+        /// <param name="resolutionZ">Grid nodes along mesh Z (around the tube).</param>
+        /// <param name="colors">Vertex colors interpolated at the grid nodes, or null if the mesh has none.</param>
+        public static bool TryRasterize(Mesh mesh, int resolutionX, int resolutionZ, out float[] heights, out Color[] colors)
         {
             heights = null;
-            Vector3[] vertices = mesh.vertices;
-            int[] triangles = mesh.triangles;
+            colors = null;
+            var vertices = mesh.vertices;
+            var triangles = mesh.triangles;
             if (vertices.Length == 0 || triangles.Length < 3)
                 return false;
 
-            float minX = float.MaxValue;
-            float maxX = float.MinValue;
-            float minZ = float.MaxValue;
-            float maxZ = float.MinValue;
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                minX = Mathf.Min(minX, vertices[i].x);
-                maxX = Mathf.Max(maxX, vertices[i].x);
-                minZ = Mathf.Min(minZ, vertices[i].z);
-                maxZ = Mathf.Max(maxZ, vertices[i].z);
-            }
+            var vertexColors = mesh.colors;
+            var hasColors = vertexColors.Length == vertices.Length;
 
+            GetBounds(vertices, out float minX, out float maxX, out float minZ, out float maxZ);
             float sizeX = maxX - minX;
             float sizeZ = maxZ - minZ;
             if (sizeX < Epsilon || sizeZ < Epsilon)
                 return false;
 
-            float scaleX = (resolution - 1) / sizeX;
-            float scaleZ = (resolution - 1) / sizeZ;
-            var result = new float[resolution * resolution];
-            var covered = new bool[resolution * resolution];
+            float scaleX = (resolutionX - 1) / sizeX;
+            float scaleZ = (resolutionZ - 1) / sizeZ;
+            var resultHeights = new float[resolutionX * resolutionZ];
+            var resultColors = hasColors ? new Color[resolutionX * resolutionZ] : null;
+            var covered = new bool[resolutionX * resolutionZ];
 
             for (int t = 0; t < triangles.Length; t += 3)
             {
-                Vector3 a = vertices[triangles[t]];
-                Vector3 b = vertices[triangles[t + 1]];
-                Vector3 c = vertices[triangles[t + 2]];
+                var a = vertices[triangles[t]];
+                var b = vertices[triangles[t + 1]];
+                var c = vertices[triangles[t + 2]];
 
                 // Triangle corners in grid space.
                 float ax = (a.x - minX) * scaleX;
@@ -66,9 +64,9 @@ namespace WSFGameJam2026.World
                     continue;
 
                 int xStart = Mathf.Max(0, Mathf.CeilToInt(Mathf.Min(ax, bx, cx)));
-                int xEnd = Mathf.Min(resolution - 1, Mathf.FloorToInt(Mathf.Max(ax, bx, cx)));
+                int xEnd = Mathf.Min(resolutionX - 1, Mathf.FloorToInt(Mathf.Max(ax, bx, cx)));
                 int zStart = Mathf.Max(0, Mathf.CeilToInt(Mathf.Min(az, bz, cz)));
-                int zEnd = Mathf.Min(resolution - 1, Mathf.FloorToInt(Mathf.Max(az, bz, cz)));
+                int zEnd = Mathf.Min(resolutionZ - 1, Mathf.FloorToInt(Mathf.Max(az, bz, cz)));
 
                 for (int z = zStart; z <= zEnd; z++)
                 {
@@ -83,51 +81,103 @@ namespace WSFGameJam2026.World
                             continue;
 
                         float height = weightA * a.y + weightB * b.y + weightC * c.y;
-                        int index = z * resolution + x;
-                        if (covered[index] == false || height > result[index])
-                        {
-                            result[index] = height;
-                            covered[index] = true;
-                        }
+                        int index = z * resolutionX + x;
+                        if (covered[index] && height <= resultHeights[index])
+                            continue;
+
+                        resultHeights[index] = height;
+                        covered[index] = true;
+                        if (hasColors)
+                            resultColors[index] = weightA * vertexColors[triangles[t]] + weightB * vertexColors[triangles[t + 1]] + weightC * vertexColors[triangles[t + 2]];
                     }
                 }
             }
 
-            FillGaps(result, covered, resolution);
-            heights = result;
+            FillGaps(resultHeights, resultColors, covered, resolutionX, resolutionZ);
+            heights = resultHeights;
+            colors = resultColors;
             return true;
         }
 
-        private static void FillGaps(float[] heights, bool[] covered, int resolution)
+        /// <summary>
+        /// Counts the distinct X and Z positions of the vertices. For a mesh that is a regular grid of vertices
+        /// these are the numbers of its columns (along X) and rows (along Z).
+        /// </summary>
+        public static bool TryGetVertexGridSize(Mesh mesh, out int columnsX, out int rowsZ)
+        {
+            columnsX = 0;
+            rowsZ = 0;
+            var vertices = mesh.vertices;
+            if (vertices.Length == 0)
+                return false;
+
+            GetBounds(vertices, out float minX, out float maxX, out float minZ, out float maxZ);
+            float toleranceX = Mathf.Max(Epsilon, (maxX - minX) * 1e-3f);
+            float toleranceZ = Mathf.Max(Epsilon, (maxZ - minZ) * 1e-3f);
+
+            var distinctX = new HashSet<int>();
+            var distinctZ = new HashSet<int>();
+            foreach (var vertex in vertices)
+            {
+                distinctX.Add(Mathf.RoundToInt((vertex.x - minX) / toleranceX));
+                distinctZ.Add(Mathf.RoundToInt((vertex.z - minZ) / toleranceZ));
+            }
+
+            columnsX = distinctX.Count;
+            rowsZ = distinctZ.Count;
+            return true;
+        }
+
+        private static void GetBounds(Vector3[] vertices, out float minX, out float maxX, out float minZ, out float maxZ)
+        {
+            minX = float.MaxValue;
+            maxX = float.MinValue;
+            minZ = float.MaxValue;
+            maxZ = float.MinValue;
+            foreach (var vertex in vertices)
+            {
+                minX = Mathf.Min(minX, vertex.x);
+                maxX = Mathf.Max(maxX, vertex.x);
+                minZ = Mathf.Min(minZ, vertex.z);
+                maxZ = Mathf.Max(maxZ, vertex.z);
+            }
+        }
+
+        private static void FillGaps(float[] heights, Color[] colors, bool[] covered, int resolutionX, int resolutionZ)
         {
             var filledIndices = new List<int>();
             var filledHeights = new List<float>();
+            var filledColors = new List<Color>();
+            int passes = Mathf.Max(resolutionX, resolutionZ);
 
-            for (int pass = 0; pass < resolution; pass++)
+            for (int pass = 0; pass < passes; pass++)
             {
                 filledIndices.Clear();
                 filledHeights.Clear();
+                filledColors.Clear();
 
-                for (int z = 0; z < resolution; z++)
+                for (int z = 0; z < resolutionZ; z++)
                 {
-                    for (int x = 0; x < resolution; x++)
+                    for (int x = 0; x < resolutionX; x++)
                     {
-                        int index = z * resolution + x;
+                        int index = z * resolutionX + x;
                         if (covered[index])
                             continue;
 
-                        float sum = 0f;
+                        float heightSum = 0f;
+                        var colorSum = Color.clear;
                         int count = 0;
-                        AddNeighbour(heights, covered, resolution, x - 1, z, ref sum, ref count);
-                        AddNeighbour(heights, covered, resolution, x + 1, z, ref sum, ref count);
-                        AddNeighbour(heights, covered, resolution, x, z - 1, ref sum, ref count);
-                        AddNeighbour(heights, covered, resolution, x, z + 1, ref sum, ref count);
+                        AddNeighbour(heights, colors, covered, resolutionX, resolutionZ, x - 1, z, ref heightSum, ref colorSum, ref count);
+                        AddNeighbour(heights, colors, covered, resolutionX, resolutionZ, x + 1, z, ref heightSum, ref colorSum, ref count);
+                        AddNeighbour(heights, colors, covered, resolutionX, resolutionZ, x, z - 1, ref heightSum, ref colorSum, ref count);
+                        AddNeighbour(heights, colors, covered, resolutionX, resolutionZ, x, z + 1, ref heightSum, ref colorSum, ref count);
 
                         if (count == 0)
                             continue;
 
                         filledIndices.Add(index);
-                        filledHeights.Add(sum / count);
+                        filledHeights.Add(heightSum / count);
+                        filledColors.Add(colorSum / count);
                     }
                 }
 
@@ -138,21 +188,27 @@ namespace WSFGameJam2026.World
                 for (int i = 0; i < filledIndices.Count; i++)
                 {
                     heights[filledIndices[i]] = filledHeights[i];
+                    if (colors != null)
+                        colors[filledIndices[i]] = filledColors[i];
+
                     covered[filledIndices[i]] = true;
                 }
             }
         }
 
-        private static void AddNeighbour(float[] heights, bool[] covered, int resolution, int x, int z, ref float sum, ref int count)
+        private static void AddNeighbour(float[] heights, Color[] colors, bool[] covered, int resolutionX, int resolutionZ, int x, int z, ref float heightSum, ref Color colorSum, ref int count)
         {
-            if (x < 0 || z < 0 || x >= resolution || z >= resolution)
+            if (x < 0 || z < 0 || x >= resolutionX || z >= resolutionZ)
                 return;
 
-            int index = z * resolution + x;
+            int index = z * resolutionX + x;
             if (covered[index] == false)
                 return;
 
-            sum += heights[index];
+            heightSum += heights[index];
+            if (colors != null)
+                colorSum += colors[index];
+
             count++;
         }
     }

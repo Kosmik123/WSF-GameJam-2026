@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -126,7 +127,9 @@ namespace WSFGameJam2026.World
             segmentObject.transform.SetParent(transform, false);
 
             segmentObject.GetComponent<MeshFilter>().sharedMesh = mesh;
-            segmentObject.GetComponent<MeshRenderer>().sharedMaterial = ResolveMaterial(profile);
+            var renderer = segmentObject.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = ResolveMaterial(profile);
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
 
             if (generateColliders)
                 segmentObject.AddComponent<MeshCollider>().sharedMesh = mesh;

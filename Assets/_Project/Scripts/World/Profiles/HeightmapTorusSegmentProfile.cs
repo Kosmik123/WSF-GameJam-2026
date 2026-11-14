@@ -25,9 +25,10 @@ namespace WSFGameJam2026.World
         private float maxHeight = 2f;
         public float MaxHeight => maxHeight;
 
-        protected override bool TryBuildGrid(out float[] gridHeights, out int width, out int height)
+        protected override bool TryBuildGrid(out float[] gridHeights, out Color[] gridColors, out int width, out int height)
         {
             gridHeights = null;
+            gridColors = null;
             width = 0;
             height = 0;
 

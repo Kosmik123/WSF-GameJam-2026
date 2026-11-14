@@ -74,7 +74,7 @@ namespace WSFGameJam2026.Enemies
 
         [SerializeField]
         [Min(0f)]
-        private float knockback = 1.5f;
+        private float knockbackValue = 1.5f;
 
         [Header("Retreat")]
         [SerializeField]
@@ -217,7 +217,7 @@ namespace WSFGameJam2026.Enemies
         private void UpdateLunge()
         {
             TorusObject.MoveInDirection(lungeDirection, lungeDistance / lungeDuration * Time.deltaTime);
-            if (lungeHit == false && TryHitTarget(hitRadius, damage, knockback))
+            if (lungeHit == false && TryHitTarget(hitRadius, damage, knockbackValue))
                 lungeHit = true;
 
             if (Time.time >= stateEndTime)
