@@ -114,6 +114,23 @@ Panel **Terrain Shape** działa na zaznaczonym meshu, najlepiej na gęstej siatc
 
 Inspiracje: tarasowanie wysokości do płaskowyżów i warstwy noise (baza, górki, doliny) za [pracą o proceduralnym terenie low poly z tarasowaniem](https://export.arxiv.org/pdf/2505.09350) i [opisem płaskowyżów przez obcinanie noise](https://www.moddb.com/news/procedural-heightmap-terrain-generation). Losowe przesunięcie wierzchołków w XY zamiast idealnej siatki za [narzędziem Low Poly Terrain Jeana Simoneta](https://jeansimonet.net/low-poly-terrain).
 
+## Przykładowe biomy: `Assets/Blender/PSG_Biomes.blend`
+
+Cztery biomy, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek). Wszystkie stoją w jednym rzędzie wzdłuż X i łączą się ze sobą, także na granicach biomów. Każdy biom ma własną paletę terenu i scatter z presetu biomu, a każdy kawałek inne ukształtowanie:
+
+| Biom | Kawałek 1 | Kawałek 2 | Kawałek 3 |
+|---|---|---|---|
+| Las | Mixed | Plateaus | Valleys |
+| Pustynia | mesy (ostre tarasy, 2,5 m) | kanion (2 poziomy + doliny) | wydmy (łagodne, 1,4 m) |
+| Lód | dolina lodowcowa | Mixed z górkami | pole śnieżne (1,2 m) |
+| Bagno | łagodne (0,9 m) | płytkie doliny (1,1 m) | niskie tarasy (1,2 m) |
+
+- Kawałki nazywają się `Teren_<Biom>_<1-3>` i leżą w kolekcjach `Teren_<Biom>`. Instancje są w `PSG_Generated`.
+- Assety **nie są kopiowane**: kolekcje biomów są podlinkowane z `all_models.blend` (ścieżka względna, kolekcja `PSG_Sources (linked)` jest wykluczona z widoku). Zmiany modeli w `all_models.blend` od razu widać w biomach.
+- Plik buduje skrypt [Tools/Blender/psg_examples/build_biomes.py](../Tools/Blender/psg_examples/build_biomes.py). Ustawienia każdego kawałka (preset, nadpisania, seed) są w słowniku `BIOMES`. Ponowne uruchomienie nadpisuje plik:
+  `blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py`
+- Unity zaimportuje `.blend` z `Assets/` tylko z zainstalowanym Blenderem (tak jak `all_models.blend`). Do gry lepiej eksportować przez **Export FBX for Unity**.
+
 ## Malowanie terenu (kolory jak w assetach)
 
 Panel **Terrain Paint** działa na zaznaczonym meshu (obszarze, terenie albo *Ground* ścieżki). Przycisk **Paint / Sample Biome Palette** włącza cieniowanie i pobiera paletę z assetów wybranego biomu. **Scatter on Selected Mesh** robi to od razu (opcja *Paint Terrain*). Kolor trafia do `Col` (Face Corner), tak jak w assetach, a teren dostaje materiał `LD57 Stylized`.
