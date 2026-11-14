@@ -49,7 +49,7 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 
 ## Etap 2b: progresja (MUST)
 
-- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku). `C`
+- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku), zapis stanu na początku rundy i przywracanie po śmierci. `C`
 - [ ] **Skalowanie trudności** wrogów po segmencie i rundzie, tak by samo bieganie nie wystarczało. `P`
 - [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
 - [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`
@@ -83,5 +83,6 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] Typy wrogów: biegacz, strzelec, pancerny, rój.
 - [x] Audio: mieszanka CC0, pracy ręcznej i syntezatorów.
 - [ ] Dokładne zachowania i statystyki wrogów.
-- [ ] Szczegóły progresji: krzywa XP, sloty i typy przedmiotów, źródła, zachowanie poziomu i sprzętu po śmierci i między rundami.
+- [x] Poziom i sprzęt zostają między rundami, po śmierci wracają do stanu z początku rundy.
+- [ ] Szczegóły progresji: krzywa XP, sloty i typy przedmiotów, źródła.
 - [ ] Paleta kolorów i referencje wizualne.

@@ -70,8 +70,8 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 - **Ekwipunek:** wrogowie (i skrzynie) zostawiają przedmioty: broń, pancerz, dodatki. Ekwipunek zmienia statystyki i może dawać prostą zdolność. **[DO USTALENIA]** liczba slotów i typów przedmiotów.
 - **Trudność rośnie wraz z postępem:** wrogowie w dalszych segmentach i w kolejnych rundach są mocniejsi i liczniejsi, a paszcza szybsza. Początek okrążenia jest łatwy (dobre miejsce na zdobywanie XP), dalsza część wymaga poziomów i sprzętu.
 - **Dylemat:** walka daje siłę, ale kosztuje czas, a paszcza goni. Pominięcie walk na początku oznacza słabszego gracza później.
-- **Kolejne rundy:** **[DO USTALENIA]** czy poziom i ekwipunek zostają między rundami. Propozycja: tak, a trudność kolejnej rundy rośnie szybciej niż samo wzmocnienie gracza.
-- **Po śmierci:** restart bieżącej rundy (patrz sekcja 6). **[DO USTALENIA]** czy gracz zachowuje poziom i sprzęt z tej próby.
+- **Kolejne rundy:** poziom i ekwipunek **zostają** po wygranej rundzie. Trudność kolejnej rundy rośnie szybciej niż samo wzmocnienie gracza.
+- **Po śmierci:** restart bieżącej rundy (patrz sekcja 6). Poziom i sprzęt **wracają do stanu z początku tej rundy**, więc zdobyte w nieudanej próbie XP i przedmioty przepadają. Gracz musi je zdobyć od nowa.
 - Rozbudowana meta-progresja (waluta, drzewko ulepszeń poza rundą) jest poza zakresem.
 
 ## 10. Czytelność i interfejs
@@ -103,5 +103,5 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 ## 14. Otwarte pytania
 
 - Dokładne zachowania i statystyki wrogów.
-- Progresja: krzywa XP, co daje poziom, liczba slotów i typów przedmiotów, źródła przedmiotów, czy poziom i sprzęt zostają po śmierci i między rundami.
+- Progresja: krzywa XP, co daje poziom, liczba slotów i typów przedmiotów, źródła przedmiotów.
 - Paleta kolorów i referencje wizualne.
