@@ -20,7 +20,7 @@ namespace WSFGameJam2026.World
             }
         }
 
-        public override float SampleHeight(Vector3 basePoint)
+        public override float SampleHeight(float along, float around, Vector3 basePoint)
         {
             return 0f;
         }

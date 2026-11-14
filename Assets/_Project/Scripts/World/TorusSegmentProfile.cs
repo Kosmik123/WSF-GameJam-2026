@@ -20,12 +20,20 @@ namespace WSFGameJam2026.World
         private Material materialOverride;
         public Material MaterialOverride => materialOverride;
 
-        /// <summary>Terrain height above the base tube at the given undisplaced point of the torus.</summary>
-        public abstract float SampleHeight(Vector3 basePoint);
+        /// <summary>
+        /// Terrain height above the base tube at the given undisplaced point of the torus.
+        /// </summary>
+        /// <param name="along">Position along the segment: 0 at its start, 1 at its end. Outside 0-1 when a neighbour samples this profile near the border.</param>
+        /// <param name="around">Position around the tube: 0-1 (one full turn).</param>
+        /// <param name="basePoint">The same place as a point of the base torus, in world units.</param>
+        public abstract float SampleHeight(float along, float around, Vector3 basePoint);
+
+        /// <summary>Forget cached data. Called before the world is rebuilt, so edited source assets are picked up.</summary>
+        public virtual void Invalidate() { }
 
         /// <summary>
         /// Modifies vertices of a segment mesh made by <see cref="TorusSegmentMeshBuilder"/>
-        /// (vertices on the base tube, radial normals, uv.x = position along the segment).
+        /// (vertices on the base tube, radial normals, uv.x = position along the segment, uv.y = position around the tube).
         /// Near the segment ends the height is cross-faded with the neighbouring profiles so borders match.
         /// </summary>
         public virtual void Deform(Mesh mesh, TorusSegmentProfile previous, TorusSegmentProfile next, float blendWidth)
@@ -36,7 +44,7 @@ namespace WSFGameJam2026.World
 
             for (int i = 0; i < vertices.Length; i++)
             {
-                float height = TorusSegmentBlend.GetHeight(this, previous, next, uvs[i].x, blendWidth, vertices[i]);
+                float height = TorusSegmentBlend.GetHeight(this, previous, next, uvs[i].x, uvs[i].y, blendWidth, vertices[i]);
                 vertices[i] += normals[i] * height;
             }
 

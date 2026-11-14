@@ -5,33 +5,35 @@ namespace WSFGameJam2026.World
     /// <summary>Cross-fades heights of neighbouring segment profiles so the terrain is continuous on segment borders.</summary>
     public static class TorusSegmentBlend
     {
-        /// <param name="local">Position inside the segment: 0 at its start, 1 at its end.</param>
+        /// <param name="along">Position inside the segment: 0 at its start, 1 at its end.</param>
+        /// <param name="around">Position around the tube: 0-1.</param>
         /// <param name="blendWidth">Part of the segment (from each end) where the profiles are cross-faded.</param>
-        public static float GetHeight(TorusSegmentProfile own, TorusSegmentProfile previous, TorusSegmentProfile next, float local, float blendWidth, Vector3 basePoint)
+        public static float GetHeight(TorusSegmentProfile own, TorusSegmentProfile previous, TorusSegmentProfile next, float along, float around, float blendWidth, Vector3 basePoint)
         {
-            float ownHeight = SampleHeight(own, basePoint);
+            float ownHeight = SampleHeight(own, along, around, basePoint);
 
-            if (local < blendWidth)
-                return BlendWithNeighbour(ownHeight, previous, basePoint, local / blendWidth);
+            // The same place seen from the neighbouring segment lies one segment further.
+            if (along < blendWidth)
+                return BlendWithNeighbour(ownHeight, previous, along + 1f, around, basePoint, along / blendWidth);
 
-            if (local > 1f - blendWidth)
-                return BlendWithNeighbour(ownHeight, next, basePoint, (1f - local) / blendWidth);
+            if (along > 1f - blendWidth)
+                return BlendWithNeighbour(ownHeight, next, along - 1f, around, basePoint, (1f - along) / blendWidth);
 
             return ownHeight;
         }
 
-        private static float BlendWithNeighbour(float ownHeight, TorusSegmentProfile neighbour, Vector3 basePoint, float distanceFromBorder)
+        private static float BlendWithNeighbour(float ownHeight, TorusSegmentProfile neighbour, float neighbourAlong, float around, Vector3 basePoint, float distanceFromBorder)
         {
-            float neighbourHeight = SampleHeight(neighbour, basePoint);
+            float neighbourHeight = SampleHeight(neighbour, neighbourAlong, around, basePoint);
 
             // At the border both profiles weigh 0.5, so the surface is continuous.
             float ownWeight = Mathf.SmoothStep(0f, 1f, 0.5f + 0.5f * distanceFromBorder);
             return Mathf.Lerp(neighbourHeight, ownHeight, ownWeight);
         }
 
-        private static float SampleHeight(TorusSegmentProfile profile, Vector3 basePoint)
+        private static float SampleHeight(TorusSegmentProfile profile, float along, float around, Vector3 basePoint)
         {
-            return profile ? profile.SampleHeight(basePoint) : 0f;
+            return profile ? profile.SampleHeight(along, around, basePoint) : 0f;
         }
     }
 }
