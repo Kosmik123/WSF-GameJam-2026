@@ -36,21 +36,69 @@ namespace WSFGameJam2026.Editor
         // Edge Level of the biomes in Blender: their flat border becomes the base tube.
         private const float HeightOffset = -0.5f;
 
+        private const string GameScenePath = "Assets/_Project/Scenes/Game/Game.unity";
+
         [MenuItem("WSF GameJam/Setup/Biomes On Torus")]
         private static void SetupBiomes()
         {
-            var world = Object.FindAnyObjectByType<TorusWorld>();
+            if (TrySetupBiomes(out var world, out string error) == false)
+            {
+                EditorUtility.DisplayDialog("Biomes on torus", error, "OK");
+                return;
+            }
+
+            Selection.activeObject = world.gameObject;
+        }
+
+        /// <summary>
+        /// Batch mode entry: opens the game scene, runs the setup, saves it and renders preview images.
+        /// Unity.exe -batchmode -projectPath &lt;project&gt; -executeMethod WSFGameJam2026.Editor.BiomeTorusSetupMenu.SetupAndRenderFromCommandLine -previewOutput &lt;folder&gt; -quit
+        /// </summary>
+        public static void SetupAndRenderFromCommandLine()
+        {
+            EditorSceneManager.OpenScene(GameScenePath);
+            if (TrySetupBiomes(out var world, out string error) == false)
+            {
+                Debug.LogError("Biomes on torus: " + error);
+                EditorApplication.Exit(1);
+                return;
+            }
+
+            EditorSceneManager.SaveScene(world.gameObject.scene);
+            AssetDatabase.SaveAssets();
+
+            string output = GetCommandLineValue("-previewOutput");
+            if (string.IsNullOrEmpty(output) == false)
+                BiomeTorusPreview.Render(world, output);
+        }
+
+        private static string GetCommandLineValue(string name)
+        {
+            string[] arguments = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < arguments.Length - 1; i++)
+            {
+                if (arguments[i] == name)
+                    return arguments[i + 1];
+            }
+
+            return null;
+        }
+
+        private static bool TrySetupBiomes(out TorusWorld world, out string error)
+        {
+            error = null;
+            world = Object.FindAnyObjectByType<TorusWorld>();
             if (world == null)
             {
-                EditorUtility.DisplayDialog("Biomes on torus", "Open the game scene: it needs a Torus World.", "OK");
-                return;
+                error = "Open the game scene: it needs a Torus World.";
+                return false;
             }
 
             var shader = Shader.Find(ShaderName);
             if (shader == null)
             {
-                EditorUtility.DisplayDialog("Biomes on torus", $"Shader '{ShaderName}' not found (Assets/_Project/Shaders/VertexColorLit.shader).", "OK");
-                return;
+                error = $"Shader '{ShaderName}' not found (Assets/_Project/Shaders/VertexColorLit.shader).";
+                return false;
             }
 
             EnsureFolder(ProfileFolder);
@@ -85,8 +133,8 @@ namespace WSFGameJam2026.Editor
 
             if (profiles.Count == 0)
             {
-                EditorUtility.DisplayDialog("Biomes on torus", $"No biome FBX found in {BiomeFolder}.", "OK");
-                return;
+                error = $"No biome FBX found in {BiomeFolder}.";
+                return false;
             }
 
             ConfigureWorld(world, profiles);
@@ -94,8 +142,8 @@ namespace WSFGameJam2026.Editor
 
             world.Rebuild();
             EditorSceneManager.MarkSceneDirty(world.gameObject.scene);
-            Selection.activeObject = world.gameObject;
             Debug.Log($"Biomes on torus: {profiles.Count} biomes, one segment each. Save the scene to keep it.");
+            return true;
         }
 
         private static void ConfigureImporter(string modelPath, Material assetMaterial, Material glowMaterial)
