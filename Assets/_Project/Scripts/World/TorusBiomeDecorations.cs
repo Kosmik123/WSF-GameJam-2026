@@ -28,10 +28,6 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private string terrainPrefix = "Teren_";
 
-        [Tooltip("Settings of the props by mesh: blocking radius, hiding when far, turning a class off. Empty = every prop is placed, never hidden, does not block.")]
-        [SerializeField]
-        private TorusPropCatalog propCatalog;
-
         [Header("Rendering")]
         [Tooltip("Shadow mode used when there is no shadow target (it is found automatically, so normally this is not used).")]
         [SerializeField]
@@ -52,8 +48,6 @@ namespace WSFGameJam2026.World
         private readonly List<Batch> batches = new List<Batch>();
         private readonly List<Placement> placements = new List<Placement>();
         private int appliedHeadVersion = -1;
-        private Matrix4x4[] shadowBuffer = new Matrix4x4[0];
-        private Matrix4x4[] plainBuffer = new Matrix4x4[0];
         private readonly Dictionary<Material, Material> instancedMaterials = new Dictionary<Material, Material>();
         private bool isBuilt;
         private Matrix4x4 builtWorldMatrix;
@@ -93,7 +87,6 @@ namespace WSFGameJam2026.World
             public readonly List<Matrix4x4> LocalMatrices = new List<Matrix4x4>();
             public readonly List<Placement> Owners = new List<Placement>();
             public float[] Thetas;
-            public float VisibleRange;
             public Matrix4x4[] WorldMatrices;
         }
 
@@ -161,7 +154,6 @@ namespace WSFGameJam2026.World
             foreach (var batch in batches)
                 SortByTheta(batch);
 
-            world.Obstacles.Build(surface);
             UpdateWorldMatrices();
         }
 
@@ -206,52 +198,85 @@ namespace WSFGameJam2026.World
                 return;
             }
 
-            var profile = surface.GetProfile(segment) as MeshTorusSegmentProfile;
-            float heightScale = profile ? profile.HeightScale : 1f;
-            float heightOffset = profile ? profile.HeightOffset : 0f;
+            var own = surface.GetProfile(segment);
+            var previous = surface.GetProfile(segment - 1);
+            var next = surface.GetProfile(segment + 1);
+            float blendWidth = surface.BlendWidth;
             var terrainBounds = terrain.sharedMesh.bounds;
             var toTerrain = terrain.transform.worldToLocalMatrix;
 
+            int index = 0;
             foreach (var renderer in model.GetComponentsInChildren<MeshRenderer>(true))
             {
                 if (renderer.gameObject == terrain.gameObject || renderer.TryGetComponent<MeshFilter>(out var filter) == false || filter.sharedMesh == null)
                     continue;
 
-                TorusPropDefinition definition = null;
-                if (propCatalog)
-                    propCatalog.TryGetDefinition(filter.sharedMesh, out definition);
+                index++;
+                var onTerrain = toTerrain * renderer.transform.localToWorldMatrix;
+                Vector3 local = onTerrain.GetColumn(3);
+                float along = Mathf.Clamp01((local.x - terrainBounds.min.x) / Mathf.Max(terrainBounds.size.x, 1e-4f));
+                float around = Mathf.Repeat((local.z - terrainBounds.min.z) / Mathf.Max(terrainBounds.size.z, 1e-4f), 1f);
 
-                if (definition && definition.IsDisabled)
+                // Near a border the biomes overlap: an asset stays with the weight of its biome there,
+                // and appears mirrored inside the neighbour with the (lower) weight its biome has on that side.
+                bool isEndBorder = along > 0.5f;
+                float distance = isEndBorder ? 1f - along : along;
+                var neighbour = isEndBorder ? next : previous;
+                float ownWeight = blendWidth > 0f ? TorusSegmentBlend.GetOwnWeight(own, neighbour, distance / blendWidth, around, isEndBorder) : 1f;
+                if (Hash01(segment, index, 0) < ownWeight)
+                    AddPlaced(surface, segment + along, around, onTerrain, filter.sharedMesh, renderer.sharedMaterials, batchLookup);
+
+                if (blendWidth <= 0f || neighbour == null || neighbour.ClampsAlong == false)
                     continue;
 
-                var onTerrain = toTerrain * renderer.transform.localToWorldMatrix;
-                var placement = new Placement();
-                placement.BaseMatrix = GetTorusMatrix(surface, segment, terrainBounds, onTerrain, heightScale, heightOffset, placement);
-                float visibleRange = definition ? definition.VisibleRangeDegrees * Mathf.Deg2Rad : TorusGeometry.TwoPi;
-                AddInstance(filter.sharedMesh, renderer.sharedMaterials, placement, visibleRange, batchLookup);
-                placements.Add(placement);
-                InstanceCount++;
+                float mirroredWeight = TorusSegmentBlend.GetOwnWeight(own, neighbour, -distance / blendWidth, around, isEndBorder);
+                if (mirroredWeight > 0.001f && Hash01(segment, index, 1) < mirroredWeight)
+                {
+                    float mirroredSegmentPosition = isEndBorder ? segment + 1f + distance : segment - distance;
+                    AddPlaced(surface, mirroredSegmentPosition, around, onTerrain, filter.sharedMesh, renderer.sharedMaterials, batchLookup);
+                }
+            }
+        }
 
-                if (definition && definition.BlockRadius > 0f)
-                    world.Obstacles.Add(new TorusAngles(placement.Theta, placement.Phi), definition.BlockRadius * onTerrain.lossyScale.x);
+        private void AddPlaced(TorusSurface surface, float segmentPosition, float around, Matrix4x4 onTerrain, Mesh mesh, Material[] materials, Dictionary<(Mesh, int, Material), Batch> batchLookup)
+        {
+            var placement = new Placement();
+            placement.BaseMatrix = GetTorusMatrix(surface, segmentPosition, around, onTerrain, placement);
+            AddInstance(mesh, materials, placement, batchLookup);
+            placements.Add(placement);
+            InstanceCount++;
+        }
+
+        /// <summary>Deterministic random 0-1 per asset, so the blend looks the same after every rebuild.</summary>
+        private static float Hash01(int segment, int index, int salt)
+        {
+            unchecked
+            {
+                uint hash = (uint)(segment * 73856093) ^ (uint)(index * 19349663) ^ (uint)(salt * 83492791);
+                hash ^= hash >> 15;
+                hash *= 2246822519u;
+                hash ^= hash >> 13;
+                hash *= 3266489917u;
+                hash ^= hash >> 16;
+                return (hash & 0xFFFFFF) / (float)0x1000000;
             }
         }
 
         /// <summary>
         /// Moves an asset from the flat terrain (matrix in the terrain's local space) onto the torus, in the local space of the world.
-        /// Position: terrain X -> along the segment, terrain Z -> around the tube, terrain Y -> height (as the segment profile).
+        /// Position: terrain X -> along the segment, terrain Z -> around the tube, height = the terrain there (with border blending).
         /// Rotation: terrain up becomes the tube normal, like <see cref="TorusObject"/> uses for anything standing on the torus.
         /// </summary>
-        private Matrix4x4 GetTorusMatrix(TorusSurface surface, int segment, Bounds terrainBounds, Matrix4x4 onTerrain, float heightScale, float heightOffset, Placement placement)
+        /// <param name="segmentPosition">Segment index plus the position inside it (0-1), may point into a neighbouring segment.</param>
+        private Matrix4x4 GetTorusMatrix(TorusSurface surface, float segmentPosition, float around, Matrix4x4 onTerrain, Placement placement)
         {
-            Vector3 local = onTerrain.GetColumn(3);
-            float along = Mathf.Clamp01((local.x - terrainBounds.min.x) / Mathf.Max(terrainBounds.size.x, 1e-4f));
-            float around = Mathf.Repeat((local.z - terrainBounds.min.z) / Mathf.Max(terrainBounds.size.z, 1e-4f), 1f);
-            float theta = (segment + along) * surface.SegmentAngle;
+            float theta = segmentPosition * surface.SegmentAngle;
             float phi = around * TorusGeometry.TwoPi;
 
             var up = surface.GetBaseNormal(theta, phi);
-            float height = local.y * heightScale + heightOffset;
+            int segment = Mathf.FloorToInt(segmentPosition);
+            float height = TorusSegmentBlend.GetHeight(surface.GetProfile(segment), surface.GetProfile(segment - 1), surface.GetProfile(segment + 1),
+                segmentPosition - segment, around, surface.BlendWidth, surface.GetBasePoint(theta, phi));
             placement.Theta = Mathf.Repeat(theta, TorusGeometry.TwoPi);
             placement.Phi = phi;
             placement.Height = height;
@@ -264,7 +289,7 @@ namespace WSFGameJam2026.World
             return Matrix4x4.TRS(position, frame * onTerrain.rotation, onTerrain.lossyScale);
         }
 
-        private void AddInstance(Mesh mesh, Material[] materials, Placement placement, float visibleRange, Dictionary<(Mesh, int, Material), Batch> batchLookup)
+        private void AddInstance(Mesh mesh, Material[] materials, Placement placement, Dictionary<(Mesh, int, Material), Batch> batchLookup)
         {
             if (materials == null || materials.Length == 0)
                 return;
@@ -278,7 +303,7 @@ namespace WSFGameJam2026.World
                 var key = (mesh, subMesh, material);
                 if (batchLookup.TryGetValue(key, out var batch) == false)
                 {
-                    batch = new Batch { Mesh = mesh, SubMesh = subMesh, Material = material, VisibleRange = visibleRange };
+                    batch = new Batch { Mesh = mesh, SubMesh = subMesh, Material = material };
                     batchLookup.Add(key, batch);
                     batches.Add(batch);
                 }
@@ -351,12 +376,6 @@ namespace WSFGameJam2026.World
         // Instances near the shadow target cast shadows, all the others do not: two groups of draws per batch.
         private void DrawBatch(Batch batch, Camera camera, Bounds bounds)
         {
-            if (batch.VisibleRange < Mathf.PI && shadowTarget != null)
-            {
-                DrawLimited(batch, camera, bounds);
-                return;
-            }
-
             int count = batch.WorldMatrices.Length;
             if (shadowTarget == null)
             {
@@ -391,47 +410,6 @@ namespace WSFGameJam2026.World
             DrawRange(shadowParams, batch, first, count);
             DrawRange(shadowParams, batch, 0, wrappedLast);
             DrawRange(noShadowParams, batch, wrappedLast, first);
-        }
-
-        // Props with a limited visible range (grass...): only the ones within the range of theta around the shadow target are drawn.
-        // The visible ones are copied into two buffers, with and without shadows.
-        private void DrawLimited(Batch batch, Camera camera, Bounds bounds)
-        {
-            int count = batch.WorldMatrices.Length;
-            if (shadowBuffer.Length < count)
-            {
-                shadowBuffer = new Matrix4x4[count];
-                plainBuffer = new Matrix4x4[count];
-            }
-
-            float targetTheta = shadowTarget.Angles.Theta;
-            float shadowRange = nearShadowRangeDegrees * Mathf.Deg2Rad;
-
-            int shadowCount = 0;
-            int plainCount = 0;
-            for (int i = 0; i < count; i++)
-            {
-                float distance = Mathf.Abs(Mathf.Repeat(batch.Thetas[i] - targetTheta + Mathf.PI, TorusGeometry.TwoPi) - Mathf.PI);
-                if (distance > batch.VisibleRange)
-                    continue;
-
-                if (distance <= shadowRange)
-                {
-                    shadowBuffer[shadowCount++] = batch.WorldMatrices[i];
-                    continue;
-                }
-
-                plainBuffer[plainCount++] = batch.WorldMatrices[i];
-            }
-
-            DrawBuffer(CreateRenderParams(batch, camera, bounds, ShadowCastingMode.On), batch, shadowBuffer, shadowCount);
-            DrawBuffer(CreateRenderParams(batch, camera, bounds, ShadowCastingMode.Off), batch, plainBuffer, plainCount);
-        }
-
-        private static void DrawBuffer(RenderParams renderParams, Batch batch, Matrix4x4[] buffer, int count)
-        {
-            for (int start = 0; start < count; start += MaxInstancesPerDraw)
-                Graphics.RenderMeshInstanced(renderParams, batch.Mesh, batch.SubMesh, buffer, Mathf.Min(MaxInstancesPerDraw, count - start), start);
         }
 
         private RenderParams CreateRenderParams(Batch batch, Camera camera, Bounds bounds, ShadowCastingMode shadowMode)
@@ -535,9 +513,6 @@ namespace WSFGameJam2026.World
 
         private void Clear()
         {
-            if (world)
-                world.Obstacles.Clear();
-
             placements.Clear();
             appliedHeadVersion = -1;
             batches.Clear();

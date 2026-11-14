@@ -105,7 +105,8 @@ namespace WSFGameJam2026.Editor
             EnsureFolder(MaterialFolder);
             var assetMaterial = GetOrCreateMaterial("Biome Vertex Color", shader, 0f, 0f);
             var glowMaterial = GetOrCreateMaterial("Biome Vertex Color Glow", shader, 2f, 0f);
-            var lavaTerrainMaterial = GetOrCreateMaterial("Biome Terrain Lava", shader, 0f, 2f);
+            // One terrain material for every biome: lava glows also where it reaches into a neighbour (border blend).
+            var terrainMaterial = GetOrCreateMaterial("Biome Terrain", shader, 0f, 2f);
 
             var profiles = new List<TorusSegmentProfile>();
             var models = new List<GameObject>();
@@ -126,7 +127,6 @@ namespace WSFGameJam2026.Editor
                     continue;
                 }
 
-                var terrainMaterial = biome == "Wulkan" ? lavaTerrainMaterial : assetMaterial;
                 profiles.Add(GetOrCreateProfile(biome, terrainMesh, terrainMaterial));
                 models.Add(AssetDatabase.LoadAssetAtPath<GameObject>(modelPath));
             }

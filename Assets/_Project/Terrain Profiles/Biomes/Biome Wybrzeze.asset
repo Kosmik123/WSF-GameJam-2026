@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Biome Wybrzeze
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.MeshTorusSegmentProfile
   lengthResolution: 160
-  materialOverride: {fileID: 2100000, guid: 46f40fc2110e1294293d6bc250ee7358, type: 2}
+  materialOverride: {fileID: 2100000, guid: 0dacb2cedd11323459eac687ed36ee9f, type: 2}
   aroundTiling: 1
   seamBlendWidth: 0
   terrainMesh: {fileID: -8211979401382396074, guid: 8a8b7178233adf547b5a1fdcce5516ee, type: 3}

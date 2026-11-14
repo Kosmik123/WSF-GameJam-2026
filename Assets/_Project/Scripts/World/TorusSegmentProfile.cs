@@ -40,6 +40,12 @@ namespace WSFGameJam2026.World
         public virtual void Invalidate() { }
 
         /// <summary>
+        /// True when the terrain exists only inside the segment (along is clamped to 0-1), like a terrain mesh.
+        /// Neighbours then blend with it mirrored, see <see cref="TorusSegmentBlend"/>.
+        /// </summary>
+        public virtual bool ClampsAlong => false;
+
+        /// <summary>
         /// Modifies vertices of a segment mesh made by <see cref="TorusSegmentMeshBuilder"/>
         /// (vertices on the base tube, radial normals, uv.x = position along the segment, uv.y = position around the tube).
         /// Near the segment ends the height and the color are cross-faded with the neighbouring profiles so borders match.

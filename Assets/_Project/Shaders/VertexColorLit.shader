@@ -93,7 +93,7 @@ Shader "WSF/Vertex Color Lit"
                 half3 ambient = albedo * SampleSH(normal);
 
                 // Lava on a single-material terrain: strongly warm colors (red much brighter than blue) glow.
-                half warm = saturate((vertexColor.r - vertexColor.b - 0.45h) * 4.0h);
+                half warm = saturate((vertexColor.r - vertexColor.b - 0.55h) * 5.0h);
                 half3 emission = albedo * (_Emission + warm * _WarmGlow);
 
                 half3 color = MixFog(lit + ambient + emission, input.fogFactor);
