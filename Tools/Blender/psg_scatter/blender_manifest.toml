@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "psg_scatter"
-version = "0.4.0"
+version = "0.5.0"
 name = "PSG Path Scatter"
 tagline = "Instanced area and path scatter with vertex-color ground paint"
 maintainer = "WSF GameJam 2026"

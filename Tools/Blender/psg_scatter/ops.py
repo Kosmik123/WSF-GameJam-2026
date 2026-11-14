@@ -4,7 +4,7 @@ import bpy
 from bpy.props import BoolProperty, EnumProperty, IntProperty, StringProperty
 from bpy_extras.io_utils import ExportHelper
 
-from . import core
+from . import core, shape
 
 
 def active_path(context):
@@ -108,6 +108,12 @@ class PSG_OT_make_path(bpy.types.Operator):
 
 
 BIOMES = [(b, b, "") for b in ("Las", "Pustynia", "Wybrzeze", "Lod", "Wulkan", "Bagno")]
+SHAPE_PRESETS = [
+    ('MIXED', "Mixed", "Plateaus, valleys and small hills"),
+    ('PLATEAUS', "Plateaus", "Flat levels with short cliffs (mesas)"),
+    ('VALLEYS', "Valleys", "Winding valleys between higher ground"),
+    ('GENTLE', "Gentle Hills", "Low rolling hills, no terraces"),
+]
 
 
 class PSG_OT_make_area(bpy.types.Operator):
@@ -121,6 +127,9 @@ class PSG_OT_make_area(bpy.types.Operator):
     biome: EnumProperty(name="Biome", items=BIOMES)
     paint: BoolProperty(name="Paint Terrain", default=True,
                         description="Also paint the mesh with the biome terrain colors (slope, Z gradient, noise)")
+    shape_preset: EnumProperty(name="Shape", items=[('NONE', "Keep Shape", "Do not change the mesh")]
+                               + SHAPE_PRESETS,
+                               description="Reshape the mesh into low-poly landforms first")
 
     @classmethod
     def poll(cls, context):
@@ -138,6 +147,10 @@ class PSG_OT_make_area(bpy.types.Operator):
             if self.preset and not obj.psg.layers:
                 missing += core.apply_biome_preset(obj, self.biome, replace=False)
             core.init_area(obj, context.scene.psg)
+            if self.shape_preset != 'NONE':
+                obj.psg_shape.enabled = False
+                shape.apply_preset(obj.psg_shape, self.shape_preset)
+                core.run_shape(obj)
             if self.paint:
                 missing += enable_terrain_paint(obj, self.biome)
             core.regenerate(obj, context.evaluated_depsgraph_get())
@@ -195,6 +208,55 @@ class PSG_OT_paint_terrain(bpy.types.Operator):
             missing += enable_terrain_paint(obj, self.biome)
         if missing:
             self.report({'WARNING'}, "No assets for: " + ", ".join(sorted(set(missing))))
+        return {'FINISHED'}
+
+
+class PSG_OT_shape_terrain(bpy.types.Operator):
+    bl_idname = "psg.shape_terrain"
+    bl_label = "Shape Terrain"
+    bl_description = ("Low-poly landforms: plateaus, valleys and small hills within Max Height. "
+                      "Non-destructive (rest positions are kept), scatter re-snaps and paint updates")
+    bl_options = {'REGISTER', 'UNDO'}
+
+    preset: EnumProperty(name="Preset", items=[('CURRENT', "Current Settings", "")] + SHAPE_PRESETS)
+    new_seed: BoolProperty(name="New Seed", default=False)
+
+    @classmethod
+    def poll(cls, context):
+        return terrain_target(context) is not None
+
+    def execute(self, context):
+        obj = terrain_target(context)
+        settings = obj.psg_shape
+        settings.enabled = False  # no live re-shape while settings change
+        if self.preset != 'CURRENT':
+            shape.apply_preset(settings, self.preset)
+        if self.new_seed:
+            settings.seed = random.randint(1, 9999)
+        height_range = core.run_shape(obj)
+        self.report({'INFO'}, "Terrain height range %.2f m" % height_range)
+        return {'FINISHED'}
+
+
+class PSG_OT_shape_reset(bpy.types.Operator):
+    bl_idname = "psg.shape_reset"
+    bl_label = "Reset Shape"
+    bl_description = "Restore the original vertex positions (triangulation stays)"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obj = terrain_target(context)
+        return obj is not None and shape.REST_ATTRIBUTE in obj.data.attributes
+
+    def execute(self, context):
+        obj = terrain_target(context)
+        obj.psg_shape.enabled = False
+        shape.reset_shape(obj)
+        if core.is_area(obj):
+            core.regenerate(obj, context.evaluated_depsgraph_get())
+        elif obj.psg_ground.is_ground:
+            core.repaint_ground(obj)
         return {'FINISHED'}
 
 
@@ -577,7 +639,7 @@ def select_only(context, objects):
 
 CLASSES = (
     PSG_OT_draw_annotation, PSG_OT_annotation_to_path, PSG_OT_make_path, PSG_OT_make_area,
-    PSG_OT_area_preset, PSG_OT_paint_terrain, PSG_OT_create_ground,
+    PSG_OT_area_preset, PSG_OT_paint_terrain, PSG_OT_shape_terrain, PSG_OT_shape_reset, PSG_OT_create_ground,
     PSG_OT_generate, PSG_OT_clear, PSG_OT_reset_edits, PSG_OT_bake, PSG_OT_display_all, PSG_OT_repaint,
     PSG_OT_select_instances, PSG_OT_select_path,
     PSG_OT_layer_add, PSG_OT_layer_remove, PSG_OT_layer_move, PSG_OT_layer_reseed,

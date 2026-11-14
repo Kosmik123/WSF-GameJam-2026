@@ -211,6 +211,43 @@ class PSG_Ground(bpy.types.PropertyGroup):
     seed: IntProperty(name="Seed", default=0, update=_ground_changed)
 
 
+def _shape_changed(self, _context):
+    if self.enabled:
+        core.schedule_shape(self.id_data)
+
+
+class PSG_Shape(bpy.types.PropertyGroup):
+    enabled: BoolProperty(name="Shaped", default=False)
+    seed: IntProperty(name="Seed", default=1, update=_shape_changed)
+    max_height: FloatProperty(name="Max Height", default=2.0, min=0.0, soft_max=10.0, unit='LENGTH',
+                              update=_shape_changed,
+                              description="Hard height budget: lowest to highest point (keep low for the torus)")
+    base_size: FloatProperty(name="Base Size", default=30.0, min=1.0, unit='LENGTH', update=_shape_changed,
+                             description="Size of the large landforms")
+    plateau_amount: FloatProperty(name="Plateaus", default=0.6, min=0.0, max=1.0, subtype='FACTOR',
+                                  update=_shape_changed, description="Terracing into flat levels")
+    plateau_levels: IntProperty(name="Levels", default=3, min=1, max=8, update=_shape_changed)
+    cliff: FloatProperty(name="Cliff Width", default=0.22, min=0.02, max=1.0, subtype='FACTOR',
+                         update=_shape_changed, description="Part of each level used by the slope (small = steep)")
+    valley_amount: FloatProperty(name="Valleys", default=0.5, min=0.0, max=1.0, subtype='FACTOR',
+                                 update=_shape_changed)
+    valley_width: FloatProperty(name="Valley Width", default=0.15, min=0.01, max=1.0, subtype='FACTOR',
+                                update=_shape_changed)
+    valley_size: FloatProperty(name="Valley Size", default=38.0, min=1.0, unit='LENGTH', update=_shape_changed)
+    hill_amount: FloatProperty(name="Hills", default=0.3, min=0.0, max=1.0, subtype='FACTOR',
+                               update=_shape_changed, description="Small bumps on top of everything")
+    hill_size: FloatProperty(name="Hill Size", default=6.0, min=0.5, unit='LENGTH', update=_shape_changed)
+    edge_flatten: FloatProperty(name="Flatten Edges", default=0.0, min=0.0, unit='LENGTH', update=_shape_changed,
+                                description="Blend to Edge Height near the mesh border (seamless segments)")
+    edge_height: FloatProperty(name="Edge Height", default=0.0, min=0.0, max=1.0, subtype='FACTOR',
+                               update=_shape_changed)
+    jitter: FloatProperty(name="Vertex Jitter", default=0.35, min=0.0, max=0.9, subtype='FACTOR',
+                          update=_shape_changed,
+                          description="Random XY offset of vertices to break the grid (low poly look)")
+    triangulate: BoolProperty(name="Triangulate", default=True, update=_shape_changed,
+                              description="Flat triangles like low poly assets (cannot be undone by Reset)")
+
+
 class PSG_SceneSettings(bpy.types.PropertyGroup):
     source: PointerProperty(name="Default Source", type=bpy.types.Collection)
     target: PointerProperty(name="Default Ground", type=bpy.types.Object, poll=_poll_ground)
@@ -221,7 +258,7 @@ class PSG_SceneSettings(bpy.types.PropertyGroup):
     ground_margin: FloatProperty(name="Ground Margin", default=3.0, min=0.0, unit='LENGTH')
 
 
-CLASSES = (PSG_Layer, PSG_PathSettings, PSG_Instance, PSG_Ground, PSG_SceneSettings)
+CLASSES = (PSG_Layer, PSG_PathSettings, PSG_Instance, PSG_Ground, PSG_Shape, PSG_SceneSettings)
 
 
 def register():
@@ -230,11 +267,13 @@ def register():
     bpy.types.Object.psg = PointerProperty(type=PSG_PathSettings)
     bpy.types.Object.psg_inst = PointerProperty(type=PSG_Instance)
     bpy.types.Object.psg_ground = PointerProperty(type=PSG_Ground)
+    bpy.types.Object.psg_shape = PointerProperty(type=PSG_Shape)
     bpy.types.Scene.psg = PointerProperty(type=PSG_SceneSettings)
 
 
 def unregister():
     del bpy.types.Scene.psg
+    del bpy.types.Object.psg_shape
     del bpy.types.Object.psg_ground
     del bpy.types.Object.psg_inst
     del bpy.types.Object.psg

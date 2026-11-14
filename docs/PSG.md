@@ -89,6 +89,25 @@ Waga wariantu: własność `psg_weight` (Custom Property) na obiekcie źródłow
 - Na laptopie z dwiema kartami przypnij Blendera do karty NVIDIA: Ustawienia Windows → System → Ekran → Grafika → `blender.exe` → Wysoka wydajność.
 - Kolekcje, nad którymi nie pracujesz, wykluczaj z widoku checkboxem w Outlinerze. Samo ukrycie oczkiem nie zdejmuje obiektów z obliczeń.
 
+## Kształtowanie terenu (low poly)
+
+Panel **Terrain Shape** działa na zaznaczonym meshu, najlepiej na gęstej siatce (Grid). **Scatter on Selected Mesh** ma opcję *Shape*, która robi to od razu.
+
+- **Presety:** *Mixed* (płaskowyże, doliny, górki), *Plateaus* (mesy z krótkimi uskokami), *Valleys* (kręte doliny), *Gentle Hills* (łagodne pagórki bez tarasów).
+- **Max Height** to twardy limit: najniższy i najwyższy punkt dzieli dokładnie tyle metrów. Domyślnie 1,5–2,5 m, żeby po zwinięciu na torus nie było dużych różnic.
+- Składniki:
+  - *Base Size*: wielkość głównych form terenu.
+  - *Valleys*: doliny wycinane ridged noise.
+  - *Plateaus*: tarasowanie wysokości na *Levels* poziomów. *Cliff Width* ustawia, jak szeroki i stromy jest uskok.
+  - *Hills*: drobne górki na wierzchu.
+- **Low poly:** *Vertex Jitter* przesuwa wierzchołki losowo w XY i rozbija regularną siatkę. Wierzchołki brzegowe przesuwają się tylko wzdłuż brzegu, więc brzeg zostaje prosty. *Triangulate* dzieli siatkę na płaskie trójkąty jak w assetach, a cieniowanie jest płaskie.
+- **Flatten Edges / Edge Height**: przy brzegu teren schodzi do stałej wysokości. Przydaje się, żeby sąsiednie segmenty się łączyły.
+- **Nieniszcząco:** oryginalne pozycje wierzchołków są zapisane w atrybucie `psg_rest`, a każda zmiana liczy kształt od nich. *Reset Shape* przywraca płaski mesh. Triangulacja zostaje.
+- Po zmianie kształtu scatter obszaru i ścieżek przykleja się do nowej powierzchni, a malowanie terenu się odświeża. Uskoki tarasów są strome, więc same dostają paletę skały, a preset biomu nie stawia na nich drzew.
+- Po pierwszym użyciu presetu zmiana każdego suwaka przelicza teren na żywo, z opóźnieniem jak Live Update.
+
+Inspiracje: tarasowanie wysokości do płaskowyżów i warstwy noise (baza, górki, doliny) za [pracą o proceduralnym terenie low poly z tarasowaniem](https://export.arxiv.org/pdf/2505.09350) i [opisem płaskowyżów przez obcinanie noise](https://www.moddb.com/news/procedural-heightmap-terrain-generation). Losowe przesunięcie wierzchołków w XY zamiast idealnej siatki za [narzędziem Low Poly Terrain Jeana Simoneta](https://jeansimonet.net/low-poly-terrain).
+
 ## Malowanie terenu (kolory jak w assetach)
 
 Panel **Terrain Paint** działa na zaznaczonym meshu (obszarze, terenie albo *Ground* ścieżki). Przycisk **Paint / Sample Biome Palette** włącza cieniowanie i pobiera paletę z assetów wybranego biomu. **Scatter on Selected Mesh** robi to od razu (opcja *Paint Terrain*). Kolor trafia do `Col` (Face Corner), tak jak w assetach, a teren dostaje materiał `LD57 Stylized`.

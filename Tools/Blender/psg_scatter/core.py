@@ -13,6 +13,8 @@ from mathutils import Matrix, Quaternion, Vector, noise
 from mathutils.bvhtree import BVHTree
 from mathutils.geometry import interpolate_bezier
 
+from . import shape
+
 OUTPUT_ROOT = "PSG_Generated"
 PATHS_COLLECTION = "PSG_Paths"
 COLOR_ATTRIBUTE = "Col"
@@ -1317,6 +1319,30 @@ def schedule_ground(ground):
         _request()
 
 
+def schedule_shape(obj):
+    if not _busy and obj is not None and obj.type == 'MESH':
+        _pending["\0shape:" + obj.name] = False
+        _request()
+
+
+def run_shape(obj):
+    """Reshape terrain, then re-snap its scatter and repaint it. Returns the height range."""
+    if obj.mode == 'EDIT':
+        return 0.0
+    obj.psg_shape.enabled = True
+    height_range = shape.shape_terrain(obj)
+    # a depsgraph taken before reshaping still holds the old surface, so evaluate again
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    if is_area(obj):
+        regenerate(obj, depsgraph)  # also repaints when it is a ground
+    elif obj.psg_ground.is_ground:
+        repaint_ground(obj)
+    for path in all_paths():
+        if path.psg.target == obj:
+            regenerate(path, depsgraph)
+    return height_range
+
+
 def _flush():
     wait = DEBOUNCE - (time.monotonic() - _last_request[0])
     if wait > 0.01:
@@ -1326,6 +1352,14 @@ def _flush():
     for key, scatter in jobs.items():
         if key.startswith("\0ground:"):
             repaint_ground(bpy.data.objects.get(key[len("\0ground:"):]))
+            continue
+        if key.startswith("\0shape:"):
+            target = bpy.data.objects.get(key[len("\0shape:"):])
+            if target is not None and target.type == 'MESH':
+                try:
+                    run_shape(target)
+                except Exception as error:
+                    print("PSG: shaping %s failed: %s" % (key, error))
             continue
         path = bpy.data.objects.get(key)
         if not is_generator(path):

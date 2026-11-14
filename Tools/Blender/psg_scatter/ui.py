@@ -195,6 +195,56 @@ class PSG_PT_paint(PSGPanel, bpy.types.Panel):
             layout.label(text="Ground colors: Terrain Paint panel", icon='MESH_GRID')
 
 
+class PSG_PT_shape(PSGPanel, bpy.types.Panel):
+    bl_label = "Terrain Shape"
+    bl_parent_id = "PSG_PT_main"
+
+    @classmethod
+    def poll(cls, context):
+        return terrain_target(context) is not None
+
+    def draw(self, context):
+        layout = self.layout
+        obj = terrain_target(context)
+        settings = obj.psg_shape
+        grid = layout.grid_flow(columns=2, align=True)
+        for key, label in (('MIXED', "Mixed"), ('PLATEAUS', "Plateaus"), ('VALLEYS', "Valleys"),
+                           ('GENTLE', "Gentle Hills")):
+            grid.operator("psg.shape_terrain", text=label).preset = key
+        row = layout.row(align=True)
+        op = row.operator("psg.shape_terrain", text="Reshape", icon='FILE_REFRESH')
+        op.preset = 'CURRENT'
+        op = row.operator("psg.shape_terrain", text="New Seed", icon='MOD_NOISE')
+        op.preset = 'CURRENT'
+        op.new_seed = True
+        row.operator("psg.shape_reset", text="", icon='LOOP_BACK')
+        if not settings.enabled:
+            layout.label(text="Pick a preset to start (live after that)", icon='INFO')
+        col = layout.column(align=True)
+        col.prop(settings, "max_height")
+        col.prop(settings, "base_size")
+        col.prop(settings, "seed")
+        col = layout.column(align=True)
+        col.prop(settings, "plateau_amount")
+        row = col.row(align=True)
+        row.prop(settings, "plateau_levels")
+        row.prop(settings, "cliff")
+        col = layout.column(align=True)
+        col.prop(settings, "valley_amount")
+        row = col.row(align=True)
+        row.prop(settings, "valley_width")
+        row.prop(settings, "valley_size")
+        col = layout.column(align=True)
+        col.prop(settings, "hill_amount")
+        col.prop(settings, "hill_size")
+        col = layout.column(align=True)
+        col.prop(settings, "jitter")
+        col.prop(settings, "triangulate")
+        row = col.row(align=True)
+        row.prop(settings, "edge_flatten")
+        row.prop(settings, "edge_height")
+
+
 class PSG_PT_terrain(PSGPanel, bpy.types.Panel):
     bl_label = "Terrain Paint"
     bl_parent_id = "PSG_PT_main"
@@ -278,7 +328,7 @@ class PSG_PT_instances(PSGPanel, bpy.types.Panel):
         layout.operator("psg.select_path", icon='CURVE_PATH')
 
 
-CLASSES = (PSG_UL_layers, PSG_PT_main, PSG_PT_path, PSG_PT_layers, PSG_PT_paint, PSG_PT_terrain,
+CLASSES = (PSG_UL_layers, PSG_PT_main, PSG_PT_path, PSG_PT_layers, PSG_PT_paint, PSG_PT_shape, PSG_PT_terrain,
            PSG_PT_instances)
 
 
