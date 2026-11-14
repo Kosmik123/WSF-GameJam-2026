@@ -16,7 +16,7 @@ namespace WSFGameJam2026.World
         public static bool TryRasterize(Mesh mesh, int resolution, out float[] heights)
         {
             heights = null;
-            var vertices = mesh.vertices;
+            Vector3[] vertices = mesh.vertices;
             int[] triangles = mesh.triangles;
             if (vertices.Length == 0 || triangles.Length < 3)
                 return false;
@@ -45,9 +45,9 @@ namespace WSFGameJam2026.World
 
             for (int t = 0; t < triangles.Length; t += 3)
             {
-                var a = vertices[triangles[t]];
-                var b = vertices[triangles[t + 1]];
-                var c = vertices[triangles[t + 2]];
+                Vector3 a = vertices[triangles[t]];
+                Vector3 b = vertices[triangles[t + 1]];
+                Vector3 c = vertices[triangles[t + 2]];
 
                 // Triangle corners in grid space.
                 float ax = (a.x - minX) * scaleX;
