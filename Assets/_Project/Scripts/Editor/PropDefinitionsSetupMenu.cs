@@ -78,15 +78,22 @@ namespace WSFGameJam2026.Editor
         {
             var result = new List<Mesh>();
             var serialized = new SerializedObject(decorations);
-            var models = serialized.FindProperty("biomeModels");
             var terrainPrefix = serialized.FindProperty("terrainPrefix").stringValue;
+            var world = serialized.FindProperty("world").objectReferenceValue as TorusWorld;
+            if (world == null)
+                return result;
 
-            for (int i = 0; i < models.arraySize; i++)
+            var surface = world.Surface;
+            var models = new List<GameObject>();
+            for (int segment = 0; segment < surface.SegmentCount; segment++)
             {
-                var model = models.GetArrayElementAtIndex(i).objectReferenceValue as GameObject;
-                if (model == null)
-                    continue;
+                var profile = surface.GetProfile(segment) as MeshTorusSegmentProfile;
+                if (profile && profile.DecorationModel && models.Contains(profile.DecorationModel) == false)
+                    models.Add(profile.DecorationModel);
+            }
 
+            foreach (var model in models)
+            {
                 foreach (var filter in model.GetComponentsInChildren<MeshFilter>(true))
                 {
                     if (filter.sharedMesh && filter.name.StartsWith(terrainPrefix) == false && result.Contains(filter.sharedMesh) == false)

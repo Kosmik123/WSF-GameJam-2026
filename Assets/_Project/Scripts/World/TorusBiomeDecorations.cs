@@ -20,11 +20,7 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private TorusWorld world;
 
-        [Tooltip("Biome models (FBX from Assets/Bioms). Segment i uses model i % Length. Use the same order as the world's segment profiles.")]
-        [SerializeField]
-        private GameObject[] biomeModels;
-
-        [Tooltip("Name prefix of the terrain mesh object inside a biome model. Everything else in the model is an asset.")]
+        [Tooltip("Name prefix of the terrain mesh object inside a decoration model (see MeshTorusSegmentProfile). Everything else in the model is an asset.")]
         [SerializeField]
         private string terrainPrefix = "Teren_";
 
@@ -170,14 +166,16 @@ namespace WSFGameJam2026.World
         {
             Clear();
             isBuilt = true;
-            if (world == null || biomeModels == null || biomeModels.Length == 0)
+            if (world == null)
                 return;
 
             var surface = world.Surface;
             var batchLookup = new Dictionary<(Mesh, int, Material), Batch>();
             for (int segment = 0; segment < surface.SegmentCount; segment++)
             {
-                var model = biomeModels[segment % biomeModels.Length];
+                // The biomes are the segment profiles of the world, so the decorations always match the terrain of their segment.
+                var profile = surface.GetProfile(segment) as MeshTorusSegmentProfile;
+                var model = profile ? profile.DecorationModel : null;
                 if (model)
                     AddBiome(surface, segment, model, batchLookup);
             }

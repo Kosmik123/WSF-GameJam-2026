@@ -19,6 +19,11 @@ namespace WSFGameJam2026.World
         private Mesh terrainMesh;
         public Mesh TerrainMesh => terrainMesh;
 
+        [Tooltip("Model of the biome (FBX) with the decorations: its mesh named 'Teren_...' is the terrain above, every other mesh is an asset placed on the terrain by TorusBiomeDecorations. Empty = no decorations in this segment.")]
+        [SerializeField]
+        private GameObject decorationModel;
+        public GameObject DecorationModel => decorationModel;
+
         [Tooltip("Grid nodes along the segment (mesh X). Set it to the number of vertex columns of the mesh to use its vertices one to one.")]
         [FormerlySerializedAs("gridResolution")]
         [SerializeField]

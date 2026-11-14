@@ -109,7 +109,6 @@ namespace WSFGameJam2026.Editor
             var terrainMaterial = GetOrCreateMaterial("Biome Terrain", shader, 0f, 2f);
 
             var profiles = new List<TorusSegmentProfile>();
-            var models = new List<GameObject>();
             foreach (string biome in biomes)
             {
                 string modelPath = $"{BiomeFolder}/{biome}.fbx";
@@ -127,8 +126,7 @@ namespace WSFGameJam2026.Editor
                     continue;
                 }
 
-                profiles.Add(GetOrCreateProfile(biome, terrainMesh, terrainMaterial));
-                models.Add(AssetDatabase.LoadAssetAtPath<GameObject>(modelPath));
+                profiles.Add(GetOrCreateProfile(biome, terrainMesh, AssetDatabase.LoadAssetAtPath<GameObject>(modelPath), terrainMaterial));
             }
 
             if (profiles.Count == 0)
@@ -138,7 +136,7 @@ namespace WSFGameJam2026.Editor
             }
 
             ConfigureWorld(world, profiles);
-            ConfigureDecorations(world, models);
+            ConfigureDecorations(world);
 
             world.Rebuild();
             EditorSceneManager.MarkSceneDirty(world.gameObject.scene);
@@ -176,7 +174,7 @@ namespace WSFGameJam2026.Editor
             return material;
         }
 
-        private static TorusSegmentProfile GetOrCreateProfile(string biome, Mesh terrainMesh, Material material)
+        private static TorusSegmentProfile GetOrCreateProfile(string biome, Mesh terrainMesh, GameObject decorationModel, Material material)
         {
             string path = $"{ProfileFolder}/Biome {biome}.asset";
             var profile = AssetDatabase.LoadAssetAtPath<MeshTorusSegmentProfile>(path);
@@ -188,6 +186,7 @@ namespace WSFGameJam2026.Editor
 
             var serialized = new SerializedObject(profile);
             serialized.FindProperty("terrainMesh").objectReferenceValue = terrainMesh;
+            serialized.FindProperty("decorationModel").objectReferenceValue = decorationModel;
             serialized.FindProperty("gridResolutionAlong").intValue = GridAlong;
             serialized.FindProperty("gridResolutionAround").intValue = GridAround;
             serialized.FindProperty("heightScale").floatValue = 1f;
@@ -218,7 +217,7 @@ namespace WSFGameJam2026.Editor
             Debug.Log($"Torus World: segments {previousCount} -> {profiles.Count}, sides resolution {previousSides} -> {SidesResolution}.");
         }
 
-        private static void ConfigureDecorations(TorusWorld world, List<GameObject> models)
+        private static void ConfigureDecorations(TorusWorld world)
         {
             if (world.TryGetComponent<TorusBiomeDecorations>(out var decorations) == false)
                 decorations = Undo.AddComponent<TorusBiomeDecorations>(world.gameObject);
@@ -226,10 +225,6 @@ namespace WSFGameJam2026.Editor
             var serialized = new SerializedObject(decorations);
             serialized.FindProperty("world").objectReferenceValue = world;
             serialized.FindProperty("terrainPrefix").stringValue = TerrainPrefix;
-            var modelArray = serialized.FindProperty("biomeModels");
-            modelArray.arraySize = models.Count;
-            for (int i = 0; i < models.Count; i++)
-                modelArray.GetArrayElementAtIndex(i).objectReferenceValue = models[i];
 
             serialized.ApplyModifiedProperties();
             decorations.MarkDirty();
