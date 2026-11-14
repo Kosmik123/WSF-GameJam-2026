@@ -116,14 +116,16 @@ Inspiracje: tarasowanie wysokości do płaskowyżów i warstwy noise (baza, gór
 
 ## Przykładowe biomy: `Assets/Blender/PSG_Biomes.blend`
 
-Cztery biomy, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek). Wszystkie stoją w jednym rzędzie wzdłuż X i łączą się ze sobą, także na granicach biomów. Każdy biom ma własną paletę terenu i scatter z presetu biomu, a każdy kawałek inne ukształtowanie:
+Sześć biomów, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek), razem 18 kawałków na 720 m. Wszystkie stoją w jednym rzędzie wzdłuż X, w tej kolejności, i łączą się ze sobą, także na granicach biomów. Każdy biom ma własną paletę terenu i scatter z presetu biomu, a każdy kawałek inne ukształtowanie:
 
 | Biom | Kawałek 1 | Kawałek 2 | Kawałek 3 |
 |---|---|---|---|
-| Las | Mixed | Plateaus | Valleys |
 | Pustynia | mesy (ostre tarasy, 2,5 m) | kanion (2 poziomy + doliny) | wydmy (łagodne, 1,4 m) |
-| Lód | dolina lodowcowa | Mixed z górkami | pole śnieżne (1,2 m) |
+| Las | Mixed | Plateaus | Valleys |
 | Bagno | łagodne (0,9 m) | płytkie doliny (1,1 m) | niskie tarasy (1,2 m) |
+| Wybrzeże | plaża (1,0 m) | klify (2 poziomy, 2,2 m) | laguna (doliny, 1,4 m) |
+| Wulkan | tarasy lawowe (4 poziomy, 2,5 m) | ryft (wąskie doliny) | poszarpany Mixed |
+| Lód | dolina lodowcowa | Mixed z górkami | pole śnieżne (1,2 m) |
 
 - Kawałki nazywają się `Teren_<Biom>_<1-3>` i leżą w kolekcjach `Teren_<Biom>`. Instancje są w `PSG_Generated`.
 - Assety **nie są kopiowane**: kolekcje biomów są podlinkowane z `all_models.blend` (ścieżka względna, kolekcja `PSG_Sources (linked)` jest wykluczona z widoku). Zmiany modeli w `all_models.blend` od razu widać w biomach.
