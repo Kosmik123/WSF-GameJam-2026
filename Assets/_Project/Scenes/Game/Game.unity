@@ -347,6 +347,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   target: {fileID: 1703670341}
+--- !u!4 &752554859 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2997175284573061814, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+  m_PrefabInstance: {fileID: 1183390416463733785}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &828329294
 GameObject:
   m_ObjectHideFlags: 0
@@ -874,6 +879,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Rounds.LapTracker
   head: {fileID: 66875074}
   player: {fileID: 1703670341}
+  world: {fileID: 0}
+  goalMarginDegrees: 0
   goalBehindHeadDegrees: 20
 --- !u!114 &1300097185
 MonoBehaviour:
@@ -1531,6 +1538,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3418072956140283771, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: rollReference
+      value: 
+      objectReference: {fileID: 752554859}
     - target: {fileID: 3418072956140283771, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: neckHeightOffset
       value: 0
