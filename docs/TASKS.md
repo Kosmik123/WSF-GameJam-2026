@@ -33,7 +33,7 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 
 - [ ] **Gracz: ruch po torusie** w współrzędnych `(θ, φ)`, orientacja według normalnej powierzchni, sterowanie (Input System). `C`
 - [ ] **Kamera** z góry pod skosem, podążająca za graczem, „góra” = normalna powierzchni. `C`
-- [x] **Paszcza (logika):** jednostajny ruch po `θ` (`HeadMovement`), śmierć gracza przy wejściu w strefę (`MawKillZone` + `Health.Kill()`, tylko kąty). `C`
+- [x] **Paszcza (logika):** jednostajny ruch po `θ` (`HeadMovement`), strefa stopniowo odbiera graczowi życie (`MawKillZone` + `Health.LoseHealth()`, tylko kąty). `C`
 - [ ] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia na czubek głowy. `C`
 - [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci z wynikiem (liczba rund), zapis rekordu i restart od rundy 1. `P`
 - [ ] **Model paszczy** (siatka, animacja otwierania i zamykania). `G`

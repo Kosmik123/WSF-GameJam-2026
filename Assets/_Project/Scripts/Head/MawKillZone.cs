@@ -5,19 +5,24 @@ using WSFGameJam2026.World;
 namespace WSFGameJam2026.Head
 {
     /// <summary>
-    /// Death zone of the jaw, checked with angles only (no physics, no colliders). Its shape is not a plain band:
+    /// Danger zone of the jaw, checked with angles only (no physics, no colliders). Its shape is not a plain band:
     /// how far it reaches in front of the head and behind it depends on phi (around the tube), so the jaws can
-    /// reach forward while the cheeks stay back. Whoever stands in it is killed with <see cref="Health.Kill"/>,
-    /// which ignores HP and i-frames.
+    /// reach forward while the cheeks stay back. Whoever stands in it gradually loses hit points
+    /// (<see cref="Health.LoseHealth"/>, which ignores i-frames) until the jaw kills them.
     /// </summary>
     public class MawKillZone : MonoBehaviour
     {
         [SerializeField]
         private HeadMovement head;
 
-        [Tooltip("Who the jaw can kill. Usually only the player.")]
+        [Tooltip("Who the jaw hurts. Usually only the player.")]
         [SerializeField]
         private Health[] victims;
+
+        [Tooltip("Hit points taken per second while standing in the zone. Ignores i-frames, so the dodge does not help.")]
+        [SerializeField]
+        [Min(0f)]
+        private float damagePerSecond = 15f;
 
         [Header("Shape")]
         [Tooltip("Reach in front of the head (towards growing theta), in degrees of theta. X = phi around the tube (0-1 = 0-360°), Y = reach.")]
@@ -32,6 +37,8 @@ namespace WSFGameJam2026.Head
         [SerializeField]
         private bool drawGizmos = true;
 
+        private float[] pendingDamage;
+
         private void Reset()
         {
             head = GetComponent<HeadMovement>();
@@ -42,14 +49,26 @@ namespace WSFGameJam2026.Head
             if (head == null)
                 return;
 
+            if (pendingDamage == null || pendingDamage.Length != victims.Length)
+                pendingDamage = new float[victims.Length];
+
             for (var i = 0; i < victims.Length; i++)
             {
                 var victim = victims[i];
-                if (victim == null || victim.IsDead || victim.isActiveAndEnabled == false)
+                if (victim == null || victim.IsDead || victim.isActiveAndEnabled == false || IsInside(victim) == false)
+                {
+                    pendingDamage[i] = 0f;
+                    continue;
+                }
+
+                // Health is whole, so the damage is collected until it makes at least one point.
+                pendingDamage[i] += damagePerSecond * Time.deltaTime;
+                var wholeDamage = Mathf.FloorToInt(pendingDamage[i]);
+                if (wholeDamage <= 0)
                     continue;
 
-                if (IsInside(victim))
-                    victim.Kill();
+                pendingDamage[i] -= wholeDamage;
+                victim.LoseHealth(wholeDamage);
             }
         }
 
