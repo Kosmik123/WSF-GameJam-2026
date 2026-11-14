@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f624d09b50d47be8046f50a2cb3e6bf, type: 3}
+  m_Name: Warrior
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.PlayerClass
+  displayName: Warrior
+  description: Melee combo and dodge, 100 HP. No skills yet.
+  isRanged: 0
+  rangedDamage: 8
+  rangedCooldown: 0.35
+  maxHealth: 100
+  modelPrefab: {fileID: 5352958571798197664, guid: c564c8c0d0cdc45429417f315e9f3e41, type: 3}
+  modelMaterial: {fileID: 0}
+  hiddenParts: []
+  skillPool: []
+  startingSkills: []

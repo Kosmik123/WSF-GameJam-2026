@@ -97,19 +97,19 @@ namespace WSFGameJam2026.Editor
         private static Enemy CreateRunnerPrefab()
         {
             var root = new GameObject("Runner");
-            CreateBody(root, PrimitiveType.Capsule, new Vector3(0.8f, 0.6f, 0.8f), GetMaterial("Runner", new Color(0.85f, 0.2f, 0.2f), false));
-            CreateNose(root, 0.6f);
             AddEnemyComponents(root, groundOffset: 0.6f, maxHealth: 20, bodyRadius: 0.45f, experience: 10, knockbackMultiplier: 1f);
             root.AddComponent<RunnerEnemy>();
+
+            // The LD57 slime model with its procedural animation (needs Health, so after the components).
+            Ld57ModelsSetupMenu.BuildSlime(root, 0.6f);
             return SavePrefab(root, "Runner").GetComponent<Enemy>();
         }
 
         private static Enemy CreateShooterPrefab(EnemyProjectile projectile)
         {
             var root = new GameObject("Shooter");
-            CreateBody(root, PrimitiveType.Cylinder, new Vector3(0.9f, 0.8f, 0.9f), GetMaterial("Shooter", new Color(0.3f, 0.45f, 0.95f), false));
-            CreateNose(root, 0.8f);
             AddEnemyComponents(root, groundOffset: 0.8f, maxHealth: 25, bodyRadius: 0.5f, experience: 20, knockbackMultiplier: 1f);
+            Ld57ModelsSetupMenu.BuildShooter(root, 0.8f);
 
             var aimLineObject = new GameObject("Aim Line");
             aimLineObject.transform.SetParent(root.transform, false);
@@ -188,20 +188,6 @@ namespace WSFGameJam2026.Editor
             entry.FindPropertyRelative("weight").floatValue = weight;
             entry.FindPropertyRelative("minDifficulty").floatValue = minDifficulty;
             entry.FindPropertyRelative("groupSize").vector2IntValue = groupSize;
-        }
-
-        private static void CreateBody(GameObject root, PrimitiveType type, Vector3 scale, Material material)
-        {
-            var body = CreatePrimitive("Body", type, scale, material);
-            body.transform.SetParent(root.transform, false);
-        }
-
-        /// <summary>Small box in front, so the facing of a placeholder enemy is visible.</summary>
-        private static void CreateNose(GameObject root, float height)
-        {
-            var nose = CreatePrimitive("Nose", PrimitiveType.Cube, new Vector3(0.25f, 0.25f, 0.4f), GetMaterial("Nose", new Color(0.1f, 0.1f, 0.1f), false));
-            nose.transform.SetParent(root.transform, false);
-            nose.transform.localPosition = new Vector3(0f, height * 0.3f, 0.45f);
         }
 
         private static GameObject CreatePrimitive(string name, PrimitiveType type, Vector3 scale, Material material)

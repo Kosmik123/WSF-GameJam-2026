@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4041b0e015a4a49919f1004d7705463, type: 3}
+  m_Name: Fireball
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Mage.FireballSkill
+  displayName: Fireball
+  icon: {fileID: 0}
+  tiers:
+  - tierName: Base
+    description: 'Flies straight and explodes: 24 damage within 2 m.'
+    cooldown: 4
+    damage: 24
+    range: 2
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade I
+    description: The explosion deals 32 damage.
+    cooldown: 4
+    damage: 32
+    range: 2
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade II
+    description: The explosion deals 40 damage.
+    cooldown: 4
+    damage: 40
+    range: 2
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: 'Evolution: Blaze'
+    description: The ground keeps burning for 1.5 s and hurts enemies there three
+      times.
+    cooldown: 4
+    damage: 40
+    range: 2
+    duration: 1.5
+    knockback: 0
+    stun: 0
+  projectilePrefab: {fileID: 7022417865448561145, guid: 427e4ffb80072a1429a521e6ae2fec4a, type: 3}
+  speed: 16
+  flightRange: 20
+  burnTickInterval: 0.5
+  color: {r: 1, g: 0.35, b: 0.1, a: 1}

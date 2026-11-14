@@ -54,6 +54,13 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 - Zdrowie: pasek HP, wrogowie zadają obrażenia. **[DO USTALENIA]** czy HP się regeneruje albo leczy.
 - Walka: **melee + unik** (hack and slash). Atak bronią, unik (przewrót lub dash z krótką nietykalnością), ewentualnie parowanie. **[DO USTALENIA]** czy jest jedna broń.
 - Prototyp (etap 2): cios w łuku przed graczem, combo 3 ciosów (ostatni mocniejszy, większy odrzut), unik do przodu lub do tyłu (zależnie od wciśniętego kierunku) z nietykalnością, unik przerywa końcówkę ciosu. Po trafieniu gracz ma chwilę nietykalności. Trafienia liczymy po odległości na powierzchni torusa, nie przez collidery.
+- **Klasy postaci** (z LD57): **Wojownik** (melee i unik, jak wyżej; postać z mieczem i tarczą) i **Mag** (strzela pociskami z dystansu, przytrzymanie ataku strzela seriami; unik zostaje; postać bez broni w niebieskim stroju). Modele i animacje z paczki RPG Tiny Hero Duo, jak w LD57. Klasa to asset `PlayerClass` (atak, HP, pula skilli, skille startowe), wybierana na graczu w `PlayerClassApplier`. **[DO USTALENIA]** czy gracz wybiera klasę na ekranie startowym i czy Wojownik też dostaje skille (w LD57 miał wir, szarżę, uderzenie w ziemię, rzut toporem, okrzyk).
+- **Skille** (z LD57): do 4 slotów (Q, E, R, F; na padzie LB, RB, LT, RT), każdy skill ma cooldown i 4 poziomy: baza, dwa ulepszenia i ewolucja, która zmienia działanie. Skille trafiają tak samo jak walka wręcz (odległość na torusie, nietykalność, drużyny). Mag zaczyna z kulą ognia, lodową novą, łańcuchem błyskawic i teleportem; magiczne kule są w puli na później. Kolejne skille i poziomy mają dawać awanse (karty przy level upie, patrz sekcja 9). Śmierć resetuje skille do startowych.
+  - **Kula ognia:** leci prosto, wybucha na pierwszym wrogu lub na końcu lotu. Ewolucja: ziemia płonie i rani dalej.
+  - **Lodowa nova:** pierścień wokół gracza, obrażenia i spowolnienie. Ewolucja: zamrożenie (ogłuszenie).
+  - **Łańcuch błyskawic:** trafia najbliższego wroga i skacze na kolejnych, każdy skok słabszy. Ewolucja: ogłuszenie.
+  - **Teleport:** skok o kilka metrów w kierunku ruchu z chwilą nietykalności i wybuchem w miejscu lądowania. Ewolucja: wybuch także na starcie.
+  - **Magiczne kule:** kule krążą wokół gracza i ranią wrogów. Ewolucja: kule strzelają w najbliższego wroga.
 
 ## 8. Wrogowie
 

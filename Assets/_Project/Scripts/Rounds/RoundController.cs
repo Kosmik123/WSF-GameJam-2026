@@ -5,6 +5,7 @@ using WSFGameJam2026.Combat;
 using WSFGameJam2026.Enemies;
 using WSFGameJam2026.Head;
 using WSFGameJam2026.Player;
+using WSFGameJam2026.Skills;
 using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Rounds
@@ -42,6 +43,10 @@ namespace WSFGameJam2026.Rounds
 
         [SerializeField]
         private PlayerCombat playerCombat;
+
+        [Tooltip("Optional. Skills of the player, reset to the starting ones when a new run starts.")]
+        [SerializeField]
+        private SkillSlots playerSkills;
 
         [Header("Start of a round")]
         [Tooltip("The player starts this far in front of the head, in degrees of theta.")]
@@ -94,6 +99,7 @@ namespace WSFGameJam2026.Rounds
             head = FindAnyObjectByType<HeadMovement>();
             spawner = FindAnyObjectByType<EnemySpawner>();
             playerCombat = FindAnyObjectByType<PlayerCombat>();
+            playerSkills = FindAnyObjectByType<SkillSlots>();
         }
 
         private void Awake()
@@ -167,6 +173,9 @@ namespace WSFGameJam2026.Rounds
 
             roundState.ResetRounds();
             playerCombat.Revive();
+            if (playerSkills)
+                playerSkills.ResetSkills();
+
             BeginRound();
         }
 

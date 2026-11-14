@@ -227,6 +227,37 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &7521113780053118256
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2444799548218701705}
+  m_Layer: 0
+  m_Name: Model
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2444799548218701705
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7521113780053118256}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -0.1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8746362065382489076}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8140076951552329003
 GameObject:
   m_ObjectHideFlags: 0
@@ -242,6 +273,11 @@ GameObject:
   - component: {fileID: 5120186563592950412}
   - component: {fileID: 8537833341049418724}
   - component: {fileID: 537380916835184776}
+  - component: {fileID: 4639066901058175}
+  - component: {fileID: 7973304972791439743}
+  - component: {fileID: 6835593639658991740}
+  - component: {fileID: 4089445602523853413}
+  - component: {fileID: 8603619379056315757}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -263,6 +299,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 245782290942340040}
+  - {fileID: 2444799548218701705}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1929964610123949250
@@ -283,6 +320,9 @@ MonoBehaviour:
   startAngles:
     thetaRadians: 0.17453292
     phiRadians: 1.0471976
+  angles:
+    thetaRadians: 0
+    phiRadians: 0
 --- !u!114 &1929964610123949241
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -377,3 +417,83 @@ MonoBehaviour:
   dodgeCooldown: 0.6
   dodgeInvulnerabilityTail: 0.08
   invulnerabilityAfterHit: 0.5
+--- !u!114 &4639066901058175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b251d78f3144a33b7c6074aecf4bea8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.SkillSlots
+  slotCount: 4
+  pool: []
+  startingSkills: []
+--- !u!114 &7973304972791439743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602ba658eb974b67b6616621b60aa234, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.SkillUser
+  slotActions:
+  - {fileID: -875844714629906727, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  - {fileID: -7658848874851788339, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  - {fileID: 4789563622938798911, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  - {fileID: 4031310797964355846, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+--- !u!114 &6835593639658991740
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 200d958e2bbc465c9dc9c7f37808f214, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.RangedAttack
+  attackAction: {fileID: 1120369429361536294, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  projectilePrefab: {fileID: 869764274916014546, guid: 9d3f81a7607227f4a90458965e41870f, type: 3}
+  damage: 8
+  cooldown: 0.35
+  speed: 22
+  range: 26
+  knockback: 0.5
+--- !u!114 &4089445602523853413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b6df796cfcb4c3d83cce7c1de5aa9a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.PlayerClassApplier
+  playerClass: {fileID: 11400000, guid: a97c8e8f843904a49a1adb627a1e6e3a, type: 2}
+  modelRoot: {fileID: 2444799548218701705}
+  placeholderRenderer: {fileID: 0}
+--- !u!114 &8603619379056315757
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11c76c6446b447d1a2aeef06447a7401, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.PlayerAnimator
+  controller: {fileID: 9100000, guid: a786334e8aa6e2e4ead6103fd9104fbf, type: 2}
+  animator: {fileID: 0}

@@ -149,6 +149,9 @@ namespace WSFGameJam2026.Player
         /// <summary>Attack speed multiplier for progression. 2 = swings twice as fast.</summary>
         public float AttackSpeedMultiplier { get; set; } = 1f;
 
+        /// <summary>False for classes that attack from range (the mage, see <see cref="RangedAttack"/>). The dodge always works.</summary>
+        public bool MeleeEnabled { get; set; } = true;
+
         public bool IsAttacking => state == State.Windup || state == State.Active || state == State.Recovery;
         public bool IsDodging => state == State.Dodge;
         public float DodgeCooldownLeft => Mathf.Max(0f, nextDodgeTime - Time.time);
@@ -247,7 +250,7 @@ namespace WSFGameJam2026.Player
             if (TryDodge())
                 return;
 
-            if (Time.time < attackBufferedUntil)
+            if (MeleeEnabled && Time.time < attackBufferedUntil)
             {
                 attackBufferedUntil = -1f;
                 StartSwing();

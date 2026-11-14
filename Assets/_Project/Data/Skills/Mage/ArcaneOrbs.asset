@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e79f1ae08a804ed69d7bd7cd4c2890ce, type: 3}
+  m_Name: ArcaneOrbs
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Mage.ArcaneOrbsSkill
+  displayName: Arcane Orbs
+  icon: {fileID: 0}
+  tiers:
+  - tierName: Base
+    description: 3 orbs circle you for 6 s and hurt enemies (8 damage).
+    cooldown: 12
+    damage: 8
+    range: 1.8
+    duration: 6
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade I
+    description: 4 orbs, 12 damage.
+    cooldown: 12
+    damage: 12
+    range: 1.8
+    duration: 6
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade II
+    description: 5 orbs, 16 damage.
+    cooldown: 12
+    damage: 16
+    range: 1.8
+    duration: 6
+    knockback: 0
+    stun: 0
+  - tierName: 'Evolution: Guardians'
+    description: Every second one of the orbs shoots the nearest enemy.
+    cooldown: 12
+    damage: 16
+    range: 1.8
+    duration: 6
+    knockback: 0
+    stun: 0
+  baseOrbCount: 3
+  angularSpeed: 180
+  hitRadius: 0.4
+  perEnemyCooldown: 0.5
+  orbSize: 0.36
+  shotInterval: 1
+  shotRange: 10
+  shotSpeed: 16
+  shotPrefab: {fileID: 1738859259209740607, guid: eccc0f5bb72e5694d9a3e7204d5eb1f5, type: 3}
+  color: {r: 0.7, g: 0.4, b: 1, a: 1}
