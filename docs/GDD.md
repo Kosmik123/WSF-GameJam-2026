@@ -60,7 +60,7 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 - Wrogowie pojawiają się w współrzędnych `(θ, φ)` na torusie, przed graczem.
 - **Typy:** biegacz (szybki, słaby), strzelec (atak z dystansu), pancerny (wolny, wytrzymały), rój (wiele małych). Mini-boss na czubku głowy to opcja, jeśli zostanie czas.
 - **[DO USTALENIA]** dokładne zachowania i statystyki (ustalimy na prototypie).
-- Trudność narasta z kolejnymi rundami: więcej wrogów i szybsza paszcza.
+- Trudność wrogów zależy od **odległości od paszczy** (patrz sekcja 9), a z kolejnymi rundami rośnie dodatkowo mnożnik: więcej wrogów i szybsza paszcza.
 
 ## 9. Progresja
 
@@ -68,7 +68,12 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 
 - **Poziomy gracza:** wrogowie dają doświadczenie (XP), po zebraniu progu gracz awansuje. Każdy poziom zwiększa statystyki (HP, obrażenia, szybkość ataku).
 - **Ekwipunek:** wrogowie (i skrzynie) zostawiają przedmioty: broń, pancerz, dodatki. Ekwipunek zmienia statystyki i może dawać prostą zdolność. **[DO USTALENIA]** liczba slotów i typów przedmiotów.
-- **Trudność rośnie wraz z postępem:** wrogowie w dalszych segmentach i w kolejnych rundach są mocniejsi i liczniejsi, a paszcza szybsza. Początek okrążenia jest łatwy (dobre miejsce na zdobywanie XP), dalsza część wymaga poziomów i sprzętu.
+- **Trudność zależy od bliskości paszczy.** Liczymy ją dla każdego segmentu z jego odległości od paszczy, mierzonej w kierunku biegu gracza:
+  - blisko paszczy: wrogowie najsłabsi (dobre miejsce na zdobywanie XP),
+  - dalej: coraz silniejsi,
+  - tuż za paszczą, przy czubku głowy: najsilniejsi (cel okrążenia jest najtrudniejszy).
+- **Paszcza osłabia segmenty, które pożera.** Gdy paszcza zbliża się do kolejnych segmentów, trudność każdego z nich spada, bo dzieli go od niej coraz mniej. Jest to też nagroda za wolne tempo: zostawanie z tyłu oznacza łatwiejszych wrogów, ale mniej czasu.
+- **Kolejne rundy:** do trudności z odległości dochodzi mnożnik rundy (liczniejsi i silniejsi wrogowie, szybsza paszcza). **[DO USTALENIA]** czy wrogowie już na planszy słabną wraz ze zmianą trudności segmentu, czy tylko nowo pojawiający się.
 - **Dylemat:** walka daje siłę, ale kosztuje czas, a paszcza goni. Pominięcie walk na początku oznacza słabszego gracza później.
 - **Kolejne rundy:** poziom i ekwipunek **zostają** po wygranej rundzie. Trudność kolejnej rundy rośnie szybciej niż samo wzmocnienie gracza.
 - **Po śmierci:** koniec przejścia, poziom i sprzęt przepadają, nowa gra zaczyna się od rundy 1 (patrz sekcja 6). To klasyczny roguelite: każda próba zaczyna od zera.

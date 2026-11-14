@@ -44,13 +44,13 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [ ] **Walka gracza:** atak melee, unik z nietykalnością, hit stop i odrzut. `C`
 - [ ] **Wróg 1 (biegacz)** z AI poruszającym się po torusie i atakiem. `C`
 - [ ] **Wróg 2 (strzelec)**. `P`
-- [ ] **Spawner wrogów** w współrzędnych `(θ, φ)` przed graczem, skalowanie ze trudnością rundy. `P`
+- [ ] **Spawner wrogów** w współrzędnych `(θ, φ)` przed graczem, poziom wrogów z trudności segmentu i mnożnika rundy. `P`
 - [ ] **Modele i animacje wrogów 1 i 2.** `G`
 
 ## Etap 2b: progresja (MUST)
 
 - [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku); reset poziomu i sprzętu przy śmierci. `C`
-- [ ] **Skalowanie trudności** wrogów po segmencie i rundzie, tak by samo bieganie nie wystarczało. `P`
+- [ ] **Trudność zależna od paszczy:** funkcja trudności segmentu z odległości od paszczy (blisko = łatwo, czubek głowy = najtrudniej), spadająca w miarę zbliżania się paszczy, plus mnożnik rundy. Samo bieganie ma nie wystarczać. `C`
 - [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
 - [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`
 - [ ] **Ikony i modele przedmiotów** (broń, pancerz, dodatki). `G`
@@ -84,5 +84,6 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] Audio: mieszanka CC0, pracy ręcznej i syntezatorów.
 - [ ] Dokładne zachowania i statystyki wrogów.
 - [x] Poziom i sprzęt zostają między rundami, ale giną ze śmiercią (nowa gra od zera).
+- [ ] Czy wrogowie już na planszy słabną razem z trudnością segmentu, czy tylko nowi.
 - [ ] Szczegóły progresji: krzywa XP, sloty i typy przedmiotów, źródła.
 - [ ] Paleta kolorów i referencje wizualne.
