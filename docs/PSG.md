@@ -174,6 +174,10 @@ Zasady, te same co w assetach z [WSF_Biom.md](WSF_Biom.md#wspólne-reguły-kolor
 
 ## Eksport do Unity
 
+**Gotowe biomy:** `Assets/Bioms/<Nazwa>.fbx` (Pustynia, Las, Bagno, Wybrzeze, Wulkan, Lod). Każdy plik zawiera teren biomu (314 × 354 m) i wszystkie rozstawione assety. Assety są instancjami: jeden mesh na wariant i wiele obiektów, które go używają. W FBX jest to 26–47 unikalnych meshy na 3,5–4,8 tys. obiektów, a Unity zaimportuje je jako współdzielone meshe (SRP Batcher / GPU Instancing). Generuje je skrypt [Tools/Blender/psg_examples/export_biomes.py](../Tools/Blender/psg_examples/export_biomes.py), z nazwami biomów albo bez nich (wtedy eksportuje wszystkie):
+`blender -b --factory-startup --python Tools/Blender/psg_examples/export_biomes.py`
+
+W Unity teren i assety używają materiałów `LD57 Stylized` i `LD57 Stylized Glow` (lawa), więc trzeba je przemapować na `SG_VertexColorLit` / `SG_VertexColorGlow`, jak w [WSF_Biom.md](WSF_Biom.md).
 Przycisk **Export FBX for Unity** eksportuje instancje i tereny ścieżek z ustawieniami z [WSF_Biom.md](WSF_Biom.md#3-ustawienia-importu-fbx-model-importer): *Apply Scalings: FBX All*, *Forward: -Z*, *Up: Y*, *Apply Transform*, vertex colory sRGB, tylko meshe.
 
 W Unity: Model Importer jak dla assetów biomów (Bake Axis Conversion, Normals: Import), materiał terenu na `SG_VertexColorLit` (konwersja sRGB → Linear w shaderze).
