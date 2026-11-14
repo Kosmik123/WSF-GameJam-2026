@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using WSFGameJam2026.Combat;
+using WSFGameJam2026.Vfx;
 
 namespace WSFGameJam2026.Skills.Mage
 {
@@ -34,6 +35,10 @@ namespace WSFGameJam2026.Skills.Mage
         [SerializeField]
         [Min(0f)]
         private float orbSize = 0.36f;
+
+        [Tooltip("Height of the orbs above the pivot of the caster (only the look, hits are measured on the surface).")]
+        [SerializeField]
+        private float orbHeight = 0.9f;
 
         [Header("Evolution")]
         [SerializeField]
@@ -90,9 +95,9 @@ namespace WSFGameJam2026.Skills.Mage
                     float orbAngle = (angle + 360f * i / count) * Mathf.Deg2Rad;
                     var offset = (right * Mathf.Cos(orbAngle) + forward * Mathf.Sin(orbAngle)) * radius;
                     if (orbs[i])
-                        orbs[i].position = caster.transform.position + offset;
+                        orbs[i].position = caster.transform.position + offset + caster.Up * orbHeight;
 
-                    HitTouching(context, offset, nextHitTimes, touching);
+                    HitTouching(context, offset, orbs[i], nextHitTimes, touching);
                 }
 
                 if (context.IsEvolved && elapsed >= nextShotTime)
@@ -105,11 +110,16 @@ namespace WSFGameJam2026.Skills.Mage
             }
 
             for (int i = 0; i < count; i++)
+            {
                 if (orbs[i])
+                {
+                    StylizedFx.Burst(orbs[i].position, caster.Up, color, 5, 0.12f, 3f, 0.4f);
                     Destroy(orbs[i].gameObject);
+                }
+            }
         }
 
-        private void HitTouching(SkillContext context, Vector3 orbOffset, Dictionary<Health, float> nextHitTimes, List<Health> touching)
+        private void HitTouching(SkillContext context, Vector3 orbOffset, Transform orb, Dictionary<Health, float> nextHitTimes, List<Health> touching)
         {
             var caster = context.User.TorusObject;
             touching.Clear();
@@ -133,8 +143,20 @@ namespace WSFGameJam2026.Skills.Mage
 
                 nextHitTimes[target] = Time.time + perEnemyCooldown;
                 var direction = caster.GetSurfaceOffsetTo(target.TorusObject);
-                SkillHits.Hit(context, target, direction, context.Tier.Damage, context.Tier.Knockback, context.Tier.Stun);
+                if (SkillHits.Hit(context, target, direction, context.Tier.Damage, context.Tier.Knockback, context.Tier.Stun))
+                    PlayOrbHit(orb, caster.Up);
             }
+        }
+
+        // LD57 orb hit: the orb pulses, a flash and a few shards.
+        private void PlayOrbHit(Transform orb, Vector3 up)
+        {
+            if (orb == null)
+                return;
+
+            StylizedFx.PulseOrb(orb);
+            StylizedFx.Flash(orb.position, color, 0.6f);
+            StylizedFx.Burst(orb.position, up, color, 6, 0.14f, 4f, 0.45f);
         }
 
         private void Shoot(SkillContext context)

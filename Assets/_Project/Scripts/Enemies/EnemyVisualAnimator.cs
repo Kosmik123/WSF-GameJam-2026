@@ -87,6 +87,24 @@ namespace WSFGameJam2026.Enemies
         [Min(0.1f)]
         private float recoverSharpness = 12f;
 
+        [Header("Flapping parts")]
+        [Tooltip("Parts swinging around their local Z axis (bat wings, golem arms). Mirrored parts swing the other way.")]
+        [SerializeField]
+        private Transform[] flappingParts = new Transform[0];
+
+        [SerializeField]
+        [Min(0f)]
+        private float flapDegrees = 35f;
+
+        [SerializeField]
+        [Min(0f)]
+        private float flapHz = 6f;
+
+        [Tooltip("Extra angle of the flapping parts during the windup (golem raising its fists).")]
+        [SerializeField]
+        private float windupFlapDegrees;
+
+        private Quaternion[] flapBaseRotations = new Quaternion[0];
         private Health health;
         private EnemyBehaviour behaviour;
         private Vector3 visualBasePosition;
@@ -121,6 +139,11 @@ namespace WSFGameJam2026.Enemies
 
             if (core)
                 coreBaseScale = core.localScale;
+
+            flapBaseRotations = new Quaternion[flappingParts.Length];
+            for (int i = 0; i < flappingParts.Length; i++)
+                if (flappingParts[i])
+                    flapBaseRotations[i] = flappingParts[i].localRotation;
 
             lastPosition = transform.position;
         }
@@ -181,6 +204,23 @@ namespace WSFGameJam2026.Enemies
 
             if (core)
                 core.localScale = coreBaseScale * Mathf.Lerp(1f, coreWindupScale, windup);
+
+            UpdateFlapping();
+        }
+
+        private void UpdateFlapping()
+        {
+            float flap = flapDegrees * Mathf.Sin(clock * Mathf.PI * 2f * flapHz) + windupFlapDegrees * windup;
+            for (int i = 0; i < flappingParts.Length; i++)
+            {
+                var part = flappingParts[i];
+                if (part == null)
+                    continue;
+
+                // Parts on the left (negative x) swing the other way, so a pair moves like wings.
+                float side = part.localPosition.x < 0f ? -1f : 1f;
+                part.localRotation = flapBaseRotations[i] * Quaternion.Euler(0f, 0f, flap * side);
+            }
         }
 
         // Hop cycle while moving (squash keys and a jump), otherwise breathing.

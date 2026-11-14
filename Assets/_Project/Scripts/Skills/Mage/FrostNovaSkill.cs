@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using WSFGameJam2026.Combat;
+using WSFGameJam2026.Vfx;
+using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Skills.Mage
 {
@@ -32,8 +34,21 @@ namespace WSFGameJam2026.Skills.Mage
                 if (hits[i].TryGetComponent<StatusEffects>(out var statusEffects))
                     statusEffects.ApplySlow(slowMultiplier, context.Tier.Duration);
 
-            SkillVfx.Ring(caster.transform.position, caster.Up, context.Tier.Range, color, 0.6f, 0.3f);
-            SkillVfx.Ring(caster.transform.position, caster.Up, context.Tier.Range * 0.55f, Color.white, 0.4f, 0.15f);
+            PlayNova(caster, context.Tier.Range);
+        }
+
+        // LD57 nova: a flash, two rings, ice crystals growing out of the ground with a frosty mist, a cold glow, frost on the hit enemies.
+        private void PlayNova(TorusObject caster, float radius)
+        {
+            var ground = VfxGround.Below(caster, out var up);
+            StylizedFx.Flash(ground + up * 0.5f, color, 1.5f);
+            StylizedFx.Ring(ground, up, radius, color, 36);
+            StylizedFx.Ring(ground, up, radius * 0.55f, Color.white, 20);
+            StylizedFx.IceGrowth(ground, up, radius, color, 16, 8);
+            StylizedFx.GroundGlow(ground, up, radius * 0.8f, color, 1.5f, 0.5f);
+            SkillVfx.Ring(caster.transform.position, caster.Up, radius, color, 0.6f, 0.3f);
+            for (int i = 0; i < hits.Count; i++)
+                StylizedFx.Burst(hits[i].transform.position + hits[i].transform.up * 0.3f, hits[i].transform.up, color, 4, 0.1f, 3f, 0.4f);
         }
     }
 }
