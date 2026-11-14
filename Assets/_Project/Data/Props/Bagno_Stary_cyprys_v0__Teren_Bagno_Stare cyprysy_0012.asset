@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be43a0afc1f54517982b70eb61a78f48, type: 3}
+  m_Name: Bagno_Stary_cyprys_v0__Teren_Bagno_Stare cyprysy_0012
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
+  mesh: {fileID: 7989575657437959059, guid: a5344fb83d788b14c87215e32f4aaaa9, type: 3}
+  blockRadius: 1.9826636
+  visibleRangeDegrees: 180
