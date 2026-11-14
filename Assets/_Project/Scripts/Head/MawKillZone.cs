@@ -72,11 +72,30 @@ namespace WSFGameJam2026.Head
             }
         }
 
+        /// <summary>
+        /// How much the shape is turned around the head (degrees around the tube), taken from the rotation of this
+        /// object relative to the head. Put the component on a child of the head and roll it around its forward axis.
+        /// On the head itself it is 0.
+        /// </summary>
+        public float GetShapeRotationDegrees()
+        {
+            // The head's right points to phi 0 and its up to phi 90, so the roll is the angle of the right axis in that plane.
+            var relative = Quaternion.Inverse(head.transform.rotation) * transform.rotation;
+            var right = relative * Vector3.right;
+            return Mathf.Atan2(right.y, right.x) * Mathf.Rad2Deg;
+        }
+
+        // Position on the shape curves (0-1) for a real phi in degrees: the shape is turned by the rotation of the zone.
+        private float GetShapePosition(float phiDegrees)
+        {
+            return Mathf.Repeat(phiDegrees - GetShapeRotationDegrees(), 360f) / 360f;
+        }
+
         /// <summary>True when the object stands in the zone at its own phi.</summary>
         public bool IsInside(Health target)
         {
             var angles = target.TorusObject.Angles;
-            var phiNormalized = angles.PhiDegrees / 360f;
+            var phiNormalized = GetShapePosition(angles.PhiDegrees);
 
             // Positive = the target is in front of the head.
             var deltaTheta = Mathf.DeltaAngle(head.Theta * Mathf.Rad2Deg, angles.ThetaDegrees);
@@ -103,7 +122,7 @@ namespace WSFGameJam2026.Head
             for (var i = 0; i <= Steps; i++)
             {
                 var phi = (float)i / Steps * Mathf.PI * 2f;
-                var phiNormalized = (float)i / Steps;
+                var phiNormalized = GetShapePosition((float)i / Steps * 360f);
                 var frontTheta = head.Theta + frontReachDegrees.Evaluate(phiNormalized) * Mathf.Deg2Rad;
                 var backTheta = head.Theta - backReachDegrees.Evaluate(phiNormalized) * Mathf.Deg2Rad;
                 front[i] = worldTransform.TransformPoint(GetLiftedPoint(surface, frontTheta, phi));
