@@ -287,8 +287,9 @@ namespace WSFGameJam2026.World
         /// <summary>
         /// The head shapes the terrain near it (the tail ahead of it thins out, the terrain behind it blends into the neck), but the assets
         /// are placed on the terrain without the head. So whenever the head terrain changes, assets in the range it affects are moved along
-        /// the tube normal by the change of the terrain height at their spot. Assets under the head itself are hidden.
-        /// Assets that left the range go back to their original place.
+        /// the tube normal by the change of the terrain height at their spot. In the blend between the terrain and the head they also shrink:
+        /// full size on the terrain, down to nothing at the head (assets under the head itself are not drawn).
+        /// Assets that left the range go back to their original place and size.
         /// </summary>
         private void ApplyHeadTerrain()
         {
@@ -309,7 +310,7 @@ namespace WSFGameJam2026.World
                 var matrix = placement.BaseMatrix;
                 if (isInRange)
                 {
-                    matrix = headTerrain.GetWeight(placement.Theta) >= 1f ? GetHiddenMatrix(placement.BaseMatrix) : GetMovedMatrix(headTerrain, placement, minorRadius);
+                    matrix = GetMovedMatrix(headTerrain, placement, minorRadius);
                     placement.IsMoved = true;
                 }
                 else
@@ -330,13 +331,14 @@ namespace WSFGameJam2026.World
             float newHeight = headTerrain.Apply(placement.Height, placement.Theta, placement.Phi, minorRadius);
             var matrix = placement.BaseMatrix;
             var position = (Vector3)matrix.GetColumn(3) + placement.Up * (newHeight - placement.Height);
+
+            // The pivot of an asset is on the ground, so scaling the axes shrinks it towards the terrain.
+            float scale = 1f - headTerrain.GetWeight(placement.Theta);
+            for (int axis = 0; axis < 3; axis++)
+                matrix.SetColumn(axis, matrix.GetColumn(axis) * scale);
+
             matrix.SetColumn(3, new Vector4(position.x, position.y, position.z, 1f));
             return matrix;
-        }
-
-        private static Matrix4x4 GetHiddenMatrix(Matrix4x4 matrix)
-        {
-            return Matrix4x4.TRS(matrix.GetColumn(3), Quaternion.identity, Vector3.zero);
         }
 
         private void Clear()
