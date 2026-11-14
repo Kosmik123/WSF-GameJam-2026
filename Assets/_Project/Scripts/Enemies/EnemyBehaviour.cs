@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using WSFGameJam2026.Combat;
 using WSFGameJam2026.World;
@@ -11,6 +12,12 @@ namespace WSFGameJam2026.Enemies
     [RequireComponent(typeof(Enemy))]
     public abstract class EnemyBehaviour : MonoBehaviour
     {
+        /// <summary>The telegraph of an attack started (windup). For animations.</summary>
+        public event Action OnWindupStarted;
+
+        /// <summary>The attack was released (lunge, shot). For animations.</summary>
+        public event Action OnAttackReleased;
+
         [Header("Movement")]
         [SerializeField]
         [Min(0f)]
@@ -55,6 +62,16 @@ namespace WSFGameJam2026.Enemies
             TryGetComponent(out bodyFlash);
             TryGetComponent(out knockback);
             TryGetComponent(out statusEffects);
+        }
+
+        protected void RaiseWindupStarted()
+        {
+            OnWindupStarted?.Invoke();
+        }
+
+        protected void RaiseAttackReleased()
+        {
+            OnAttackReleased?.Invoke();
         }
 
         /// <summary>Surface offset from this enemy to the target (see <see cref="TorusObject.GetSurfaceOffsetTo(TorusObject)"/>).</summary>

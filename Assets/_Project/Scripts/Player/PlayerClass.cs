@@ -6,7 +6,7 @@ namespace WSFGameJam2026.Player
 {
     /// <summary>
     /// Class of the player character (port of the LD57 PlayerClass: warrior, mage): attack mode, health, skill pool
-    /// and starting skills. Applied by <see cref="PlayerClassApplier"/>. The model of the class is not swapped yet.
+    /// and starting skills, character model. Applied by <see cref="PlayerClassApplier"/>.
     /// </summary>
     [CreateAssetMenu(menuName = "WSF GameJam/Player Class", fileName = "PlayerClass")]
     public class PlayerClass : ScriptableObject
@@ -43,6 +43,22 @@ namespace WSFGameJam2026.Player
         [Min(1)]
         private int maxHealth = 100;
         public int MaxHealth => maxHealth;
+
+        [Header("Model")]
+        [Tooltip("Character model with an Animator (LD57: RPG Tiny Hero Duo). Empty = the placeholder capsule.")]
+        [SerializeField]
+        private GameObject modelPrefab;
+        public GameObject ModelPrefab => modelPrefab;
+
+        [Tooltip("Optional material for every renderer of the model (for example the blue tint of the mage).")]
+        [SerializeField]
+        private Material modelMaterial;
+        public Material ModelMaterial => modelMaterial;
+
+        [Tooltip("Names of model parts to hide (weapons the class does not use).")]
+        [SerializeField]
+        private string[] hiddenParts = new string[0];
+        public IReadOnlyList<string> HiddenParts => hiddenParts;
 
         [Header("Skills")]
         [Tooltip("Skills that level-up offers can give.")]

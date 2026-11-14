@@ -38,8 +38,14 @@ namespace WSFGameJam2026.Combat
 
         private void Awake()
         {
-            renderers = GetComponentsInChildren<Renderer>();
+            RefreshRenderers();
             block = new MaterialPropertyBlock();
+        }
+
+        /// <summary>Collects the renderers again. Call it after the model was replaced (player class).</summary>
+        public void RefreshRenderers()
+        {
+            renderers = GetComponentsInChildren<Renderer>();
         }
 
         private void OnEnable()

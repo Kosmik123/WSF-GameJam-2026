@@ -91,6 +91,9 @@ namespace WSFGameJam2026.Editor
             SetupPlayer(playerCombat.gameObject, choice == 0 ? mage : warrior, bolt);
             AddStatusEffectsToEnemies();
 
+            // Player character (mage or warrior model, animations) and the LD57 enemy models.
+            Ld57ModelsSetupMenu.ApplyModels();
+
             var playerSkills = playerCombat.GetComponent<SkillSlots>();
             var roundController = Object.FindAnyObjectByType<RoundController>();
             if (roundController)
