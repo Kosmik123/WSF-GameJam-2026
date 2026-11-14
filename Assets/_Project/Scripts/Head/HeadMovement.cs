@@ -26,6 +26,8 @@ namespace WSFGameJam2026.Head
         private float startThetaDegrees;
 
         // Runtime angles are always in radians. Only Inspector fields (suffix Degrees) use degrees.
+        [Header("States")]
+        [SerializeField]
         private float theta;
 
         /// <summary>Angle along the snake body, in radians.</summary>
@@ -57,8 +59,8 @@ namespace WSFGameJam2026.Head
             float cos = Mathf.Cos(theta);
             float sin = Mathf.Sin(theta);
 
-            var localPosition = new Vector3(world.MajorRadius * cos, 0f, world.MajorRadius * sin);
-            var localTangent = new Vector3(-sin, 0f, cos);
+            var localPosition = new Vector3(world.MajorRadius * sin, 0f, world.MajorRadius * cos);
+            var localTangent = new Vector3(cos, 0f, -sin);
 
             var worldTransform = world.transform;
             transform.SetPositionAndRotation(
