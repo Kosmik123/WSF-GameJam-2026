@@ -113,45 +113,93 @@ namespace WSFGameJam2026.World
                 return;
             }
 
-            var profile = surface.GetProfile(segment) as MeshTorusSegmentProfile;
-            float heightScale = profile ? profile.HeightScale : 1f;
-            float heightOffset = profile ? profile.HeightOffset : 0f;
+            var own = surface.GetProfile(segment);
+            var previous = surface.GetProfile(segment - 1);
+            var next = surface.GetProfile(segment + 1);
+            float blendWidth = surface.BlendWidth;
             var terrainBounds = terrain.sharedMesh.bounds;
             var toTerrain = terrain.transform.worldToLocalMatrix;
 
+            int index = 0;
             foreach (var renderer in model.GetComponentsInChildren<MeshRenderer>(true))
             {
                 if (renderer.gameObject == terrain.gameObject || renderer.TryGetComponent<MeshFilter>(out var filter) == false || filter.sharedMesh == null)
                     continue;
 
+                index++;
                 var onTerrain = toTerrain * renderer.transform.localToWorldMatrix;
-                var matrix = GetTorusMatrix(surface, segment, terrainBounds, onTerrain, heightScale, heightOffset);
-                AddInstance(filter.sharedMesh, renderer.sharedMaterials, matrix, batchLookup);
-                InstanceCount++;
+                Vector3 local = onTerrain.GetColumn(3);
+                float along = Mathf.Clamp01((local.x - terrainBounds.min.x) / Mathf.Max(terrainBounds.size.x, 1e-4f));
+                float around = Mathf.Repeat((local.z - terrainBounds.min.z) / Mathf.Max(terrainBounds.size.z, 1e-4f), 1f);
+
+                // Near a border the biomes overlap: an asset stays with the weight of its biome there,
+                // and appears mirrored inside the neighbour with the (lower) weight its biome has on that side.
+                bool isEndBorder = along > 0.5f;
+                float distance = isEndBorder ? 1f - along : along;
+                var neighbour = isEndBorder ? next : previous;
+                float ownWeight = blendWidth > 0f ? TorusSegmentBlend.GetOwnWeight(own, neighbour, distance / blendWidth, around, isEndBorder) : 1f;
+                if (Hash01(segment, index, 0) < ownWeight)
+                    AddPlaced(surface, segment + along, around, onTerrain, filter.sharedMesh, renderer.sharedMaterials, batchLookup);
+
+                if (blendWidth <= 0f || neighbour == null || neighbour.ClampsAlong == false)
+                    continue;
+
+                float mirroredWeight = TorusSegmentBlend.GetOwnWeight(own, neighbour, -distance / blendWidth, around, isEndBorder);
+                if (mirroredWeight > 0.001f && Hash01(segment, index, 1) < mirroredWeight)
+                {
+                    float mirroredSegmentPosition = isEndBorder ? segment + 1f + distance : segment - distance;
+                    AddPlaced(surface, mirroredSegmentPosition, around, onTerrain, filter.sharedMesh, renderer.sharedMaterials, batchLookup);
+                }
             }
+        }
+
+        private void AddPlaced(TorusSurface surface, float segmentPosition, float around, Matrix4x4 onTerrain, Mesh mesh, Material[] materials, Dictionary<(Mesh, int, Material), Batch> batchLookup)
+        {
+            AddInstance(mesh, materials, GetTorusMatrix(surface, segmentPosition, around, onTerrain), batchLookup);
+            InstanceCount++;
         }
 
         /// <summary>
         /// Moves an asset from the flat terrain (matrix in the terrain's local space) onto the torus, in the local space of the world.
-        /// Position: terrain X -> along the segment, terrain Z -> around the tube, terrain Y -> height (as the segment profile).
+        /// Position: terrain X -> along the segment, terrain Z -> around the tube, height = the blended terrain there.
         /// Rotation: terrain up becomes the tube normal, like <see cref="TorusObject"/> uses for anything standing on the torus.
         /// </summary>
-        private Matrix4x4 GetTorusMatrix(TorusSurface surface, int segment, Bounds terrainBounds, Matrix4x4 onTerrain, float heightScale, float heightOffset)
+        /// <param name="segmentPosition">Segment index plus the position inside it (0-1), may point into a neighbouring segment.</param>
+        private Matrix4x4 GetTorusMatrix(TorusSurface surface, float segmentPosition, float around, Matrix4x4 onTerrain)
         {
-            Vector3 local = onTerrain.GetColumn(3);
-            float along = Mathf.Clamp01((local.x - terrainBounds.min.x) / Mathf.Max(terrainBounds.size.x, 1e-4f));
-            float around = Mathf.Repeat((local.z - terrainBounds.min.z) / Mathf.Max(terrainBounds.size.z, 1e-4f), 1f);
-            float theta = (segment + along) * surface.SegmentAngle;
+            float theta = segmentPosition * surface.SegmentAngle;
             float phi = around * TorusGeometry.TwoPi;
-
             var up = surface.GetBaseNormal(theta, phi);
-            float height = local.y * heightScale + heightOffset;
-            var position = surface.GetBasePoint(theta, phi) + up * height;
+            var position = surface.GetBasePoint(theta, phi) + up * GetTerrainHeight(surface, segmentPosition, around, theta, phi);
 
             // Terrain X maps to growing theta and Z to growing phi; with the normal as up that frame is mirrored,
             // so Z points to falling phi here. Positions follow the terrain exactly, only the asset yaw is mirrored.
             var frame = Quaternion.LookRotation(-TorusGeometry.GetPhiDirection(theta, phi), up);
             return Matrix4x4.TRS(position, frame * onTerrain.rotation, onTerrain.lossyScale);
+        }
+
+        /// <summary>Terrain height of the segment profiles (with border blending, without the head's influence).</summary>
+        private float GetTerrainHeight(TorusSurface surface, float segmentPosition, float around, float theta, float phi)
+        {
+            int segment = Mathf.FloorToInt(segmentPosition);
+            float along = segmentPosition - segment;
+            return TorusSegmentBlend.GetHeight(surface.GetProfile(segment), surface.GetProfile(segment - 1), surface.GetProfile(segment + 1),
+                along, around, surface.BlendWidth, surface.GetBasePoint(theta, phi));
+        }
+
+        /// <summary>Deterministic random 0-1 per asset, so the blend looks the same after every rebuild.</summary>
+        private static float Hash01(int segment, int index, int salt)
+        {
+            unchecked
+            {
+                uint hash = (uint)(segment * 73856093) ^ (uint)(index * 19349663) ^ (uint)(salt * 83492791);
+                hash ^= hash >> 15;
+                hash *= 2246822519u;
+                hash ^= hash >> 13;
+                hash *= 3266489917u;
+                hash ^= hash >> 16;
+                return (hash & 0xFFFFFF) / (float)0x1000000;
+            }
         }
 
         private void AddInstance(Mesh mesh, Material[] materials, Matrix4x4 matrix, Dictionary<(Mesh, int, Material), Batch> batchLookup)
