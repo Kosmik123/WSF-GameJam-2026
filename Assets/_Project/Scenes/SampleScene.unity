@@ -392,7 +392,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26a0c54f79b33c042988e76d35fdd0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusWorld
-  majorRadius: 120
+  majorRadius: 300
   minorRadius: 30
   segmentCount: 6
   sidesResolution: 100
@@ -477,8 +477,8 @@ MonoBehaviour:
   Lens:
     FieldOfView: 70
     OrthographicSize: 5
-    NearClipPlane: 0.3
-    FarClipPlane: 1000
+    NearClipPlane: 0.1
+    FarClipPlane: 200
     Dutch: 0
     ModeOverride: 0
     PhysicalProperties:
@@ -514,6 +514,14 @@ PrefabInstance:
     - target: {fileID: 2847125060154847302, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: field of view
       value: 70
+      objectReference: {fileID: 0}
+    - target: {fileID: 2847125060154847302, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
+      propertyPath: far clip plane
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 2847125060154847302, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
+      propertyPath: near clip plane
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 3542773815234672710, guid: 5c41c8fc83233e94da29ac7cc9fdbd0e, type: 3}
       propertyPath: m_LocalPosition.x
