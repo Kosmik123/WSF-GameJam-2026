@@ -31,6 +31,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 5245275856973429819}
   - {fileID: 2997175284573061814}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
@@ -229,12 +230,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5366007011366362890}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.5, w: 0.8660254}
+  m_LocalPosition: {x: 8, y: 0, z: 0}
+  m_LocalScale: {x: 35, y: 35, z: 35}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2997175284573061814}
+  m_Father: {fileID: 7192330709001201187}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8178953370820337609
 MonoBehaviour:
@@ -249,22 +250,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Head.MawKillZone
   head: {fileID: 2207168790804239818}
-  victims: []
+  victims:
+  - {fileID: 0}
+  damagePerSecond: 15
   frontReachDegrees:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 2
-      inSlope: 32
-      outSlope: 32
+      value: 10
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.25
-      value: 10
+      time: 0.19887781
+      value: 22
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -272,8 +275,17 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.5
-      value: 2
+      time: 0.3
+      value: 22
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.37655863
+    - serializedVersion: 3
+      time: 0.49874878
+      value: 9.912842
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -281,8 +293,17 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.75
-      value: 10
+      time: 0.68
+      value: 21.5
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.82
+      value: 21.5
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -291,9 +312,9 @@ MonoBehaviour:
       outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
-      value: 2
-      inSlope: -32
-      outSlope: -32
+      value: 10
+      inSlope: 0
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
@@ -352,6 +373,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  flipRotation: 0
   drawGizmos: 1
 --- !u!1 &5631530545142719694
 GameObject:
@@ -499,7 +521,6 @@ Transform:
   - {fileID: 6922235829618399273}
   - {fileID: 6194550203131202499}
   - {fileID: 5909833533535330128}
-  - {fileID: 5245275856973429819}
   m_Father: {fileID: 7192330709001201187}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 60}
 --- !u!1 &7886801446487646613

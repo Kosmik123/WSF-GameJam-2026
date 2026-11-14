@@ -42,6 +42,9 @@ namespace WSFGameJam2026.Combat
         /// <summary>All enabled, living and dead Health components. Do not modify.</summary>
         public static IReadOnlyList<Health> Active => active;
 
+
+        [Header("States")]
+        [SerializeField]
         private int currentHealth;
         public int CurrentHealth => currentHealth;
         public bool IsDead => currentHealth <= 0;

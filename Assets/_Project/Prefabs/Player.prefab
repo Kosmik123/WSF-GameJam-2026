@@ -238,6 +238,7 @@ GameObject:
   - component: {fileID: 8746362065382489076}
   - component: {fileID: 1929964610123949250}
   - component: {fileID: 1929964610123949241}
+  - component: {fileID: 978546507072093901}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -295,3 +296,19 @@ MonoBehaviour:
   moveSpeed: 8
   inputResponse: 8
   turnSpeedDegrees: 180
+--- !u!114 &978546507072093901
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140076951552329003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aff09658c010e3448afc52978ca44f77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Combat.Health
+  team: 1
+  maxHealth: 30200
+  bodyRadius: 0.5
+  currentHealth: 0
