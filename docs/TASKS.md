@@ -26,20 +26,24 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] Kamera z góry pod skosem za graczem.
 - [x] Profil segmentu jako klasa odkształcająca mesh (`Deform`), `NoiseTorusSegmentProfile`, wygładzanie normalnych na granicach.
 - [x] Szyja głowy wtopiona w teren: `HeadTerrainBlend`, `TorusHeadMeshBlender`, `TorusHeadTerrain`. Nie testowane w Unity.
-- [x] Kolory wierzchołków z meshy grafika trafiają do meshy segmentów (`MeshHeightRasterizer`, profile). Brakuje jeszcze shadera czytającego Vertex Color i koloru szyi głowy.
+- [x] Kolory wierzchołków z meshy grafika trafiają do meshy segmentów (`MeshHeightRasterizer`, profile) i są czytane przez shader `WSF/Vertex Color Lit` (sRGB do linear).
+- [x] **Biomy na torusie** (6 FBX w `Assets/Bioms`: Pustynia, Las, Bagno, Wybrzeże, Wulkan, Lód): menu *WSF GameJam/Setup/Biomes On Torus* (`BiomeTorusSetupMenu`) importuje FBX, tworzy profile terenu z meshy `Teren_<Biom>`, ustawia 6 segmentów po 314 m, a `TorusBiomeDecorations` rysuje assety przez GPU instancing (bez colliderów). Opis: [PSG.md](PSG.md). Wymaga sprawdzenia w Unity (proporcje, szwy, wydajność).
 - [x] `comms.md`: kanał wiadomości między agentami (zasada w `AGENTS.md`).
 
 ## W trakcie
 
 - [ ] Propsy na torusie (`TorusPropDefinition` jako ScriptableObject: nazwa, promień kolizji, blokowanie ruchu; rysowanie przez instancing później). Projekt uzgodniony, kodu jeszcze nie ma.
-- [ ] Shader czytający Vertex Color (kolory biomów) i kolor szyi głowy. `G`
+- [ ] Kolor szyi głowy i wtopienie głowy w teren biomu (głowa stoi na segmencie biomu). `G`
+- [ ] Kolizje assetów biomów (promień, blokowanie ruchu) i wpływ biomów na rozgrywkę (np. rodzaje wrogów), do ustalenia. `?`
 
 ## Etap 1: prototyp grywalny (MUST)
 
 - [x] **Gracz: ruch po torusie** w współrzędnych `(θ, φ)`, orientacja według normalnej powierzchni, sterowanie (Input System). `C`
 - [x] **Kamera** z góry pod skosem, podążająca za graczem. Orientację „góry ekranu” i obrót kamery ustawimy przy dostrajaniu walki, tak by była wygodna (odłożone). `C`
 - [x] **Paszcza (logika):** jednostajny ruch po `θ` (`HeadMovement`), strefa działa na każde `Health`: gracza stopniowo pozbawia życia, NPC zabija od razu (pole `MawDamageMode` w `Health`, `MawKillZone`, tylko kąty). `C`
-- [x] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia na czubek głowy: `LapTracker` (suma zmian kąta gracz-głowa, tylko `θ`). `C`
+- [x] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia do miejsca za głową (`goalBehindHeadDegrees`): `LapTracker` (suma zmian kąta gracz-głowa, tylko `θ`). Decyzja: chodzenie po głowie odpada (pivot głowy nie jest u podstawy, obrót daje schody między głową a segmentem). `C`
+- [x] **Wrażliwy punkt węża** za głową, w miejscu mety: `WeakPoint` (podąża za głową, po wygranej gracz obraca się do niego, hit stop, puls placeholdera, zdarzenie `OnStruck`, opcjonalne triggery animatorów), menu *WSF GameJam/Setup/Create Weak Point*. Sprawdzone w scenie `Game`. `C`
+  - [ ] Model wrażliwego punktu i animacja ataku gracza na niego (pola `visual`, `animator`, `playerAnimator`). `G`
 - [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci z wynikiem (liczba rund), zapis rekordu i restart od rundy 1. `P`
   - [x] Logika: `RoundController` (przerwa po rundzie, szybsza paszcza i mnożnik wrogów, śmierć kończy przejście, rekord w `PlayerPrefs`, restart od rundy 1), menu *WSF GameJam/Setup/Create Round Loop*. Nie testowane w Unity. `C`
   - [x] Ekran zwycięstwa rundy i ekran śmierci z wynikiem i rekordem: `RoundScreens` (zdarzenia `OnRoundCompleted`, `OnRunEnded`), menu *WSF GameJam/Setup/Create Round Screens*, nie testowane w Unity. `C`
