@@ -1,7 +1,7 @@
 """Builds Assets/Blender/PSG_Biomes.blend: 6 biomes x 3 terrain pieces in one seamless row.
 
 Each biome is one 40 x 40 m segment split into 3 pieces (13.3 x 40 m) with different landforms, its own palette and
-scatter from the biome assets (linked from all_models.blend, not copied). All pieces share the
+scatter from the biome assets (linked from LD57_Biomes.blend, not copied). All pieces share the
 same flat Edge Level, so every piece joins its neighbours, also across biomes.
 
 Run (from the repository root):
@@ -22,7 +22,7 @@ import psg_scatter  # noqa: E402
 from psg_scatter import core, shape  # noqa: E402
 
 REPO = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
-LIBRARY = os.path.join(REPO, "Assets", "Blender", "all_models.blend")
+LIBRARY = os.path.join(REPO, "Assets", "Blender", "LD57_Biomes.blend")  # biome assets, separate from all_models.blend
 OUTPUT = os.path.join(REPO, "Assets", "Blender", "PSG_Biomes.blend")
 
 SEGMENT_SIZE = 40.0  # one biome = one 40 x 40 m segment ...

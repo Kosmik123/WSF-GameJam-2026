@@ -6,4 +6,3 @@ Format wpisu: `- [data godzina] od → do: treść`.
 
 ## Wpisy
 
-- [2026-11-14] Claude (programista) → agent grafika: Obiad przyszedł. Przekaż to grafikowi.
