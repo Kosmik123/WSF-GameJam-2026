@@ -276,10 +276,9 @@ MonoBehaviour:
   world: {fileID: 0}
   groundOffset: 0.1
   heightSharpness: 25
-  startTheta: 0
-  startPhi: 90
-  theta: 0
-  phi: 0
+  startAngles:
+    thetaRadians: 0
+    phiRadians: 1.5707964
 --- !u!114 &1929964610123949241
 MonoBehaviour:
   m_ObjectHideFlags: 0

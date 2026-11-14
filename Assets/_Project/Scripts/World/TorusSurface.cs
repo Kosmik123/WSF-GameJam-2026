@@ -39,6 +39,12 @@ namespace WSFGameJam2026.World
             return profiles[(segmentIndex % SegmentCount + SegmentCount) % SegmentCount];
         }
 
+        public int GetSegmentIndex(TorusAngles angles)
+        {
+            return GetSegmentIndex(angles.Theta);
+        }
+
+        /// <summary>Segment index for theta in radians.</summary>
         public int GetSegmentIndex(float theta)
         {
             float wrapped = Mathf.Repeat(theta, TwoPi);
@@ -46,6 +52,12 @@ namespace WSFGameJam2026.World
         }
 
         /// <summary>Point of the base tube, without terrain height.</summary>
+        public Vector3 GetBasePoint(TorusAngles angles)
+        {
+            return GetBasePoint(angles.Theta, angles.Phi);
+        }
+
+        /// <summary>Point of the base tube for angles in radians.</summary>
         public Vector3 GetBasePoint(float theta, float phi)
         {
             float ring = MajorRadius + MinorRadius * Mathf.Cos(phi);
@@ -53,18 +65,36 @@ namespace WSFGameJam2026.World
         }
 
         /// <summary>Outward normal of the base tube, without terrain height.</summary>
+        public Vector3 GetBaseNormal(TorusAngles angles)
+        {
+            return GetBaseNormal(angles.Theta, angles.Phi);
+        }
+
+        /// <summary>Outward normal of the base tube for angles in radians.</summary>
         public Vector3 GetBaseNormal(float theta, float phi)
         {
             return new Vector3(Mathf.Cos(phi) * Mathf.Cos(theta), Mathf.Sin(phi), Mathf.Cos(phi) * Mathf.Sin(theta));
         }
 
         /// <summary>Surface point including terrain height.</summary>
+        public Vector3 GetPoint(TorusAngles angles)
+        {
+            return GetPoint(angles.Theta, angles.Phi);
+        }
+
+        /// <summary>Surface point for angles in radians.</summary>
         public Vector3 GetPoint(float theta, float phi)
         {
             return GetBasePoint(theta, phi) + GetBaseNormal(theta, phi) * GetHeight(theta, phi);
         }
 
         /// <summary>Outward surface normal including terrain height.</summary>
+        public Vector3 GetNormal(TorusAngles angles)
+        {
+            return GetNormal(angles.Theta, angles.Phi);
+        }
+
+        /// <summary>Outward surface normal for angles in radians.</summary>
         public Vector3 GetNormal(float theta, float phi)
         {
             var alongTheta = GetPoint(theta + DerivativeStep, phi) - GetPoint(theta - DerivativeStep, phi);
@@ -73,6 +103,12 @@ namespace WSFGameJam2026.World
         }
 
         /// <summary>Terrain height above the base tube. Neighbouring segment profiles are cross-faded near borders.</summary>
+        public float GetHeight(TorusAngles angles)
+        {
+            return GetHeight(angles.Theta, angles.Phi);
+        }
+
+        /// <summary>Terrain height for angles in radians.</summary>
         public float GetHeight(float theta, float phi)
         {
             float wrapped = Mathf.Repeat(theta, TwoPi);
