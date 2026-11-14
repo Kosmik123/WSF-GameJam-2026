@@ -8,11 +8,12 @@ using WSFGameJam2026.World;
 namespace WSFGameJam2026.Editor
 {
     /// <summary>
-    /// Creates a <see cref="TorusPropDefinition"/> for every class of props found in the biome models of <see cref="TorusBiomeDecorations"/>
-    /// (a class = mesh name without the variant suffix), puts them into a <see cref="TorusPropCatalog"/> and connects it to the decorations.
-    /// Safe to run again: it only adds the definitions that are missing, so settings you changed are kept.
-    /// The first values are a guess from the size of the mesh: props lower than <see cref="SmallPropHeight"/> are visible only near the player (<see cref="SmallPropVisibleRange"/>) and
-    /// can be walked through, taller ones block a circle of about a third of their width. Adjust them in the assets.
+    /// Creates a <see cref="TorusPropDefinition"/> for every mesh of the props found in the biome models of <see cref="TorusBiomeDecorations"/>,
+    /// puts them into a <see cref="TorusPropCatalog"/> and connects it to the decorations. The definition asset is named like the mesh.
+    /// Safe to run again: definitions that exist are kept with their settings (an old definition without the mesh reference gets it),
+    /// only the missing ones are created. The first values are a guess from the size of the mesh: props lower than
+    /// <see cref="SmallPropHeight"/> are visible only near the player (<see cref="SmallPropVisibleRange"/>) and can be walked through,
+    /// taller ones block a circle of about a third of their width. Adjust them in the assets.
     /// </summary>
     public static class PropDefinitionsSetupMenu
     {
@@ -44,24 +45,20 @@ namespace WSFGameJam2026.Editor
             var catalogSerialized = new SerializedObject(catalog);
             var list = catalogSerialized.FindProperty("definitions");
 
-            var known = new HashSet<string>();
+            var inCatalog = new HashSet<Object>();
             for (int i = 0; i < list.arraySize; i++)
-            {
-                var existing = list.GetArrayElementAtIndex(i).objectReferenceValue as TorusPropDefinition;
-                if (existing)
-                    known.Add(existing.MeshName);
-            }
+                inCatalog.Add(list.GetArrayElementAtIndex(i).objectReferenceValue);
 
             int created = 0;
-            foreach (var pair in meshes)
+            foreach (var mesh in meshes)
             {
-                if (known.Contains(pair.Key))
+                var definition = GetOrCreateDefinition(mesh, out bool isNew);
+                created += isNew ? 1 : 0;
+                if (inCatalog.Add(definition) == false)
                     continue;
 
-                var definition = CreateDefinition(pair.Key, pair.Value);
                 list.InsertArrayElementAtIndex(list.arraySize);
                 list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = definition;
-                created++;
             }
 
             catalogSerialized.ApplyModifiedProperties();
@@ -74,13 +71,12 @@ namespace WSFGameJam2026.Editor
 
             EditorSceneManager.MarkSceneDirty(decorations.gameObject.scene);
             Selection.activeObject = catalog;
-            Debug.Log($"Prop definitions: {created} created, {meshes.Count} classes of props in total, catalog connected to the decorations.");
+            Debug.Log($"Prop definitions: {created} created, {meshes.Count} prop meshes in total, catalog connected to the decorations.");
         }
 
-        // Class name (mesh name without the variant suffix) -> one mesh of the class, used to guess the first values.
-        private static Dictionary<string, Mesh> FindPropMeshes(TorusBiomeDecorations decorations)
+        private static List<Mesh> FindPropMeshes(TorusBiomeDecorations decorations)
         {
-            var result = new Dictionary<string, Mesh>();
+            var result = new List<Mesh>();
             var serialized = new SerializedObject(decorations);
             var models = serialized.FindProperty("biomeModels");
             var terrainPrefix = serialized.FindProperty("terrainPrefix").stringValue;
@@ -93,11 +89,8 @@ namespace WSFGameJam2026.Editor
 
                 foreach (var filter in model.GetComponentsInChildren<MeshFilter>(true))
                 {
-                    if (filter.sharedMesh == null || filter.name.StartsWith(terrainPrefix))
-                        continue;
-
-                    var key = TorusPropCatalog.GetKey(filter.sharedMesh.name);
-                    result.TryAdd(key, filter.sharedMesh);
+                    if (filter.sharedMesh && filter.name.StartsWith(terrainPrefix) == false && result.Contains(filter.sharedMesh) == false)
+                        result.Add(filter.sharedMesh);
                 }
             }
 
@@ -115,23 +108,43 @@ namespace WSFGameJam2026.Editor
             return catalog;
         }
 
-        private static TorusPropDefinition CreateDefinition(string meshName, Mesh mesh)
+        private static TorusPropDefinition GetOrCreateDefinition(Mesh mesh, out bool isNew)
         {
-            var path = $"{Folder}/{meshName}.asset";
-            var definition = ScriptableObject.CreateInstance<TorusPropDefinition>();
-            AssetDatabase.CreateAsset(definition, path);
+            var path = $"{Folder}/{GetFileName(mesh.name)}.asset";
+            var definition = AssetDatabase.LoadAssetAtPath<TorusPropDefinition>(path);
+            isNew = definition == null;
+            if (isNew)
+            {
+                definition = ScriptableObject.CreateInstance<TorusPropDefinition>();
+                AssetDatabase.CreateAsset(definition, path);
+                SetFirstValues(definition, mesh);
+            }
 
+            var serialized = new SerializedObject(definition);
+            serialized.FindProperty("mesh").objectReferenceValue = mesh;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(definition);
+            return definition;
+        }
+
+        private static void SetFirstValues(TorusPropDefinition definition, Mesh mesh)
+        {
             var size = mesh.bounds.size;
             bool isSmall = size.y < SmallPropHeight;
             float radius = isSmall ? 0f : Mathf.Min(MaxBlockRadius, Mathf.Max(size.x, size.z) * 0.35f);
 
             var serialized = new SerializedObject(definition);
-            serialized.FindProperty("meshName").stringValue = meshName;
             serialized.FindProperty("blockRadius").floatValue = radius;
             serialized.FindProperty("visibleRangeDegrees").floatValue = isSmall ? SmallPropVisibleRange : 180f;
             serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(definition);
-            return definition;
+        }
+
+        private static string GetFileName(string meshName)
+        {
+            foreach (var invalid in Path.GetInvalidFileNameChars())
+                meshName = meshName.Replace(invalid, '_');
+
+            return meshName;
         }
     }
 }

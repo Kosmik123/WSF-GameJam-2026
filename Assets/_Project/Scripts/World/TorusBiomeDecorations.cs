@@ -28,7 +28,7 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private string terrainPrefix = "Teren_";
 
-        [Tooltip("Settings of the props by mesh name: blocking radius, hiding when far, turning a class off. Empty = every prop is placed, never hidden, does not block.")]
+        [Tooltip("Settings of the props by mesh: blocking radius, hiding when far, turning a class off. Empty = every prop is placed, never hidden, does not block.")]
         [SerializeField]
         private TorusPropCatalog propCatalog;
 
@@ -219,7 +219,7 @@ namespace WSFGameJam2026.World
 
                 TorusPropDefinition definition = null;
                 if (propCatalog)
-                    propCatalog.TryGetDefinition(filter.sharedMesh.name, out definition);
+                    propCatalog.TryGetDefinition(filter.sharedMesh, out definition);
 
                 if (definition && definition.IsDisabled)
                     continue;

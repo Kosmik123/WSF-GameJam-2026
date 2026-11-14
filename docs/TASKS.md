@@ -32,7 +32,7 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 
 ## W trakcie
 
-- [x] **Propsy na torusie:** `TorusPropDefinition` (ScriptableObject na klasę mesha, nazwa bez `_vN`: promień pseudo-collidera `blockRadius`, jeden suwak `visibleRangeDegrees` (θ wokół gracza; 180 = zawsze widoczny, np. drzewa, 0 = klasa wyłączona w całości)), `TorusPropCatalog`, `TorusPropObstacles` (siatka przeszkód, `TorusObject` odpycha się od nich, pole `bodyRadius`), menu *WSF GameJam/Setup/Create Prop Definitions*. Nie testowane w Unity, wartości początkowe zgadnięte z rozmiaru mesha. `C`
+- [x] **Propsy na torusie:** `TorusPropDefinition` (ScriptableObject na mesh, z referencją do niego, nazwa propa to nazwa mesha: promień pseudo-collidera `blockRadius`, jeden suwak `visibleRangeDegrees` (θ wokół gracza; 180 = zawsze widoczny, np. drzewa, 0 = klasa wyłączona w całości)), `TorusPropCatalog`, `TorusPropObstacles` (siatka przeszkód, `TorusObject` odpycha się od nich, pole `bodyRadius`), menu *WSF GameJam/Setup/Create Prop Definitions*. Nie testowane w Unity, wartości początkowe zgadnięte z rozmiaru mesha. `C`
 - [ ] Kolor szyi głowy i wtopienie głowy w teren biomu (głowa stoi na segmencie biomu). `G`
 - [ ] **Biomy, poprawki grafiki** (`G`):
   - [ ] Assety są za gęsto, lekko je przerzedzić (PSG: *Density*, *Min Distance*, liczby w warstwach).

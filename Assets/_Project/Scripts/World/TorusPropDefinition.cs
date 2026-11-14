@@ -3,16 +3,19 @@ using UnityEngine;
 namespace WSFGameJam2026.World
 {
     /// <summary>
-    /// Settings of one class of biome props (all variants of a mesh, so <c>Las_Drzewo_v0</c>...<c>_v3</c> share one definition named <c>Las_Drzewo</c>).
-    /// The catalog finds the definition by the mesh name. Props without a definition use the defaults (no blocking, always visible).
+    /// Settings of one biome prop mesh. The catalog finds the definition by the mesh itself, the name of the prop is the name of the mesh.
+    /// Props without a definition use the defaults (no blocking, always visible).
     /// </summary>
     [CreateAssetMenu(menuName = "WSF GameJam/World/Prop Definition")]
     public class TorusPropDefinition : ScriptableObject
     {
-        [Tooltip("Name of the mesh without the variant suffix (_v0, _v1...). The key the catalog looks the prop up by.")]
+        [Tooltip("The mesh of the prop. The catalog finds the definition by it.")]
         [SerializeField]
-        private string meshName;
-        public string MeshName => meshName;
+        private Mesh mesh;
+        public Mesh Mesh => mesh;
+
+        /// <summary>Name of the prop: the name of its mesh.</summary>
+        public string MeshName => mesh ? mesh.name : name;
 
         [Tooltip("Radius of the area around the prop that can not be entered, in world units. 0 = can be walked through.")]
         [SerializeField]
