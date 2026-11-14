@@ -65,6 +65,80 @@ namespace WSFGameJam2026.Head
                 world.HeadTerrain.SetTheta(movement.Theta);
         }
 
+        private void OnDrawGizmosSelected()
+        {
+            var gizmoWorld = world ? world : FindAnyObjectByType<TorusWorld>();
+            if (gizmoWorld == null)
+                return;
+
+            // The head is measured where it stands right now, so the gizmos also work in edit mode (theta 0 is on +Z, growing towards +X).
+            var localPosition = gizmoWorld.transform.InverseTransformPoint(transform.position);
+            var theta = Mathf.Atan2(localPosition.x, localPosition.z);
+            var heights = new float[OutlineResolution];
+            if (HeadNeckProfiler.TryMeasure(gizmoWorld, theta, GetComponentsInChildren<Renderer>(), neckSliceDepth, heights, out float neckOffset, out float headLength) == false)
+                return;
+
+            var majorRadius = gizmoWorld.MajorRadius;
+            var neckTheta = theta - neckOffset;
+            var sliceTheta = neckTheta + neckSliceDepth / majorRadius;
+            var headEndTheta = neckTheta + headLength;
+            var blendLength = blendLengthDegrees * Mathf.Deg2Rad;
+
+            var previousMatrix = Gizmos.matrix;
+            Gizmos.matrix = gizmoWorld.transform.localToWorldMatrix;
+
+            var outline = new float[OutlineResolution];
+            for (int i = 0; i < outline.Length; i++)
+                outline[i] = heights[i] + neckHeightOffset;
+
+            // Measured slice (cyan): the widest points of the head between the rear end and the slice depth make the outline.
+            Gizmos.color = Color.cyan;
+            DrawRing(gizmoWorld, sliceTheta, heights);
+            for (int i = 0; i < heights.Length; i += 4)
+                Gizmos.DrawLine(GetOutlinePoint(gizmoWorld, neckTheta, i, heights[i]), GetOutlinePoint(gizmoWorld, sliceTheta, i, heights[i]));
+
+            // Measured outline at the rear end of the head (green).
+            Gizmos.color = Color.green;
+            DrawRing(gizmoWorld, neckTheta, heights);
+
+            // The outline the terrain blends into, with the height offset applied (yellow).
+            if (Mathf.Approximately(neckHeightOffset, 0f) == false)
+            {
+                Gizmos.color = Color.yellow;
+                DrawRing(gizmoWorld, neckTheta, outline);
+            }
+
+            // Front end of the head (white).
+            Gizmos.color = Color.white;
+            DrawRing(gizmoWorld, headEndTheta, null);
+
+            // Where the blend starts, behind the neck and in front of the head (red).
+            Gizmos.color = Color.red;
+            DrawRing(gizmoWorld, neckTheta - blendLength, null);
+            DrawRing(gizmoWorld, headEndTheta + blendLength, null);
+
+            Gizmos.matrix = previousMatrix;
+        }
+
+        /// <summary>Draws a closed outline around the tube at theta. Null heights draw the plain tube (height 0).</summary>
+        private static void DrawRing(TorusWorld world, float theta, float[] heights)
+        {
+            var count = heights == null ? OutlineResolution : heights.Length;
+            var previous = GetOutlinePoint(world, theta, count - 1, heights == null ? 0f : heights[count - 1]);
+            for (int i = 0; i < count; i++)
+            {
+                var current = GetOutlinePoint(world, theta, i, heights == null ? 0f : heights[i]);
+                Gizmos.DrawLine(previous, current);
+                previous = current;
+            }
+        }
+
+        private static Vector3 GetOutlinePoint(TorusWorld world, float theta, int index, float height)
+        {
+            var phi = index * TorusGeometry.TwoPi / OutlineResolution;
+            return TorusGeometry.GetCenterPoint(world.MajorRadius, theta) + TorusGeometry.GetNormal(theta, phi) * (world.MinorRadius + height);
+        }
+
         private bool Measure()
         {
             movement.Refresh();
