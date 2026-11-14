@@ -124,7 +124,7 @@ namespace WSFGameJam2026.World
             if (aheadOfHead < 0f || aheadOfHead >= TailLength)
                 return 1f;
 
-            return Mathf.Max(0f, tailCurve.Evaluate(1f - aheadOfHead / TailLength));
+            return Mathf.Max(0f, tailCurve.Evaluate(aheadOfHead / TailLength));
         }
 
         /// <summary>Terrain height after the head shaped it: the neck outline on and behind the head, a thinner tube on the tail ahead of it.</summary>
