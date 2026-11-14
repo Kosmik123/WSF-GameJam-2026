@@ -11,7 +11,7 @@ Termin jamu: **30 godzin** od startu. Tempo oceniamy na bieżąco i przesuwamy p
 |---------|-----|
 | 0-6 | Etap 1: ruch, kamera, paszcza, cel, pętla rund (grywalny prototyp) |
 | 6-13 | Etap 2: walka, zdrowie, dwa pierwsze typy wrogów, spawner |
-| 13-19 | Etap 3 i wrogowie 3-4: HUD, wskaźniki, ekrany |
+| 13-19 | Progresja (XP, poziomy, ekwipunek), wrogowie 3-4, HUD, wskaźniki, ekrany |
 | 19-26 | Etap 4 i 5: zawartość, shadery, efekty, dźwięk |
 | 26-30 | Zamrożenie funkcji około godziny 26, potem tylko balans, build i prezentacja |
 
@@ -33,7 +33,7 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [ ] **Kamera** z góry pod skosem, podążająca za graczem, „góra” = normalna powierzchni. `C`
 - [ ] **Paszcza (logika):** jednostajny ruch po `θ`, śmierć gracza przy wejściu w strefę. `C`
 - [ ] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia na czubek głowy. `C`
-- [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci i restart. `P`
+- [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci z wynikiem (liczba rund), zapis rekordu i restart od rundy 1. `P`
 - [ ] **Model paszczy** (siatka, animacja otwierania i zamykania). `G`
 - [ ] **Model gracza** (low poly, animacje: bieg, atak, unik, obrażenia, śmierć). `G`
 - [ ] **Materiał i wygląd ciała węża** (łuski, kolory, różne warianty segmentów). `G`
@@ -44,8 +44,16 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [ ] **Walka gracza:** atak melee, unik z nietykalnością, hit stop i odrzut. `C`
 - [ ] **Wróg 1 (biegacz)** z AI poruszającym się po torusie i atakiem. `C`
 - [ ] **Wróg 2 (strzelec)**. `P`
-- [ ] **Spawner wrogów** w współrzędnych `(θ, φ)` przed graczem, skalowanie ze trudnością rundy. `P`
+- [ ] **Spawner wrogów** w współrzędnych `(θ, φ)` przed graczem, poziom wroga ustalany raz przy pojawieniu się (z trudności segmentu i mnożnika rundy), wrogowie pojawiają się kilka sekund przed graczem. `P`
 - [ ] **Modele i animacje wrogów 1 i 2.** `G`
+
+## Etap 2b: progresja (MUST)
+
+- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku); reset poziomu i sprzętu przy śmierci. `C`
+- [ ] **Trudność zależna od paszczy:** funkcja trudności segmentu z odległości od paszczy (blisko = łatwo, czubek głowy = najtrudniej), spadająca w miarę zbliżania się paszczy, plus mnożnik rundy. Samo bieganie ma nie wystarczać. `C`
+- [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
+- [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`
+- [ ] **Ikony i modele przedmiotów** (broń, pancerz, dodatki). `G`
 
 ## Etap 3: czytelność i interfejs (SHOULD)
 
@@ -59,7 +67,6 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [ ] **Wróg 3 (pancerny) i wróg 4 (rój)**. `P`, modele: `G`
 - [ ] **Mini-boss na czubku głowy** (COULD).
 - [ ] **Różne profile terenu** dla segmentów (pagórki, kratery, grzbiety) jako nowe podklasy `TorusSegmentProfile`. `C`
-- [ ] **Ulepszenia / perki** (COULD, jeśli zostanie czas).
 
 ## Etap 5: prezentacja i polish (SHOULD, rezerwujemy ostatnie godziny)
 
@@ -72,8 +79,11 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 ## Decyzje do podjęcia
 
 - [x] Termin: 30 h.
-- [x] Co po śmierci: restart bieżącej rundy.
+- [x] Co po śmierci: koniec przejścia, restart od rundy 1. Rekord = liczba ukończonych rund.
 - [x] Typy wrogów: biegacz, strzelec, pancerny, rój.
 - [x] Audio: mieszanka CC0, pracy ręcznej i syntezatorów.
 - [ ] Dokładne zachowania i statystyki wrogów.
+- [x] Poziom i sprzęt zostają między rundami, ale giną ze śmiercią (nowa gra od zera).
+- [x] Wróg dostaje siłę raz, przy pojawieniu się, i jej nie zmienia.
+- [ ] Szczegóły progresji: krzywa XP, sloty i typy przedmiotów, źródła.
 - [ ] Paleta kolorów i referencje wizualne.

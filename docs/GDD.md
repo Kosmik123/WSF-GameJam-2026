@@ -18,7 +18,8 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 1. **Prezentacja przede wszystkim.** Jam jest oceniany głównie na podstawie prezentacji, więc gra ma wyglądać i brzmieć mocno nawet kosztem głębi systemów.
 2. **Presja ucieczki.** Paszcza jest zawsze za plecami. Każda decyzja (walczyć czy biec) to wymiana czasu na bezpieczeństwo.
 3. **Zręcznościowa walka.** Umiejętność gracza (unik, timing) ma znaczenie, a nie tylko statystyki.
-4. **Jedna czytelna pętla.** Uciekaj, walcz, przetrwaj, okrąż świat, powtórz szybciej.
+4. **Jedna czytelna pętla.** Uciekaj, walcz, zdobywaj poziomy i sprzęt, okrąż świat, powtórz szybciej.
+5. **Walka się opłaca.** Samo bieganie nie wystarcza: trudność rośnie, więc trzeba levelować wcześniej, żeby przetrwać później.
 
 ## 4. Świat
 
@@ -42,9 +43,9 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 3. Gracz walczy lub ich omija. Straty HP i czas spędzony w walce zmniejszają przewagę nad paszczą.
 4. Gracz okrąża cały torus i dociera na czubek głowy węża (za paszczą).
 5. **Zwycięstwo rundy.** Zaczyna się kolejna runda: paszcza jest szybsza, wrogów jest więcej.
-6. Śmierć (paszcza albo HP = 0) restartuje **bieżącą rundę** z jej parametrami (prędkość paszczy, liczba wrogów). Numer rundy nie spada.
+6. Śmierć (paszcza albo HP = 0) **kończy całe przejście**: kasuje rundę i cały postęp (poziom, sprzęt). Gracz zaczyna od rundy 1, a ekran śmierci pokazuje, ile rund przetrwał.
 
-**Runda** to jedno pełne okrążenie: od startu przed paszczą do dotarcia na czubek głowy. Po każdej wygranej rundzie kolejna ma szybszą paszczę i więcej wrogów. Rund jest tyle, ile gracz wytrzyma, więc „najlepszy wynik” to numer najdalszej rundy.
+**Runda** to jedno pełne okrążenie: od startu przed paszczą do dotarcia na czubek głowy. Po każdej wygranej rundzie kolejna ma szybszą paszczę i więcej wrogów. Rund jest tyle, ile gracz wytrzyma. **Rekord gracza to liczba ukończonych rund**: im więcej, tym lepszy wynik. Rekord zapisujemy i pokazujemy na ekranie startowym i śmierci.
 
 ## 7. Gracz
 
@@ -59,12 +60,25 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 - Wrogowie pojawiają się w współrzędnych `(θ, φ)` na torusie, przed graczem.
 - **Typy:** biegacz (szybki, słaby), strzelec (atak z dystansu), pancerny (wolny, wytrzymały), rój (wiele małych). Mini-boss na czubku głowy to opcja, jeśli zostanie czas.
 - **[DO USTALENIA]** dokładne zachowania i statystyki (ustalimy na prototypie).
-- Trudność narasta z kolejnymi rundami: więcej wrogów i szybsza paszcza.
+- Trudność wrogów zależy od **odległości od paszczy** (patrz sekcja 9), a z kolejnymi rundami rośnie dodatkowo mnożnik: więcej wrogów i szybsza paszcza.
 
 ## 9. Progresja
 
-- Brak rozbudowanych systemów. Jedyna progresja to **narastająca trudność** w kolejnych rundach.
-- Ulepszenia (perki, waluta, meta) są poza zakresem, jeśli zabraknie czasu. **[DO USTALENIA]** czy dodamy je, jeśli zostanie czas.
+Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, więc **trudność rośnie szybciej, niż da się ją przeskoczyć samym biegiem**: gracz musi walczyć wcześnie (na łatwiejszych odcinkach), żeby zdobyć poziomy i sprzęt, a potem poradzić sobie z trudniejszymi.
+
+- **Poziomy gracza:** wrogowie dają doświadczenie (XP), po zebraniu progu gracz awansuje. Każdy poziom zwiększa statystyki (HP, obrażenia, szybkość ataku).
+- **Ekwipunek:** wrogowie (i skrzynie) zostawiają przedmioty: broń, pancerz, dodatki. Ekwipunek zmienia statystyki i może dawać prostą zdolność. **[DO USTALENIA]** liczba slotów i typów przedmiotów.
+- **Trudność zależy od bliskości paszczy.** Liczymy ją dla każdego segmentu z jego odległości od paszczy, mierzonej w kierunku biegu gracza:
+  - blisko paszczy: wrogowie najsłabsi (dobre miejsce na zdobywanie XP),
+  - dalej: coraz silniejsi,
+  - tuż za paszczą, przy czubku głowy: najsilniejsi (cel okrążenia jest najtrudniejszy).
+- **Paszcza osłabia segmenty, które pożera.** Gdy paszcza zbliża się do kolejnych segmentów, trudność każdego z nich spada, bo dzieli go od niej coraz mniej. Jest to też nagroda za wolne tempo: zostawanie z tyłu oznacza łatwiejszych wrogów, ale mniej czasu.
+- **Kolejne rundy:** do trudności z odległości dochodzi mnożnik rundy (liczniejsi i silniejsi wrogowie, szybsza paszcza).
+- **Wróg dostaje siłę raz, w momencie pojawienia się**, na podstawie trudności segmentu, w którym powstaje. Później jej nie zmienia, więc gracz może ocenić ryzyko walki. Wrogów pojawiamy blisko gracza (kilka sekund przed nim), żeby ich poziom odpowiadał miejscu, w którym naprawdę walczy.
+- **Dylemat:** walka daje siłę, ale kosztuje czas, a paszcza goni. Pominięcie walk na początku oznacza słabszego gracza później.
+- **Kolejne rundy:** poziom i ekwipunek **zostają** po wygranej rundzie. Trudność kolejnej rundy rośnie szybciej niż samo wzmocnienie gracza.
+- **Po śmierci:** koniec przejścia, poziom i sprzęt przepadają, nowa gra zaczyna się od rundy 1 (patrz sekcja 6). To klasyczny roguelite: każda próba zaczyna od zera.
+- Rozbudowana meta-progresja (waluta, drzewko ulepszeń poza rundą) jest poza zakresem.
 
 ## 10. Czytelność i interfejs
 
@@ -95,5 +109,5 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 ## 14. Otwarte pytania
 
 - Dokładne zachowania i statystyki wrogów.
-- Czy gra ma dodatkowe ulepszenia, jeśli zostanie czas.
+- Progresja: krzywa XP, co daje poziom, liczba slotów i typów przedmiotów, źródła przedmiotów.
 - Paleta kolorów i referencje wizualne.
