@@ -103,8 +103,8 @@ namespace WSFGameJam2026.World
         }
 
         /// <summary>
-        /// Sets how the tail ahead of the head thins out just before it is eaten. The curve is evaluated from 0 (start of the
-        /// zone, away from the head) to 1 (the front of the head) and gives the factor of the tube radius: 0 is the centre, 1 the original radius.
+        /// Sets how the tail ahead of the head thins out just before it is eaten. The curve is evaluated from 0 (the front of the
+        /// head) to 1 (start of the zone, away from the head) and gives the factor of the tube radius: 0 is the centre, 1 the original radius.
         /// </summary>
         public void ConfigureTail(float tailLength, AnimationCurve radiusCurve)
         {
