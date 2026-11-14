@@ -74,9 +74,9 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.6
-      inSlope: 0.39999998
-      outSlope: 0.39999998
+      value: 0.5
+      inSlope: 0.5
+      outSlope: 0.5
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
@@ -250,8 +250,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Head.MawKillZone
   head: {fileID: 2207168790804239818}
-  victims:
-  - {fileID: 0}
   damagePerSecond: 15
   frontReachDegrees:
     serializedVersion: 2

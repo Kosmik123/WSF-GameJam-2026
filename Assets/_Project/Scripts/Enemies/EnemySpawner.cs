@@ -129,9 +129,9 @@ namespace WSFGameJam2026.Enemies
         }
 
         /// <summary>Level given to an enemy spawned at this theta. It never changes later.</summary>
-        public int GetLevel(float theta)
+        public int GetLevel(float difficulty)
         {
-            float baseLevel = Mathf.Lerp(levelRange.x, levelRange.y, GetDifficulty(theta));
+            float baseLevel = Mathf.Lerp(levelRange.x, levelRange.y, difficulty);
             return Mathf.Max(1, Mathf.RoundToInt(baseLevel * RoundMultiplier));
         }
 
@@ -185,7 +185,7 @@ namespace WSFGameJam2026.Enemies
             if (entry == null || entry.Prefab == null)
                 return;
 
-            int level = GetLevel(theta);
+            int level = GetLevel(difficulty);
             int count = Mathf.Min(capacity, UnityEngine.Random.Range(entry.GroupSize.x, entry.GroupSize.y + 1));
             for (int i = 0; i < count; i++)
             {
