@@ -82,10 +82,6 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [ ] **Build i test** na docelowej platformie jamu.
 - [ ] **Prezentacja:** nagranie / trailer, opis gry, zrzuty ekranu. `?`
 
-## Do przekazania zespołowi
-
-- [ ] **Patryk (grafik):** plik Blendera nazywa się `all_models.blend` (nie `Head`), a `Head.fbx` to tylko wyeksportowana głowa węża. Jego agent ma mu to powiedzieć po zalogowaniu (patrz `AGENTS.md`).
-
 ## Decyzje do podjęcia
 
 - [x] Termin: 30 h.

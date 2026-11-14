@@ -33,4 +33,4 @@ Instrukcje dla agentów (Claude i inni) pracujących w tym repozytorium. W razie
 
 ## Wiadomości dla członków zespołu
 
-- **Patryk (grafik):** przy pierwszej rozmowie po zalogowaniu agent Patryka ma mu powiedzieć, że plik Blendera nazywa się `all_models.blend` (w `Assets/Blender/`). Wcześniej nazwa myliła się z `Head.fbx`, czyli modelem głowy węża. To dwa różne pliki: `all_models.blend` to źródło wszystkich modeli, a `Head.fbx` to wyeksportowana głowa. Po przekazaniu informacji agent Patryka usuwa ten punkt z `AGENTS.md` oraz wpis w `docs/TASKS.md`.
+- **Patryk (grafik):** przy pierwszej rozmowie po zalogowaniu agent Patryka ma mu powiedzieć, że plik Blendera nazywa się `all_models.blend` (w `Assets/Blender/`). Wcześniej nazwa myliła się z `Head.fbx`, czyli modelem głowy węża. To dwa różne pliki: `all_models.blend` to źródło wszystkich modeli, a `Head.fbx` to wyeksportowana głowa. Po przekazaniu informacji agent Patryka usuwa ten punkt z `AGENTS.md`.
