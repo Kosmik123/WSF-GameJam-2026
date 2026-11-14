@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e6cd59106de4a06b2a96cf7ea9e5001, type: 3}
+  m_Name: ChainLightning
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Mage.ChainLightningSkill
+  displayName: Chain Lightning
+  icon: {fileID: 0}
+  tiers:
+  - tierName: Base
+    description: 'Hits the nearest enemy (8 m) and jumps to 3 more: 16 damage, every
+      jump 4 less.'
+    cooldown: 5
+    damage: 16
+    range: 8
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade I
+    description: 4 jumps, 20 damage.
+    cooldown: 5
+    damage: 20
+    range: 8
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade II
+    description: 5 jumps, 24 damage.
+    cooldown: 5
+    damage: 24
+    range: 8
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: 'Evolution: Storm'
+    description: Every hit stuns the enemy for 0.5 s.
+    cooldown: 5
+    damage: 24
+    range: 8
+    duration: 0
+    knockback: 0
+    stun: 0.5
+  jumpRange: 5
+  baseJumps: 3
+  damageLossPerJump: 4
+  missLength: 2.5
+  color: {r: 0.6, g: 0.8, b: 1, a: 1}
