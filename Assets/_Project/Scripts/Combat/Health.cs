@@ -62,7 +62,6 @@ namespace WSFGameJam2026.Combat
         private int currentHealth;
         public int CurrentHealth => currentHealth;
         public MawDamageMode MawDamageMode => mawDamageMode;
-        public float BodyRadius => bodyRadius;
         public bool IsDead => currentHealth <= 0;
 
         private TorusObject torusObject;

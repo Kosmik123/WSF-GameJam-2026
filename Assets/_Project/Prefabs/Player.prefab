@@ -310,5 +310,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Combat.Health
   team: 1
   maxHealth: 30200
+  mawDamageMode: 1
   bodyRadius: 0.5
   currentHealth: 0
