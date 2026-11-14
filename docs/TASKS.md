@@ -26,13 +26,15 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] Kamera z góry pod skosem za graczem.
 - [x] Profil segmentu jako klasa odkształcająca mesh (`Deform`), `NoiseTorusSegmentProfile`, wygładzanie normalnych na granicach.
 - [x] Szyja głowy wtopiona w teren: `HeadTerrainBlend`, `TorusHeadMeshBlender`, `TorusHeadTerrain`. Nie testowane w Unity.
-- [x] Kolory wierzchołków z meshy grafika trafiają do meshy segmentów (`MeshHeightRasterizer`, profile). Brakuje jeszcze shadera czytającego Vertex Color i koloru szyi głowy.
+- [x] Kolory wierzchołków z meshy grafika trafiają do meshy segmentów (`MeshHeightRasterizer`, profile) i są czytane przez shader `WSF/Vertex Color Lit` (sRGB do linear).
+- [x] **Biomy na torusie** (6 FBX w `Assets/Bioms`: Pustynia, Las, Bagno, Wybrzeże, Wulkan, Lód): menu *WSF GameJam/Setup/Biomes On Torus* (`BiomeTorusSetupMenu`) importuje FBX, tworzy profile terenu z meshy `Teren_<Biom>`, ustawia 6 segmentów po 314 m, a `TorusBiomeDecorations` rysuje assety przez GPU instancing (bez colliderów). Opis: [PSG.md](PSG.md). Wymaga sprawdzenia w Unity (proporcje, szwy, wydajność).
 - [x] `comms.md`: kanał wiadomości między agentami (zasada w `AGENTS.md`).
 
 ## W trakcie
 
 - [ ] Propsy na torusie (`TorusPropDefinition` jako ScriptableObject: nazwa, promień kolizji, blokowanie ruchu; rysowanie przez instancing później). Projekt uzgodniony, kodu jeszcze nie ma.
-- [ ] Shader czytający Vertex Color (kolory biomów) i kolor szyi głowy. `G`
+- [ ] Kolor szyi głowy i wtopienie głowy w teren biomu (głowa stoi na segmencie biomu). `G`
+- [ ] Kolizje assetów biomów (promień, blokowanie ruchu) i wpływ biomów na rozgrywkę (np. rodzaje wrogów), do ustalenia. `?`
 
 ## Etap 1: prototyp grywalny (MUST)
 
