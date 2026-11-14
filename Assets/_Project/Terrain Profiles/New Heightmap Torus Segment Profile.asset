@@ -17,5 +17,5 @@ MonoBehaviour:
   aroundTiling: 1
   seamBlendWidth: 0.15
   heightmap: {fileID: 10300, guid: 0000000000000000f000000000000000, type: 0}
-  minHeight: -2
+  minHeight: -8
   maxHeight: 20

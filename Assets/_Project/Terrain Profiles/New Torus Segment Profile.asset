@@ -16,16 +16,16 @@ MonoBehaviour:
   materialOverride: {fileID: 2100000, guid: 9a14f5c2e236d1b44b507837755b216f, type: 2}
   amplitude: 2
   frequency: 1
-  octaves: 4
+  octaves: 3
   persistence: 0.219
   heightCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: -1
       inSlope: 0
-      outSlope: 1
+      outSlope: 0
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -34,7 +34,7 @@ MonoBehaviour:
       time: 1
       value: 1
       inSlope: 1
-      outSlope: 0
+      outSlope: 1
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
@@ -42,4 +42,4 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  noiseOffset: {x: 0, y: 0, z: 0}
+  noiseOffset: {x: 0, y: -11.35, z: 0}
