@@ -55,7 +55,7 @@ namespace WSFGameJam2026.Cameras
                 return;
 
             // The smooth base tube is used instead of the terrain, so bumps don't shake the camera.
-            Vector3 up = target.BaseNormal;
+            Vector3 up = target.Up;
             Vector3 forward = Vector3.ProjectOnPlane(target.Facing, up).normalized;
             Vector3 focus = target.transform.position + up * lookAtHeight;
 
