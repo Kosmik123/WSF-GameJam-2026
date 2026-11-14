@@ -6,7 +6,7 @@ namespace WSFGameJam2026.World
     /// Terrain shaped by the snake's head. The head sits on the torus and the body grows out of its back,
     /// so near the head the terrain is blended into the outline of the head's neck.
     /// Height is full "neck" height (<see cref="GetNeckHeight"/>) on the head and fades to the normal terrain
-    /// over <see cref="BlendLength"/> behind the neck (and ahead of the head).
+    /// over <see cref="BlendLength"/> behind the neck. Ahead of the head (the tail being eaten) the terrain is untouched.
     /// All angles are in radians. The data is applied both to the heights used by gameplay
     /// (<see cref="TorusSurface.GetHeight(float, float)"/>) and to the segment meshes (<see cref="TorusHeadMeshBlender"/>).
     /// </summary>
@@ -30,7 +30,7 @@ namespace WSFGameJam2026.World
         /// <summary>Length of the head along the body, in radians of theta.</summary>
         public float HeadLength { get; private set; }
 
-        /// <summary>Length of the transition from the head outline to the normal terrain, in radians of theta.</summary>
+        /// <summary>Length of the transition from the head outline to the normal terrain behind the neck, in radians of theta.</summary>
         public float BlendLength { get; private set; }
 
         /// <summary>Theta of the rear end of the head, where the body grows out of it.</summary>
@@ -78,20 +78,24 @@ namespace WSFGameJam2026.World
             return Mathf.Lerp(neckHeights[first], neckHeights[second], position - Mathf.Floor(position));
         }
 
-        /// <summary>Weight of the head outline (0-1) at the given theta: 1 on the head, fading out around it.</summary>
+        /// <summary>
+        /// Weight of the head outline (0-1) at the given theta: 1 on the head, fading out behind the neck.
+        /// Ahead of the head the terrain (the tail being eaten) is left alone, so the weight is 0 there.
+        /// </summary>
         public float GetWeight(float theta)
         {
             if (IsActive == false)
                 return 0f;
 
-            // Distance from the head (the plateau between the neck and the front of the head).
+            // Positive behind the neck, negative on and ahead of it.
             float behindNeck = Mathf.Repeat(NeckTheta - theta + Mathf.PI, TwoPi) - Mathf.PI;
-            float outside = behindNeck > 0f ? behindNeck : Mathf.Max(0f, -behindNeck - HeadLength);
+            if (behindNeck <= 0f)
+                return -behindNeck <= HeadLength ? 1f : 0f;
 
             if (BlendLength <= 0f)
-                return outside <= 0f ? 1f : 0f;
+                return 0f;
 
-            return Mathf.SmoothStep(1f, 0f, outside / BlendLength);
+            return Mathf.SmoothStep(1f, 0f, behindNeck / BlendLength);
         }
 
         public float Apply(float terrainHeight, float theta, float phi)
@@ -104,7 +108,7 @@ namespace WSFGameJam2026.World
         public void GetAffectedRange(out float start, out float length)
         {
             start = NeckTheta - BlendLength;
-            length = HeadLength + BlendLength * 2f;
+            length = HeadLength + BlendLength;
         }
     }
 }

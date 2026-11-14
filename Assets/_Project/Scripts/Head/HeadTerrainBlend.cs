@@ -16,7 +16,7 @@ namespace WSFGameJam2026.Head
         [SerializeField]
         private TorusWorld world;
 
-        [Tooltip("Length of the transition from the head outline to the normal terrain (behind the neck and in front of the head), in degrees along the snake body.")]
+        [Tooltip("Length of the transition from the head outline to the normal terrain behind the neck, in degrees along the snake body.")]
         [SerializeField]
         [Min(0f)]
         private float blendLengthDegrees = 25f;
@@ -112,10 +112,9 @@ namespace WSFGameJam2026.Head
             Gizmos.color = Color.white;
             DrawRing(gizmoWorld, headEndTheta, null);
 
-            // Where the blend starts, behind the neck and in front of the head (red).
+            // Where the blend ends behind the neck (red). Ahead of the head the terrain is not touched.
             Gizmos.color = Color.red;
             DrawRing(gizmoWorld, neckTheta - blendLength, null);
-            DrawRing(gizmoWorld, headEndTheta + blendLength, null);
 
             Gizmos.matrix = previousMatrix;
         }
