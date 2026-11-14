@@ -138,7 +138,7 @@ namespace WSFGameJam2026.World
                 if (child.hideFlags != HideFlags.DontSave)
                     continue;
 
-                if (child.TryGetComponent(out var meshFilter))
+                if (child.TryGetComponent<MeshFilter>(out var meshFilter))
                     DestroyObject(meshFilter.sharedMesh);
 
                 DestroyObject(child);

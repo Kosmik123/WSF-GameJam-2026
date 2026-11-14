@@ -47,7 +47,7 @@ namespace WSFGameJam2026.Editor
                 camera = cameraObject.GetComponent<Camera>();
             }
 
-            if (camera.TryGetComponent(out var followCamera) == false)
+            if (camera.TryGetComponent<TorusFollowCamera>(out var followCamera) == false)
                 followCamera = Undo.AddComponent<TorusFollowCamera>(camera.gameObject);
 
             SetReference(followCamera, "target", torusObject);

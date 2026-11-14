@@ -68,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9a14f5c2e236d1b44b507837755b216f, type: 2}
+  - {fileID: 2100000, guid: 48238100e25a0b643a7a8d8883df55c8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -182,7 +182,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 48238100e25a0b643a7a8d8883df55c8, type: 2}
+  - {fileID: 2100000, guid: 857871994e85cd84b89e87ede5c7857e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -275,9 +275,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusObject
   world: {fileID: 0}
   groundOffset: 0.1
-  slopeSampleDistance: 1.5
   heightSharpness: 25
-  tiltSharpness: 12
   startTheta: 0
   startPhi: 90
   theta: 0
