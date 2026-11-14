@@ -469,12 +469,16 @@ namespace WSFGameJam2026.Editor
 
             // Loading
             var loading = Child(columnTransform, "Loading");
-            PlaceInColumn(loading, -20f, new Vector2(540f, 60f));
+            PlaceInColumn(loading, -20f, new Vector2(540f, 96f));
+            var ouroboros = Child(loading.transform, "Ouroboros");
+            AddImage(ouroboros, AztecUiSprites.Ouroboros, Image.Type.Simple, Turquoise);
+            Place(ouroboros.GetComponent<RectTransform>(), LeftCenter, LeftCenter, Vector2.zero, new Vector2(96f, 96f));
+            ouroboros.AddComponent<UiSpinner>();
             var tip = Text(loading.transform, "Tip", "Budzenie węża…", 22f, MutedColor, TextAlignmentOptions.Left);
-            Place(tip.rectTransform, TopLeft, TopLeft, Vector2.zero, new Vector2(540f, 30f));
+            Place(tip.rectTransform, LeftCenter, LeftCenter, new Vector2(120f, 14f), new Vector2(420f, 30f));
             var barBackground = Child(loading.transform, "Bar");
             AddImage(barBackground, AztecUiSprites.Panel, Image.Type.Sliced, Track);
-            Place(barBackground.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(0f, 0f), Vector2.zero, new Vector2(540f, 14f));
+            Place(barBackground.GetComponent<RectTransform>(), LeftCenter, LeftCenter, new Vector2(120f, -18f), new Vector2(420f, 14f));
             var barFill = Child(barBackground.transform, "Fill");
             var barFillImage = AddImage(barFill, null, Image.Type.Filled, Gold);
             barFillImage.fillMethod = Image.FillMethod.Horizontal;

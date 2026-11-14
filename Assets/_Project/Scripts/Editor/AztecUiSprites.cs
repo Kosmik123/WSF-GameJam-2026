@@ -39,6 +39,8 @@ namespace WSFGameJam2026.Editor
 
         public static Sprite Vignette => Get("Vignette", 128, 128, VignetteAlpha, Vector4.zero);
 
+        public static Sprite Ouroboros => Get("Ouroboros", 128, 128, OuroborosAlpha, Vector4.zero);
+
         private static Sprite Get(string spriteName, int width, int height, Func<float, float, float> alpha, Vector4 border, TextureWrapMode wrap = TextureWrapMode.Clamp)
         {
             var path = $"{Folder}/{spriteName}.png";
@@ -176,6 +178,55 @@ namespace WSFGameJam2026.Editor
             alpha = Mathf.Max(alpha, Annulus(distance, 92f, 95f));
             alpha = Mathf.Max(alpha, Annulus(distance, 52f, 55f));
             return alpha;
+        }
+
+        // A snake in a ring biting its tail: a scaled body that thins into the tail, and a head with an open jaw
+        // and an eye at the top. The jaw faces counter-clockwise, so the sprite turned that way chases its tail.
+        private static float OuroborosAlpha(float x, float y)
+        {
+            const float Center = 64f;
+            const float Radius = 44f;
+            const float HeadDegrees = 22f;
+            const float HeadRadius = 13f;
+            const float BodyStartDegrees = 36f;
+            const float TailEndDegrees = 367f;
+
+            var point = new Vector2(x - Center, y - Center);
+            float distance = point.magnitude;
+
+            // Angle clockwise from the top; the part right of the head is counted past 360, where the tail ends.
+            float angle = Mathf.Repeat(Mathf.Atan2(point.x, point.y) * Mathf.Rad2Deg, 360f);
+            if (angle < BodyStartDegrees)
+                angle += 360f;
+
+            float body = 0f;
+            if (angle <= TailEndDegrees)
+            {
+                float halfWidth = Mathf.Lerp(2f, 9f, Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((TailEndDegrees - angle) / 150f)));
+                body = Mathf.Clamp01(halfWidth - Mathf.Abs(distance - Radius) + 0.5f);
+
+                float scaleOffset = Mathf.Abs(Mathf.Repeat(angle + 9f, 18f) - 9f) * Mathf.Deg2Rad * distance;
+                if (scaleOffset < 1f)
+                    body *= 0.35f;
+            }
+
+            float headRadians = HeadDegrees * Mathf.Deg2Rad;
+            var outward = new Vector2(Mathf.Sin(headRadians), Mathf.Cos(headRadians));
+            var towardTail = new Vector2(-Mathf.Cos(headRadians), Mathf.Sin(headRadians));
+            var headCenter = outward * Radius;
+            var fromHead = point - headCenter;
+            float head = Mathf.Clamp01(HeadRadius - fromHead.magnitude + 0.5f);
+
+            float along = Vector2.Dot(fromHead, towardTail);
+            float across = Mathf.Abs(Vector2.Dot(fromHead, outward));
+            if (along > 2f && across < (along - 2f) * 0.6f)
+                head = 0f;
+
+            var eye = headCenter + outward * 5f - towardTail * 2f;
+            if (Vector2.Distance(point, eye) < 2.2f)
+                head = 0f;
+
+            return Mathf.Max(body, head);
         }
 
         // Transparent in the middle, opaque at the edges.
