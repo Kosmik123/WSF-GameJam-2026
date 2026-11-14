@@ -33,7 +33,7 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [ ] **Kamera** z góry pod skosem, podążająca za graczem, „góra” = normalna powierzchni. `C`
 - [ ] **Paszcza (logika):** jednostajny ruch po `θ`, śmierć gracza przy wejściu w strefę. `C`
 - [ ] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia na czubek głowy. `C`
-- [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci i restart. `P`
+- [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci z wynikiem (liczba rund), zapis rekordu i restart od rundy 1. `P`
 - [ ] **Model paszczy** (siatka, animacja otwierania i zamykania). `G`
 - [ ] **Model gracza** (low poly, animacje: bieg, atak, unik, obrażenia, śmierć). `G`
 - [ ] **Materiał i wygląd ciała węża** (łuski, kolory, różne warianty segmentów). `G`
@@ -49,7 +49,7 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 
 ## Etap 2b: progresja (MUST)
 
-- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku), zapis stanu na początku rundy i przywracanie po śmierci. `C`
+- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku); reset poziomu i sprzętu przy śmierci. `C`
 - [ ] **Skalowanie trudności** wrogów po segmencie i rundzie, tak by samo bieganie nie wystarczało. `P`
 - [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
 - [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`
@@ -79,10 +79,10 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 ## Decyzje do podjęcia
 
 - [x] Termin: 30 h.
-- [x] Co po śmierci: restart bieżącej rundy.
+- [x] Co po śmierci: koniec przejścia, restart od rundy 1. Rekord = liczba ukończonych rund.
 - [x] Typy wrogów: biegacz, strzelec, pancerny, rój.
 - [x] Audio: mieszanka CC0, pracy ręcznej i syntezatorów.
 - [ ] Dokładne zachowania i statystyki wrogów.
-- [x] Poziom i sprzęt zostają między rundami, po śmierci wracają do stanu z początku rundy.
+- [x] Poziom i sprzęt zostają między rundami, ale giną ze śmiercią (nowa gra od zera).
 - [ ] Szczegóły progresji: krzywa XP, sloty i typy przedmiotów, źródła.
 - [ ] Paleta kolorów i referencje wizualne.

@@ -43,9 +43,9 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 3. Gracz walczy lub ich omija. Straty HP i czas spędzony w walce zmniejszają przewagę nad paszczą.
 4. Gracz okrąża cały torus i dociera na czubek głowy węża (za paszczą).
 5. **Zwycięstwo rundy.** Zaczyna się kolejna runda: paszcza jest szybsza, wrogów jest więcej.
-6. Śmierć (paszcza albo HP = 0) restartuje **bieżącą rundę** z jej parametrami (prędkość paszczy, liczba wrogów). Numer rundy nie spada.
+6. Śmierć (paszcza albo HP = 0) **kończy całe przejście**: kasuje rundę i cały postęp (poziom, sprzęt). Gracz zaczyna od rundy 1, a ekran śmierci pokazuje, ile rund przetrwał.
 
-**Runda** to jedno pełne okrążenie: od startu przed paszczą do dotarcia na czubek głowy. Po każdej wygranej rundzie kolejna ma szybszą paszczę i więcej wrogów. Rund jest tyle, ile gracz wytrzyma, więc „najlepszy wynik” to numer najdalszej rundy.
+**Runda** to jedno pełne okrążenie: od startu przed paszczą do dotarcia na czubek głowy. Po każdej wygranej rundzie kolejna ma szybszą paszczę i więcej wrogów. Rund jest tyle, ile gracz wytrzyma. **Rekord gracza to liczba ukończonych rund**: im więcej, tym lepszy wynik. Rekord zapisujemy i pokazujemy na ekranie startowym i śmierci.
 
 ## 7. Gracz
 
@@ -71,7 +71,7 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 - **Trudność rośnie wraz z postępem:** wrogowie w dalszych segmentach i w kolejnych rundach są mocniejsi i liczniejsi, a paszcza szybsza. Początek okrążenia jest łatwy (dobre miejsce na zdobywanie XP), dalsza część wymaga poziomów i sprzętu.
 - **Dylemat:** walka daje siłę, ale kosztuje czas, a paszcza goni. Pominięcie walk na początku oznacza słabszego gracza później.
 - **Kolejne rundy:** poziom i ekwipunek **zostają** po wygranej rundzie. Trudność kolejnej rundy rośnie szybciej niż samo wzmocnienie gracza.
-- **Po śmierci:** restart bieżącej rundy (patrz sekcja 6). Poziom i sprzęt **wracają do stanu z początku tej rundy**, więc zdobyte w nieudanej próbie XP i przedmioty przepadają. Gracz musi je zdobyć od nowa.
+- **Po śmierci:** koniec przejścia, poziom i sprzęt przepadają, nowa gra zaczyna się od rundy 1 (patrz sekcja 6). To klasyczny roguelite: każda próba zaczyna od zera.
 - Rozbudowana meta-progresja (waluta, drzewko ulepszeń poza rundą) jest poza zakresem.
 
 ## 10. Czytelność i interfejs
