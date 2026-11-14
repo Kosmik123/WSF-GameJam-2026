@@ -36,7 +36,6 @@ namespace WSFGameJam2026.World
         private readonly TorusSurface surface;
         private readonly TorusHeadTerrain terrain;
         private readonly int sidesResolution;
-        private readonly float[] columnNeckHeights;
         private int appliedVersion = -1;
 
         public TorusHeadMeshBlender(TorusSurface surface, IReadOnlyList<Mesh> meshes, int sidesResolution, TorusHeadTerrain terrain)
@@ -44,7 +43,6 @@ namespace WSFGameJam2026.World
             this.surface = surface;
             this.terrain = terrain;
             this.sidesResolution = sidesResolution;
-            columnNeckHeights = new float[sidesResolution + 1];
 
             segments = new SegmentData[meshes.Count];
             for (int i = 0; i < segments.Length; i++)
@@ -154,21 +152,16 @@ namespace WSFGameJam2026.World
 
         private void Deform(SegmentData data, int segmentIndex)
         {
-            for (int column = 0; column < data.Columns; column++)
-                columnNeckHeights[column] = terrain.GetNeckHeight(GetColumnPhi(column));
-
             data.Vertices.Clear();
             for (int row = 0; row < data.Rows; row++)
             {
-                float weight = terrain.GetWeight(GetRowTheta(data, row));
+                float theta = GetRowTheta(data, row);
                 for (int column = 0; column < data.Columns; column++)
                 {
                     int index = row * data.Columns + column;
-                    var vertex = data.OriginalVertices[index];
-                    if (weight > 0f)
-                        vertex += data.BaseNormals[index] * ((columnNeckHeights[column] - data.Heights[index]) * weight);
-
-                    data.Vertices.Add(vertex);
+                    float height = data.Heights[index];
+                    float newHeight = terrain.Apply(height, theta, GetColumnPhi(column), surface.MinorRadius);
+                    data.Vertices.Add(data.OriginalVertices[index] + data.BaseNormals[index] * (newHeight - height));
                 }
             }
 

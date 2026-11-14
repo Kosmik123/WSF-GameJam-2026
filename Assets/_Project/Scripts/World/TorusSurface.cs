@@ -127,7 +127,7 @@ namespace WSFGameJam2026.World
                 BlendWidth,
                 GetBasePoint(wrapped, phi));
 
-            return HeadTerrain == null ? height : HeadTerrain.Apply(height, wrapped, phi);
+            return HeadTerrain == null ? height : HeadTerrain.Apply(height, wrapped, phi, MinorRadius);
         }
 
         private TorusSegmentProfile GetAssignedProfile(IReadOnlyList<TorusSegmentProfile> segmentProfiles, int segmentIndex)
