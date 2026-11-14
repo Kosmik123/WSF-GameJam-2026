@@ -33,6 +33,8 @@ namespace WSFGameJam2026.Head
         /// <summary>Angle along the snake body, in radians.</summary>
         public float Theta => theta;
 
+        public TorusWorld World => world;
+
         private void Reset()
         {
             world = FindAnyObjectByType<TorusWorld>();

@@ -44,15 +44,8 @@ namespace WSFGameJam2026.Combat
         private void OnEnable()
         {
             Enemy.OnAnyEnemyDamaged += Enemy_OnAnyEnemyDamaged;
-            if (playerHealth != null)
+            if (playerHealth)
                 playerHealth.OnDamaged += PlayerHealth_OnDamaged;
-        }
-
-        private void OnDisable()
-        {
-            Enemy.OnAnyEnemyDamaged -= Enemy_OnAnyEnemyDamaged;
-            if (playerHealth != null)
-                playerHealth.OnDamaged -= PlayerHealth_OnDamaged;
         }
 
         private void Enemy_OnAnyEnemyDamaged(Enemy enemy, DamageInfo damage)
@@ -69,8 +62,15 @@ namespace WSFGameJam2026.Combat
 
         private void Shake(Vector2 amplitudeAndDuration)
         {
-            if (followCamera != null)
+            if (followCamera)
                 followCamera.Shake(amplitudeAndDuration.x, amplitudeAndDuration.y);
+        }
+
+        private void OnDisable()
+        {
+            Enemy.OnAnyEnemyDamaged -= Enemy_OnAnyEnemyDamaged;
+            if (playerHealth)
+                playerHealth.OnDamaged -= PlayerHealth_OnDamaged;
         }
     }
 }

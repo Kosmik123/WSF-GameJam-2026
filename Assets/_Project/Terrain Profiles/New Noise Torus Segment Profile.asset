@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: New Noise Torus Segment Profile
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.NoiseTorusSegmentProfile
   lengthResolution: 32
-  materialOverride: {fileID: 2100000, guid: 97a0612ab3ed0334f91417a7cb35ddda, type: 2}
+  materialOverride: {fileID: 2100000, guid: 9a14f5c2e236d1b44b507837755b216f, type: 2}
   amplitude: 1
   frequency: 0.15
   octaves: 4

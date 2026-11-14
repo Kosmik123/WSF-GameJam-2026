@@ -33,9 +33,9 @@ namespace WSFGameJam2026.Player
         private float turnSpeedDegrees = 180f;
 
         private TorusObject torusObject;
-        private Vector2 smoothedInput;
-
         public TorusObject TorusObject => torusObject;
+
+        private Vector2 smoothedInput;
 
         /// <summary>Smoothed input: x = turn, y = forward/back. Read by combat (dodge direction).</summary>
         public Vector2 SmoothedInput => smoothedInput;

@@ -14,36 +14,39 @@ namespace WSFGameJam2026.Enemies
         [Header("Movement")]
         [SerializeField]
         [Min(0f)]
-        protected float moveSpeed = 4f;
+        private float moveSpeed = 4f;
 
         [Tooltip("Turning speed in degrees per second.")]
         [SerializeField]
         [Min(0f)]
-        protected float turnSpeedDegrees = 360f;
+        private float turnSpeedDegrees = 360f;
 
         [Tooltip("Target further than this (along the surface) is not noticed.")]
         [SerializeField]
         [Min(0f)]
-        protected float detectRange = 18f;
+        private float detectRange = 18f;
+        protected float DetectRange => detectRange;
+
+        private Knockback knockback;
+        private BodyFlash bodyFlash;
+        protected BodyFlash BodyFlash => bodyFlash;
 
         protected Enemy Enemy { get; private set; }
         protected TorusObject TorusObject { get; private set; }
         protected Health Health { get; private set; }
-        protected BodyFlash BodyFlash { get; private set; }
-        private Knockback knockback;
 
         protected Health Target => Enemy.Target;
 
         /// <summary>The enemy can act: alive, after the spawn delay, not being pushed, with a living target.</summary>
-        protected bool CanAct => Enemy.IsActive && (knockback == null || knockback.IsActive == false) && Target != null && Target.IsDead == false;
+        protected bool CanAct => Enemy.IsActive && (knockback == null || knockback.IsActive == false) && Target && Target.IsDead == false;
 
         protected virtual void Awake()
         {
             Enemy = GetComponent<Enemy>();
             TorusObject = GetComponent<TorusObject>();
             Health = GetComponent<Health>();
-            BodyFlash = GetComponent<BodyFlash>();
-            knockback = GetComponent<Knockback>();
+            TryGetComponent(out bodyFlash);
+            TryGetComponent(out knockback);
         }
 
         /// <summary>Surface offset from this enemy to the target (see <see cref="TorusObject.GetSurfaceOffsetTo(TorusObject)"/>).</summary>
