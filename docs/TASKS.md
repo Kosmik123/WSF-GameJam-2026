@@ -39,7 +39,9 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] **Gracz: ruch po torusie** w współrzędnych `(θ, φ)`, orientacja według normalnej powierzchni, sterowanie (Input System). `C`
 - [x] **Kamera** z góry pod skosem, podążająca za graczem. Orientację „góry ekranu” i obrót kamery ustawimy przy dostrajaniu walki, tak by była wygodna (odłożone). `C`
 - [x] **Paszcza (logika):** jednostajny ruch po `θ` (`HeadMovement`), strefa działa na każde `Health`: gracza stopniowo pozbawia życia, NPC zabija od razu (pole `MawDamageMode` w `Health`, `MawKillZone`, tylko kąty). `C`
-- [x] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia na czubek głowy: `LapTracker` (suma zmian kąta gracz-głowa, tylko `θ`). `C`
+- [x] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia do miejsca za głową (`goalBehindHeadDegrees`): `LapTracker` (suma zmian kąta gracz-głowa, tylko `θ`). Decyzja: chodzenie po głowie odpada (pivot głowy nie jest u podstawy, obrót daje schody między głową a segmentem). `C`
+- [x] **Wrażliwy punkt węża** za głową, w miejscu mety: `WeakPoint` (podąża za głową, po wygranej gracz obraca się do niego, hit stop, puls placeholdera, zdarzenie `OnStruck`, opcjonalne triggery animatorów), menu *WSF GameJam/Setup/Create Weak Point*. Sprawdzone w scenie `Game`. `C`
+  - [ ] Model wrażliwego punktu i animacja ataku gracza na niego (pola `visual`, `animator`, `playerAnimator`). `G`
 - [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci z wynikiem (liczba rund), zapis rekordu i restart od rundy 1. `P`
   - [x] Logika: `RoundController` (przerwa po rundzie, szybsza paszcza i mnożnik wrogów, śmierć kończy przejście, rekord w `PlayerPrefs`, restart od rundy 1), menu *WSF GameJam/Setup/Create Round Loop*. Nie testowane w Unity. `C`
   - [x] Ekran zwycięstwa rundy i ekran śmierci z wynikiem i rekordem: `RoundScreens` (zdarzenia `OnRoundCompleted`, `OnRunEnded`), menu *WSF GameJam/Setup/Create Round Screens*, nie testowane w Unity. `C`
