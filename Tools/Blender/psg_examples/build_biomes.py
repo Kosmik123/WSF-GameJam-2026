@@ -1,6 +1,6 @@
 """Builds Assets/Blender/PSG_Biomes.blend: 6 biomes x 3 terrain pieces in one seamless row.
 
-Each biome is 3 neighbouring 40x40 m pieces with different landforms, its own palette and
+Each biome is one 40 x 40 m segment split into 3 pieces (13.3 x 40 m) with different landforms, its own palette and
 scatter from the biome assets (linked from all_models.blend, not copied). All pieces share the
 same flat Edge Level, so every piece joins its neighbours, also across biomes.
 
@@ -8,6 +8,7 @@ Run (from the repository root):
     blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py
 """
 
+import json
 import math
 import os
 import sys
@@ -24,9 +25,12 @@ REPO = os.path.normpath(os.path.join(HERE, "..", "..", ".."))
 LIBRARY = os.path.join(REPO, "Assets", "Blender", "all_models.blend")
 OUTPUT = os.path.join(REPO, "Assets", "Blender", "PSG_Biomes.blend")
 
-PIECE_SIZE = 40.0
-PIECE_CUTS = 40  # same spacing on every piece -> shared edges match vertex for vertex
+SEGMENT_SIZE = 40.0  # one biome = one 40 x 40 m segment ...
+PIECE_WIDTH = SEGMENT_SIZE / 3.0  # ... split along X into 3 pieces of 13.3 x 40 m
+PIECE_CUTS_X = 13
+PIECE_CUTS_Y = 40  # same Y spacing on every piece -> shared edges match vertex for vertex
 EDGE_LEVEL = 0.5
+EDGE_BLEND = 2.5  # narrow pieces: short blend into the flat seam keeps most of the landform
 
 # biome -> 3 pieces: (shape preset, overrides, seed). Order = order along X (and around the torus).
 BIOMES = {
@@ -79,9 +83,11 @@ def link_biome_collections():
 
 
 def build_piece(biome, index, preset, overrides, seed, location):
-    bpy.ops.mesh.primitive_grid_add(x_subdivisions=PIECE_CUTS, y_subdivisions=PIECE_CUTS,
-                                    size=PIECE_SIZE, location=location)
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=PIECE_CUTS_X, y_subdivisions=PIECE_CUTS_Y,
+                                    size=SEGMENT_SIZE, location=location)
     piece = bpy.context.active_object
+    for vertex in piece.data.vertices:
+        vertex.co.x *= PIECE_WIDTH / SEGMENT_SIZE  # 40 x 40 grid -> 13.3 x 40 strip, transform stays clean
     piece.name = "Teren_%s_%d" % (biome, index + 1)
     piece.data.name = piece.name
     biome_collection = core.ensure_child_collection(bpy.context.scene.collection, "Teren_" + biome)
@@ -96,6 +102,7 @@ def build_piece(biome, index, preset, overrides, seed, location):
     settings.seed = seed
     settings.flat_edges = True
     settings.edge_level = EDGE_LEVEL
+    settings.edge_flatten = EDGE_BLEND
 
     bpy.ops.object.select_all(action='DESELECT')
     piece.select_set(True)
@@ -156,10 +163,25 @@ def lakes(piece, liquid_type, seed, size, coverage, variation, max_crossing, cro
     core.set_liquid_palette(piece, liquid_type)
 
 
+_SHARED_MAZE = {}
+
+
 def biome_sides(piece, index):
-    """The outer sides of the biome are dry, so neighbouring biomes (no liquid) meet it on land."""
-    piece.psg_shape.dry_x_min = index == 0
-    piece.psg_shape.dry_x_max = index == 2
+    """The outer sides of the biome are dry, so neighbouring biomes (no liquid) meet it on land.
+
+    The maze (crossings) is computed once for the whole biome segment and shared by its 3 pieces,
+    so a causeway or ford continues across the seams between them."""
+    s = piece.psg_shape
+    s.dry_x_min = index == 0
+    s.dry_x_max = index == 2
+    if index == 0:
+        x0 = piece.location.x - PIECE_WIDTH * 0.5
+        y0 = piece.location.y - SEGMENT_SIZE * 0.5
+        maze = shape.grid_crossings(s, x0, x0 + SEGMENT_SIZE, y0, y0 + SEGMENT_SIZE, step=1.0,
+                                    dry_sides=('X_MIN', 'X_MAX'), dry_width=EDGE_BLEND)
+        _SHARED_MAZE[s.liquid_type] = json.dumps([[round(v, 4) for v in c] for c in maze])
+    s.crossings_json = _SHARED_MAZE[s.liquid_type]
+    s.lock_crossings = True
 
 
 def volcano(piece, index):
@@ -242,7 +264,7 @@ def main():
         for index, (preset, overrides, seed) in enumerate(pieces):
             piece = build_piece(biome, index, preset, overrides, seed, (x, 0.0, 0.0))
             print("PSG piece %-16s %-8s instances %d" % (piece.name, preset, piece.psg.instance_count))
-            x += PIECE_SIZE
+            x += PIECE_WIDTH
     bpy.ops.wm.save_as_mainfile(filepath=OUTPUT, relative_remap=True)
     print("PSG saved", OUTPUT)
 

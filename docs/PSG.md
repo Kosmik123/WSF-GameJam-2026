@@ -116,7 +116,7 @@ Inspiracje: tarasowanie wysokości do płaskowyżów i warstwy noise (baza, gór
 
 ## Przykładowe biomy: `Assets/Blender/PSG_Biomes.blend`
 
-Sześć biomów, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek), razem 18 kawałków na 720 m. Wszystkie stoją w jednym rzędzie wzdłuż X, w tej kolejności, i łączą się ze sobą, także na granicach biomów. Każdy biom ma własną paletę terenu i scatter z presetu biomu, a każdy kawałek inne ukształtowanie:
+Sześć biomów. Każdy biom to jeden segment 40×40 m podzielony wzdłuż X na 3 kawałki 13,3×40 m (Grid 13×40 oczek), razem 18 kawałków na 240 m. Labirynt cieczy (Wulkan, Bagno) jest liczony raz dla całego segmentu (`shape.grid_crossings`) i wspólny dla jego 3 kawałków (*Lock Crossings*), więc groble i brody przechodzą przez szwy. Przejście w płaski szew zajmuje 2,5 m (*Edge Blend*). Wszystkie stoją w jednym rzędzie wzdłuż X, w tej kolejności, i łączą się ze sobą, także na granicach biomów. Każdy biom ma własną paletę terenu i scatter z presetu biomu, a każdy kawałek inne ukształtowanie:
 
 | Biom | Kawałek 1 | Kawałek 2 | Kawałek 3 |
 |---|---|---|---|
