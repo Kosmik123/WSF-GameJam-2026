@@ -397,7 +397,9 @@ MonoBehaviour:
   segmentCount: 6
   sidesResolution: 100
   segmentProfiles:
+  - {fileID: 11400000, guid: 6937a97d2eccab64d945ad258f08e3cc, type: 2}
   - {fileID: 11400000, guid: 87674302184b64446ae71370ee32cfb4, type: 2}
+  - {fileID: 11400000, guid: fdf2e221983bfb6458ee27b4316bea44, type: 2}
   blendWidth: 0.2
   defaultMaterial: {fileID: 0}
   generateColliders: 1
@@ -427,7 +429,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1527296985}
   - component: {fileID: 1527296987}
-  - component: {fileID: 1527296986}
   m_Layer: 0
   m_Name: CinemachineCamera
   m_TagString: Untagged
@@ -450,19 +451,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1703670339}
   m_LocalEulerAnglesHint: {x: 25.3, y: 0, z: 0}
---- !u!114 &1527296986
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1527296984}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e8b78ac948f05a46a6d8339a503172b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLookAt
-  LookAtOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &1527296987
 MonoBehaviour:
   m_ObjectHideFlags: 0
