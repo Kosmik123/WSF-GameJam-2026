@@ -33,6 +33,8 @@ namespace WSFGameJam2026.World
         /// </summary>
         protected abstract bool TryBuildGrid(out float[] gridHeights, out Color[] gridColors, out int width, out int height);
 
+        public override bool ClampsAlong => true;
+
         public override void Invalidate()
         {
             isGridBuilt = false;
