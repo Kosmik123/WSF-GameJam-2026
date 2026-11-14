@@ -32,6 +32,11 @@ namespace WSFGameJam2026.Head
         [SerializeField]
         private float headFrontOffsetDegrees;
 
+        [Tooltip("How strongly the terrain takes the shape of the neck outline: 1 = fully (the blend between the head and the neck), 0 = no blending of the shape at all. The thinning tail below does not depend on it.")]
+        [SerializeField]
+        [Range(0f, 1f)]
+        private float blendStrength = 1f;
+
         [Tooltip("Added to the measured height of the outline. Positive lifts the terrain at the neck.")]
         [SerializeField]
         private float neckHeightOffset;
@@ -79,7 +84,10 @@ namespace WSFGameJam2026.Head
                 isMeasured = Measure();
 
             if (isMeasured)
+            {
+                world.HeadTerrain.SetBlendStrength(blendStrength);
                 world.HeadTerrain.SetTheta(movement.Theta);
+            }
         }
 
         private void OnDrawGizmosSelected()

@@ -637,7 +637,7 @@ namespace WSFGameJam2026.World
             var position = (Vector3)matrix.GetColumn(3) + placement.Up * (newHeight - placement.Height);
 
             // The pivot of an asset is on the ground, so scaling the axes shrinks it towards the terrain.
-            float scale = 1f - headTerrain.GetWeight(placement.Theta);
+            float scale = 1f - headTerrain.GetBlendWeight(placement.Theta);
             for (int axis = 0; axis < 3; axis++)
                 matrix.SetColumn(axis, matrix.GetColumn(axis) * scale);
 

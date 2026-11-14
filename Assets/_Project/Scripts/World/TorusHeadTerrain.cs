@@ -15,12 +15,16 @@ namespace WSFGameJam2026.World
         private const float TwoPi = TorusGeometry.TwoPi;
 
         private float[] neckHeights;
+        private float blendStrength = 1f;
         private AnimationCurve tailCurve;
 
         /// <summary>Changes every time anything affecting the terrain changes. Used to skip needless mesh updates.</summary>
         public int Version { get; private set; }
 
         public bool IsActive => neckHeights != null;
+
+        /// <summary>How strongly the terrain takes the shape of the head's neck outline (0-1). 0 = not at all. The thinning tail does not depend on it.</summary>
+        public float BlendStrength => blendStrength;
 
         /// <summary>Theta of the head's pivot, in radians.</summary>
         public float Theta { get; private set; }
@@ -47,6 +51,16 @@ namespace WSFGameJam2026.World
             HeadLength = Mathf.Max(0f, headLength);
             BlendLength = Mathf.Max(0f, blendLength);
             neckHeights = heights != null && heights.Length > 0 ? (float[])heights.Clone() : null;
+            Version++;
+        }
+
+        public void SetBlendStrength(float strength)
+        {
+            strength = Mathf.Clamp01(strength);
+            if (Mathf.Approximately(strength, blendStrength))
+                return;
+
+            blendStrength = strength;
             Version++;
         }
 
@@ -86,6 +100,11 @@ namespace WSFGameJam2026.World
         /// Weight of the head outline (0-1) at the given theta: 1 on the head, fading out behind the neck.
         /// Ahead of the head the terrain (the tail being eaten) is left alone, so the weight is 0 there.
         /// </summary>
+        public float GetBlendWeight(float theta)
+        {
+            return GetWeight(theta) * blendStrength;
+        }
+
         public float GetWeight(float theta)
         {
             if (IsActive == false)
@@ -130,7 +149,7 @@ namespace WSFGameJam2026.World
         /// <summary>Terrain height after the head shaped it: the neck outline on and behind the head, a thinner tube on the tail ahead of it.</summary>
         public float Apply(float terrainHeight, float theta, float phi, float minorRadius)
         {
-            float weight = GetWeight(theta);
+            float weight = GetBlendWeight(theta);
             if (weight > 0f)
                 return Mathf.Lerp(terrainHeight, GetNeckHeight(phi), weight);
 
