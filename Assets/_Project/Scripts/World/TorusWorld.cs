@@ -57,9 +57,7 @@ namespace WSFGameJam2026.World
         {
             get
             {
-                if (surface == null)
-                    surface = new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
-
+                surface ??= new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
                 return surface;
             }
         }
