@@ -5,6 +5,16 @@ using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Combat
 {
+    /// <summary>How the jaw hurts a body that stands in its zone.</summary>
+    public enum MawDamageMode
+    {
+        /// <summary>Kills at once.</summary>
+        Instant,
+
+        /// <summary>Takes hit points over time.</summary>
+        Gradual,
+    }
+
     /// <summary>
     /// Hit points of the player or an enemy. Every enabled Health registers itself, so attacks find their targets
     /// by distance on the torus surface (<see cref="CombatQueries"/>) instead of colliders and physics.
@@ -29,6 +39,10 @@ namespace WSFGameJam2026.Combat
         [Min(1)]
         private int maxHealth = 30;
 
+        [Tooltip("What the jaw does to this body. Instant = dies at once (NPCs), Gradual = loses hit points over time (the player).")]
+        [SerializeField]
+        private MawDamageMode mawDamageMode = MawDamageMode.Instant;
+
         [Tooltip("Radius of the body on the surface. Attacks reach the edge of the body, not only its centre.")]
         [SerializeField]
         [Min(0f)]
@@ -45,6 +59,7 @@ namespace WSFGameJam2026.Combat
         public CombatTeam Team => team;
         public int MaxHealth => maxHealth;
         public int CurrentHealth => currentHealth;
+        public MawDamageMode MawDamageMode => mawDamageMode;
         public float BodyRadius => bodyRadius;
         public TorusObject TorusObject => torusObject;
         public bool IsDead => currentHealth <= 0;
