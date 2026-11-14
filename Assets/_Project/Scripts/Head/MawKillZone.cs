@@ -33,6 +33,10 @@ namespace WSFGameJam2026.Head
         [SerializeField]
         private AnimationCurve backReachDegrees = CreateDefaultCurve(8f, 2f);
 
+        [Tooltip("Turns the direction in which the shape follows the rotation of this object. Use it when the shape turns the other way than the object (for example when the object itself is turned around in its parent).")]
+        [SerializeField]
+        private bool flipRotation;
+
         [Header("Editor")]
         [SerializeField]
         private bool drawGizmos = true;
@@ -83,7 +87,8 @@ namespace WSFGameJam2026.Head
             // (phi 180) and its up to phi 90, so growing phi turns against the roll: see GetShapePosition.
             var relative = Quaternion.Inverse(head.transform.rotation) * transform.rotation;
             var right = relative * Vector3.right;
-            return Mathf.Atan2(right.y, right.x) * Mathf.Rad2Deg;
+            var roll = Mathf.Atan2(right.y, right.x) * Mathf.Rad2Deg;
+            return flipRotation ? -roll : roll;
         }
 
         /// <summary>
