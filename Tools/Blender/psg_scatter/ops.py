@@ -238,6 +238,27 @@ class PSG_OT_shape_terrain(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class PSG_OT_liquid_palette(bpy.types.Operator):
+    bl_idname = "psg.liquid_palette"
+    bl_label = "Liquid Palette"
+    bl_description = "Default colors for lava (glowing) or bog (dark water, algae, muddy fords)"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    liquid_type: EnumProperty(items=[('LAVA', "Lava", ""), ('BOG', "Bog", "")])
+
+    @classmethod
+    def poll(cls, context):
+        return terrain_target(context) is not None
+
+    def execute(self, context):
+        obj = terrain_target(context)
+        obj.psg_ground.is_ground = True
+        obj.psg_ground.terrain_enabled = True
+        core.set_liquid_palette(obj, self.liquid_type)
+        core.repaint_ground(obj)
+        return {'FINISHED'}
+
+
 class PSG_OT_shape_reset(bpy.types.Operator):
     bl_idname = "psg.shape_reset"
     bl_label = "Reset Shape"
@@ -639,7 +660,7 @@ def select_only(context, objects):
 
 CLASSES = (
     PSG_OT_draw_annotation, PSG_OT_annotation_to_path, PSG_OT_make_path, PSG_OT_make_area,
-    PSG_OT_area_preset, PSG_OT_paint_terrain, PSG_OT_shape_terrain, PSG_OT_shape_reset, PSG_OT_create_ground,
+    PSG_OT_area_preset, PSG_OT_paint_terrain, PSG_OT_shape_terrain, PSG_OT_liquid_palette, PSG_OT_shape_reset, PSG_OT_create_ground,
     PSG_OT_generate, PSG_OT_clear, PSG_OT_reset_edits, PSG_OT_bake, PSG_OT_display_all, PSG_OT_repaint,
     PSG_OT_select_instances, PSG_OT_select_path,
     PSG_OT_layer_add, PSG_OT_layer_remove, PSG_OT_layer_move, PSG_OT_layer_reseed,

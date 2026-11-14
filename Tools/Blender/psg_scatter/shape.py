@@ -5,7 +5,9 @@ reshape starts from them. Height is normalized to [0, Max Height], so the terrai
 taller than the budget (important once the segment is bent around the torus).
 """
 
+import json
 import math
+import random
 
 import bmesh
 import bpy
@@ -190,6 +192,14 @@ def shape_terrain(obj):
     edge_level = min(settings.edge_level, settings.max_height)
     lift = edge_level + (height * settings.max_height - edge_level) * mask
 
+    if settings.liquid_enabled:
+        lift = apply_liquid(obj, settings, world_xy, lift, edge_level, border, xy)
+    else:
+        settings.crossings_json = ""
+        for name in (LIQUID_ATTRIBUTE, FORD_ATTRIBUTE):
+            if name in mesh.attributes:
+                mesh.attributes.remove(mesh.attributes[name])
+
     co = np.empty((len(rest), 3))
     co[:, :2] = xy
     co[:, 2] = rest[:, 2] + lift
@@ -198,6 +208,215 @@ def shape_terrain(obj):
     for polygon in mesh.polygons:
         polygon.use_smooth = False
     return float(co[:, 2].max() - co[:, 2].min())
+
+
+# ----------------------------------------------------------------------------------------------
+# Liquid: lava lakes / deep bog, carved as a Voronoi channel network around islands (a maze)
+# ----------------------------------------------------------------------------------------------
+
+LIQUID_ATTRIBUTE = "psg_liquid"  # per vertex: distance to the channel center / local width (<1 = liquid)
+FORD_ATTRIBUTE = "psg_ford"      # per vertex: 1 on a shallow crossing (bog fords)
+
+
+def _cell_hash(cx, cy, salt):
+    key = (cx.astype(np.int64) * 73856093) ^ (cy.astype(np.int64) * 19349663) ^ np.int64(salt * 83492791)
+    return _hash01(np.abs(key), salt)
+
+
+def voronoi_2d(xy, size, seed):
+    """Exact 2D Voronoi on a jittered grid (one site per cell), world space and seamless.
+
+    Returns (gap, id_a, id_b, site_a, site_b): gap = F2 - F1 in meters (0 on a cell border,
+    about 2x the distance to the border), ids/sites of the nearest and second nearest site.
+    """
+    cell = np.floor(xy / size).astype(np.int64)
+    best = [np.full(len(xy), np.inf), np.full(len(xy), np.inf)]
+    ids = [np.zeros(len(xy), dtype=np.int64), np.zeros(len(xy), dtype=np.int64)]
+    sites = [np.zeros((len(xy), 2)), np.zeros((len(xy), 2))]
+    for dx in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            cx, cy = cell[:, 0] + dx, cell[:, 1] + dy
+            jitter = np.stack([_cell_hash(cx, cy, seed + 1), _cell_hash(cx, cy, seed + 2)], axis=1)
+            site = (np.stack([cx, cy], axis=1) + 0.1 + jitter * 0.8) * size
+            dist = np.linalg.norm(xy - site, axis=1)
+            site_id = cx * 1000003 + cy
+            first = dist < best[0]
+            second = ~first & (dist < best[1])
+            # shift first -> second where a new nearest appears
+            best[1] = np.where(first, best[0], np.where(second, dist, best[1]))
+            ids[1] = np.where(first, ids[0], np.where(second, site_id, ids[1]))
+            sites[1] = np.where(first[:, None], sites[0], np.where(second[:, None], site, sites[1]))
+            best[0] = np.where(first, dist, best[0])
+            ids[0] = np.where(first, site_id, ids[0])
+            sites[0] = np.where(first[:, None], site, sites[0])
+    return best[1] - best[0], ids[0], ids[1], sites[0], sites[1]
+
+
+def liquid_fields(settings, world_xy):
+    """(ratio, id_a, id_b, site_a, site_b, width) per point; ratio < 1 means inside the liquid."""
+    size = max(settings.liquid_size, 1.0)
+    # rotate and domain-warp, so the channels wind organically instead of following a grid
+    angle = 0.47 + settings.liquid_seed * 0.61
+    cos_a, sin_a = math.cos(angle), math.sin(angle)
+    rotated = world_xy @ np.array([[cos_a, sin_a], [-sin_a, cos_a]])
+    warp_inv = 1.0 / (size * 1.3)
+    seed_z = settings.liquid_seed * 0.53
+    warp_x = np.fromiter((_fbm(x * warp_inv, y * warp_inv, seed_z, 2) for x, y in rotated),
+                         dtype=np.float64, count=len(rotated))
+    warp_y = np.fromiter((_fbm(x * warp_inv + 31.7, y * warp_inv - 12.9, seed_z, 2) for x, y in rotated),
+                         dtype=np.float64, count=len(rotated))
+    warped = rotated + np.stack([warp_x, warp_y], axis=1) * size * settings.liquid_warp
+    gap, id_a, id_b, site_a, site_b = voronoi_2d(warped, size, settings.liquid_seed)
+    inv = 0.45 / size
+    vary = np.fromiter((noise.noise(Vector((x * inv + 7.1, y * inv + 3.3, settings.liquid_seed * 0.31)))
+                        for x, y in world_xy), dtype=np.float64, count=len(world_xy)) * 0.5 + 0.5
+    width = settings.liquid_width * (1.0 - settings.liquid_variation + 2.0 * settings.liquid_variation * vary)
+    return gap / np.maximum(width, 1e-3), id_a, id_b, site_a, site_b, width
+
+
+def liquid_sample(settings, x, y):
+    """(ratio, width) at one world point."""
+    ratio, _a, _b, _sa, _sb, width = liquid_fields(settings, np.array([[x, y]], dtype=np.float64))
+    return float(ratio[0]), float(width[0])
+
+
+def liquid_ratio_at(settings, x, y):
+    return liquid_sample(settings, x, y)[0]
+
+
+def dry_border_mask(settings, local_xy):
+    """1 inside, fading to 0 towards the sides marked dry (neighbour without liquid)."""
+    mask = np.ones(len(local_xy))
+    width = max(settings.edge_flatten, 1.0)
+    low, high = local_xy.min(axis=0), local_xy.max(axis=0)
+    sides = ((settings.dry_x_min, local_xy[:, 0] - low[0]), (settings.dry_x_max, high[0] - local_xy[:, 0]),
+             (settings.dry_y_min, local_xy[:, 1] - low[1]), (settings.dry_y_max, high[1] - local_xy[:, 1]))
+    for enabled, distance in sides:
+        if enabled:
+            mask = np.minimum(mask, _smoothstep(0.0, width, distance))
+    return mask
+
+
+def build_maze(settings, world_xy, ratios, pairs, widths):
+    """Crossings so every island is reachable (random spanning tree) plus a few extra loops.
+
+    Returns [(x, y, dir_x, dir_y, width)], one per chosen crossing, in world space.
+    """
+    size = max(settings.liquid_size, 1.0)
+    groups = {}
+    for index, pair in enumerate(pairs):
+        if pair is not None:
+            groups.setdefault(pair[:2], []).append(index)
+    rng = random.Random(settings.seed * 7919 + 17)
+    edges = []
+    for (a, b), members in groups.items():
+        if len(members) < 3:
+            continue  # cells that only touch in a corner
+        members = np.array(members)
+        center = world_xy[members].mean(axis=0)
+        # a central, narrow spot on the channel's middle line
+        score = (ratios[members] * 4.0 + np.linalg.norm(world_xy[members] - center, axis=1) / size
+                 + widths[members] / size * 2.0)
+        best = members[int(np.argmin(score))]
+        # across the channel = along the gradient of the distance field (works with the warp)
+        x, y = world_xy[best]
+        step = max(widths[best] * 0.35, 0.3)
+        probe = np.array([[x + step, y], [x - step, y], [x, y + step], [x, y - step]])
+        probe_ratio, _a, _b, _sa, _sb, probe_width = liquid_fields(settings, probe)
+        gap = probe_ratio * probe_width
+        direction = np.array([gap[0] - gap[1], gap[2] - gap[3]])
+        norm = np.linalg.norm(direction)
+        if norm < 1e-6:
+            continue
+        direction /= norm
+        edges.append((rng.random(), a, b, (float(world_xy[best, 0]), float(world_xy[best, 1]),
+                                           float(direction[0]), float(direction[1]), float(widths[best]))))
+    parent = {}
+
+    def find(key):
+        parent.setdefault(key, key)
+        while parent[key] != key:
+            parent[key] = parent[parent[key]]
+            key = parent[key]
+        return key
+
+    crossings = []
+    for _weight, a, b, crossing in sorted(edges):
+        root_a, root_b = find(a), find(b)
+        if root_a != root_b:
+            parent[root_a] = root_b
+            crossings.append(crossing)
+        elif rng.random() < settings.liquid_loops:
+            crossings.append(crossing)
+    return crossings
+
+
+def ford_mask(world_xy, crossings, ford_width):
+    """1 inside a strip along each crossing (perpendicular to the channel), 0 elsewhere."""
+    mask = np.zeros(len(world_xy))
+    half = max(ford_width * 0.5, 0.05)
+    for x, y, dx, dy, width in crossings:
+        rel = world_xy - np.array([x, y])
+        along = rel @ np.array([dx, dy])
+        across = np.abs(rel @ np.array([-dy, dx]))
+        length = width * 0.75 + 1.0
+        inside = (1.0 - _smoothstep(half * 0.6, half, across)) * (1.0 - _smoothstep(length * 0.8, length, np.abs(along)))
+        mask = np.maximum(mask, inside)
+    return mask
+
+
+def apply_liquid(obj, settings, world_xy, lift, edge_level, border, local_xy):
+    """Carve the liquid network into the terrain heights, store masks and the crossing list.
+
+    The liquid comes from a world-space field with a shared Liquid Seed, so it continues across
+    neighbouring pieces of a biome and the shared border stays identical. Sides marked dry fade the
+    liquid out (neighbour without liquid). Fords are per piece, so they never touch the border.
+    """
+    mesh = obj.data
+    count = len(world_xy)
+    ratios, id_a, id_b, site_a, site_b, widths = liquid_fields(settings, world_xy)
+    dry = dry_border_mask(settings, local_xy)
+    ratios = ratios + (1.0 - dry) * 3.0
+    pairs = [None] * count
+    for i in np.flatnonzero(ratios < 1.0):
+        if id_a[i] < id_b[i]:
+            pairs[i] = (int(id_a[i]), int(id_b[i]), tuple(site_a[i]), tuple(site_b[i]))
+        else:
+            pairs[i] = (int(id_b[i]), int(id_a[i]), tuple(site_b[i]), tuple(site_a[i]))
+
+    crossings = build_maze(settings, world_xy, ratios, pairs, widths)
+    settings.crossings_json = json.dumps([[round(v, 4) for v in c] for c in crossings])
+
+    level = settings.liquid_level
+    floor = min(level + settings.bank_height, edge_level)
+    land = np.maximum(lift, floor)  # land always stands above the liquid
+    liquid = 1.0 - _smoothstep(0.85, 1.15, ratios)
+    result = land + (level - land) * liquid
+    fords = np.zeros(count)
+    if settings.liquid_type == 'BOG' and crossings:
+        fords = ford_mask(world_xy, crossings, settings.ford_width) * liquid
+        fords[border] = 0.0
+        result = result + (level + settings.ford_height - result) * fords
+
+    _store_point_float(mesh, LIQUID_ATTRIBUTE, ratios)
+    _store_point_float(mesh, FORD_ATTRIBUTE, fords)
+    return result
+
+
+def _store_point_float(mesh, name, values):
+    attr = mesh.attributes.get(name)
+    if attr is None or attr.domain != 'POINT' or attr.data_type != 'FLOAT':
+        if attr is not None:
+            mesh.attributes.remove(attr)
+        attr = mesh.attributes.new(name, 'FLOAT', 'POINT')
+    attr.data.foreach_set("value", values.astype(np.float32))
+
+
+def crossings(obj):
+    try:
+        return [tuple(c) for c in json.loads(obj.psg_shape.crossings_json or "[]")]
+    except ValueError:
+        return []
 
 
 def reset_shape(obj):

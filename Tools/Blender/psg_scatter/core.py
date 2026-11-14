@@ -19,6 +19,7 @@ OUTPUT_ROOT = "PSG_Generated"
 PATHS_COLLECTION = "PSG_Paths"
 COLOR_ATTRIBUTE = "Col"
 GROUND_MATERIAL = "LD57 Stylized"
+GLOW_MATERIAL = "LD57 Stylized Glow"
 MATRIX_TOLERANCE = 1e-4
 
 
@@ -481,6 +482,110 @@ def terrain_colors(settings, points, normals, element_ids, z_range=None):
     return color
 
 
+def _element_values(mesh, name, per_face):
+    attr = mesh.attributes.get(name)
+    count = len(mesh.vertices)
+    values = np.zeros(count, dtype=np.float32)
+    if attr is not None:
+        attr.data.foreach_get("value", values)
+    values = values.astype(np.float64)
+    if not per_face:
+        return values
+    loops = np.empty(len(mesh.loops), dtype=np.int32)
+    mesh.loops.foreach_get("vertex_index", loops)
+    starts = np.empty(len(mesh.polygons), dtype=np.int32)
+    mesh.polygons.foreach_get("loop_start", starts)
+    totals = np.empty(len(mesh.polygons), dtype=np.int32)
+    mesh.polygons.foreach_get("loop_total", totals)
+    return np.add.reduceat(values[loops], starts) / np.maximum(totals, 1)
+
+
+def liquid_colors(settings, liquid_type, rgb, points, ratios, fords):
+    """Lava: hot core -> orange -> dark red edge with floating crust; bog: dark depth with algae.
+
+    Land next to the liquid gets the shore tint (scorched rock / wet mud)."""
+    count = len(points)
+    t = np.clip(ratios, 0.0, 1.0)
+    core_mid = _smoothstep(0.0, 0.55, t)
+    mid_edge = _smoothstep(0.55, 1.0, t)
+    liquid = _lerp(np.tile(np.array(settings.liquid_core), (count, 1)),
+                   np.tile(np.array(settings.liquid_mid), (count, 1)), core_mid)
+    liquid = _lerp(liquid, np.tile(np.array(settings.liquid_edge), (count, 1)), mid_edge)
+    if settings.crust_amount > 0.0:
+        field = _noise_field(points, max(settings.crust_scale, 1e-3), settings.seed * 5.3 + 13.0)
+        crust = _smoothstep(0.05, 0.4, field) * settings.crust_amount * (0.35 + 0.65 * t)
+        liquid = _lerp(liquid, np.tile(np.array(settings.liquid_crust), (count, 1)), crust)
+    if liquid_type == 'BOG':
+        mud = _noise_field(points, 0.9, settings.seed * 2.1 + 5.0) * 0.12 + 1.0
+        ford = np.tile(np.array(settings.ford_color), (count, 1)) * mud[:, None]
+        liquid = _lerp(liquid, ford, np.clip(fords * 1.6, 0.0, 1.0))
+
+    is_liquid = ratios < 1.0
+    shore = (1.0 - _smoothstep(1.0, 1.0 + max(settings.near_reach, 1e-3), ratios)) * settings.near_strength
+    shore[is_liquid] = 0.0
+    result = _lerp(rgb, np.tile(np.array(settings.near_color), (count, 1)), shore)
+    result[is_liquid] = liquid[is_liquid]
+    return result
+
+
+def glow_material():
+    material = bpy.data.materials.get(GLOW_MATERIAL)
+    if material is not None:
+        return material
+    material = bpy.data.materials.new(GLOW_MATERIAL)
+    material.use_nodes = True
+    nodes = material.node_tree.nodes
+    bsdf = next((n for n in nodes if n.type == 'BSDF_PRINCIPLED'), None)
+    if bsdf is not None:
+        color = nodes.new("ShaderNodeVertexColor")
+        color.layer_name = COLOR_ATTRIBUTE
+        links = material.node_tree.links
+        links.new(color.outputs["Color"], bsdf.inputs["Base Color"])
+        links.new(color.outputs["Color"], bsdf.inputs["Emission Color"])
+        bsdf.inputs["Emission Strength"].default_value = 2.0
+    return material
+
+
+def assign_liquid_material(ground, liquid_faces):
+    """Slot 0 = ground material, slot 1 = glow (same slots as the assets) for glowing liquid faces."""
+    mesh = ground.data
+    glow = (liquid_faces is not None and ground.psg_ground.liquid_glow
+            and ground.psg_shape.liquid_type == 'LAVA')
+    indices = np.zeros(len(mesh.polygons), dtype=np.int32)
+    if glow:
+        if not mesh.materials:
+            mesh.materials.append(ground_material())
+        if len(mesh.materials) < 2:
+            mesh.materials.append(glow_material())
+        indices[liquid_faces] = 1
+    mesh.polygons.foreach_set("material_index", indices)
+
+
+LIQUID_PALETTES = {
+    'LAVA': dict(liquid_core="#ffd23a", liquid_mid="#ff7a1a", liquid_edge="#b3200d", liquid_crust="#3a1d14",
+                 crust_amount=0.55, crust_scale=0.35, near_color="#5a1c10", near_reach=1.2,
+                 near_strength=0.55, liquid_glow=True),
+    'BOG': dict(liquid_core="#0b120e", liquid_mid="#16201a", liquid_edge="#2c3320", liquid_crust="#45532a",
+                crust_amount=0.45, crust_scale=0.5, near_color="#2a2a18", near_reach=1.0,
+                near_strength=0.6, ford_color="#77704a", liquid_glow=False),
+}
+
+
+def _srgb_to_linear(hex_color):
+    h = hex_color.lstrip("#")
+    out = []
+    for i in (0, 2, 4):
+        c = int(h[i:i + 2], 16) / 255.0
+        out.append(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4)
+    return out
+
+
+def set_liquid_palette(ground, liquid_type):
+    settings = ground.psg_ground
+    for key, value in LIQUID_PALETTES[liquid_type].items():
+        setattr(settings, key, _srgb_to_linear(value) if isinstance(value, str) else value)
+
+
 def repaint_ground(ground):
     """Recompute the whole ground color: terrain shading (or flat base) + every path that targets it."""
     if ground is None or ground.type != 'MESH':
@@ -516,6 +621,16 @@ def repaint_ground(ground):
         rgb = terrain_colors(settings, points, normals, ids, shaped_height_range(ground))
     else:
         rgb = np.tile(np.array(settings.base_color[:3], dtype=np.float64), (element_count, 1))
+
+    liquid_faces = None
+    if settings.terrain_enabled and shape.LIQUID_ATTRIBUTE in mesh.attributes and ground.psg_shape.liquid_enabled:
+        ratios = _element_values(mesh, shape.LIQUID_ATTRIBUTE, faceted)
+        fords = _element_values(mesh, shape.FORD_ATTRIBUTE, faceted)
+        rgb = liquid_colors(settings, ground.psg_shape.liquid_type, rgb, points, ratios, fords)
+        face_ratios = _element_values(mesh, shape.LIQUID_ATTRIBUTE, True)
+        face_fords = _element_values(mesh, shape.FORD_ATTRIBUTE, True)
+        liquid_faces = (face_ratios < 1.0) & (face_fords < 0.5)
+    assign_liquid_material(ground, liquid_faces)
 
     coverage = np.zeros(element_count)
     paths = [p for p in all_paths() if p.psg.target == ground and p.psg.paint_enabled]
@@ -693,7 +808,7 @@ class SpatialHash:
 
 def placement_matrix(layer, position, tangent, normal, rolls, source, scale_factor=1.0):
     yaw = layer.yaw_offset + (rolls[1] - 0.5) * layer.yaw_random
-    if layer.align_to_path:
+    if layer.align_to_path or layer.mode == 'CROSSING':
         yaw += math.atan2(tangent.y, tangent.x)
     rotation = Quaternion((0.0, 0.0, 1.0), yaw)
     if normal is not None and layer.align_to_normal > 0.0:
@@ -703,8 +818,14 @@ def placement_matrix(layer, position, tangent, normal, rolls, source, scale_fact
     up = normal if normal is not None else Vector((0.0, 0.0, 1.0))
     location = position + up * layer.z_offset
     source_basis = source.matrix_world.to_3x3().to_4x4()
+    if layer.mode == 'CROSSING':
+        # stretch along the crossing only, so a long bridge does not get giant planks and rails
+        thick = min(max(scale, 0.9), 1.25)
+        scale_matrix = Matrix.Diagonal((scale, thick, thick, 1.0))
+    else:
+        scale_matrix = Matrix.Scale(scale, 4)
     return (Matrix.Translation(location) @ rotation.to_matrix().to_4x4()
-            @ Matrix.Scale(scale, 4) @ source_basis)
+            @ scale_matrix @ source_basis)
 
 
 class SurfaceSampler:
@@ -807,7 +928,47 @@ def around_candidates(layer, parents):
     return candidates
 
 
-def layer_placements(layer, candidates, raycast, occupied, avoid):
+def crossing_candidates(layer, area, raycast):
+    """One candidate per Liquid Maze crossing: centered on the channel, along it, long enough to span it."""
+    sources = layer_sources(layer)
+    if not sources:
+        return []
+    reference = sum(max(s.dimensions.x, 1e-3) for s in sources) / len(sources)
+    margin = 1.2
+    candidates = []
+    rng = random.Random("psg:%d:%d" % (layer.seed, layer.uid))
+    for x, y, dx, dy, width in shape.crossings(area):
+        direction = Vector((dx, dy, 0.0))
+        needed = width + 2.0 * margin
+        ends = []
+        for side in (-1.0, 1.0):
+            end = Vector((x, y, 0.0)) + direction * side * needed * 0.45
+            hit, _normal = raycast(end.x, end.y) if raycast is not None else (None, None)
+            if hit is not None:
+                ends.append(hit.z)
+        if len(ends) < 2:
+            continue  # crossing runs off the mesh
+        rolls = (rng.random(), 0.5, 0.0, rng.random())  # no random yaw/scale: it must fit the channel
+        position = Vector((x, y, min(ends) - 0.05))
+        candidates.append((stable_index(round(x, 2), round(y, 2)), position, direction, rolls,
+                           needed / reference, True))
+    return candidates
+
+
+def liquid_checker(area, margin):
+    """Callable (x, y) -> True when the point is in the liquid or within `margin` meters of it."""
+    if area is None or not is_area(area) or not area.psg_shape.liquid_enabled:
+        return None
+    settings = area.psg_shape
+
+    def blocked(x, y):
+        ratio, width = shape.liquid_sample(settings, x, y)
+        return ratio * width < width * 1.15 + 2.0 * margin  # gap grows ~2 m per meter from the border
+
+    return blocked
+
+
+def layer_placements(layer, candidates, raycast, occupied, avoid, liquid=None):
     """Yield (index, source, matrix, position, scale) for one layer."""
     sources = layer_sources(layer)
     if not sources:
@@ -818,7 +979,15 @@ def layer_placements(layer, candidates, raycast, occupied, avoid):
     max_slope_cos = math.cos(layer.max_slope)
     for index, position, tangent, rolls, *extra in candidates:
         scale_factor = extra[0] if extra else 1.0
+        fixed = len(extra) > 1 and extra[1]
         normal = None
+        if fixed:
+            source = pick_weighted(sources, rolls[0])
+            matrix = placement_matrix(layer, position, tangent, None, rolls, source, scale_factor)
+            yield index, source, matrix, position, scale_factor
+            continue
+        if liquid is not None and liquid(position.x, position.y):
+            continue
         if raycast is not None:
             hit, normal = raycast(position.x, position.y)
             if hit is None:
@@ -986,7 +1155,9 @@ def _regenerate(path, depsgraph):
         occupied = [p for _i, p, _s in placed.get(uid, [])]
         if not layer.enabled:
             continue
-        if layer.mode == 'AROUND':
+        if layer.mode == 'CROSSING':
+            candidates = crossing_candidates(layer, path, raycast) if area else []
+        elif layer.mode == 'AROUND':
             candidates = around_candidates(layer, placed.get(layer.parent, []))
         elif area:
             candidates = area_candidates(layer, sampler)
@@ -1000,7 +1171,9 @@ def _regenerate(path, depsgraph):
                     for _i, p, _s in items:
                         avoid.add(p)
         skip = kept.get(uid, set()) | excluded.get(uid, set())
-        for index, source, matrix, position, scale in layer_placements(layer, candidates, raycast, occupied, avoid):
+        liquid = liquid_checker(path, layer.liquid_margin) if layer.avoid_liquid and area else None
+        for index, source, matrix, position, scale in layer_placements(layer, candidates, raycast, occupied, avoid,
+                                                                       liquid):
             if index in skip:
                 continue
             reuse = reusable.pop((uid, index), None)

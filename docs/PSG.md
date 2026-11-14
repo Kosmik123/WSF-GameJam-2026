@@ -127,16 +127,31 @@ Sześć biomów, każdy z 3 sąsiednich kawałków 40×40 m (Grid 40×40 oczek),
 | Wulkan | tarasy lawowe (4 poziomy, 2,5 m) | ryft (wąskie doliny) | poszarpany Mixed |
 | Lód | dolina lodowcowa | Mixed z górkami | pole śnieżne (1,2 m) |
 
-- **Wulkan, kałuże lawy i kładki:**
-  - Kałuże są osobną warstwą *Kaluze lawy* (Scatter): rzadko, w skali 0,45–2,3×, tylko na płaskim (do 12°), z dala od innych elementów. W warstwach trawy są wykluczone filtrem `!Kaluza`.
-  - Nad ok. 70% kałuż stoi kładka: warstwa *Kladki* (Around → Kaluze lawy, promień 0, 1 sztuka, *Inherit Parent Scale*), więc kładka ma długość dopasowaną do kałuży pod nią.
-  - Kładki to 4 proceduralne warianty low poly z [Tools/Blender/psg_examples/bridges.py](../Tools/Blender/psg_examples/bridges.py): drewniana z łukiem i poręczami, płaska z jedną poręczą, z brakującymi deskami, kamienne płyty.
-  - Kładki mają kolory w `Col` (fasety z jitterem, część desek przypalona), materiał `LD57 Stylized` i pivot na ziemi. Leżą lokalnie w kolekcji `PSG_Kladki`.
+- **Wulkan, labirynt lawy:** ok. 50% powierzchni to świecąca lawa (kanały 2–6 m, szersze jeziora na skrzyżowaniach). Lawa dzieli teren na wyspy, a jedyne przejścia to kładki (warstwa *Kladki*, tryb Crossings). Każda kładka ma długość dopasowaną do szerokości kanału.
+  - Kładki to 4 proceduralne warianty low poly z [Tools/Blender/psg_examples/bridges.py](../Tools/Blender/psg_examples/bridges.py): drewniana z łukiem i poręczami, płaska z jedną poręczą, z brakującymi deskami, kamienne płyty. Mają kolory w `Col`, materiał `LD57 Stylized` i leżą lokalnie w kolekcji `PSG_Kladki`.
+- **Bagno, Martwe Bagna:** ok. 45% to głęboka topiel (ciemna woda z plamami glonów), przez którą nie da się przejść. Wyspy łączą tylko wąskie, płytkie brody: jaśniejsze, błotniste pasy tuż nad powierzchnią wody.
+- Obie ciecze płyną przez szwy wszystkich 3 kawałków biomu (wspólny *Liquid Seed*). Zewnętrzne brzegi biomu są suche, więc sąsiednie biomy dalej łączą się płaskim lądem.
 - Kawałki nazywają się `Teren_<Biom>_<1-3>` i leżą w kolekcjach `Teren_<Biom>`. Instancje są w `PSG_Generated`.
 - Assety **nie są kopiowane**: kolekcje biomów są podlinkowane z `all_models.blend` (ścieżka względna, kolekcja `PSG_Sources (linked)` jest wykluczona z widoku). Zmiany modeli w `all_models.blend` od razu widać w biomach.
 - Plik buduje skrypt [Tools/Blender/psg_examples/build_biomes.py](../Tools/Blender/psg_examples/build_biomes.py). Ustawienia każdego kawałka (preset, nadpisania, seed) są w słowniku `BIOMES`. Ponowne uruchomienie nadpisuje plik:
   `blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py`
 - Unity zaimportuje `.blend` z `Assets/` tylko z zainstalowanym Blenderem (tak jak `all_models.blend`). Do gry lepiej eksportować przez **Export FBX for Unity**.
+
+## Ciecze: lawa i bagno (Liquid Maze)
+
+Panel **Terrain Shape → Liquid Maze**. Sieć kanałów cieczy dzieli teren na wyspy, a przejścia między nimi tworzą labirynt.
+
+- **Kształt kanałów:** komórki Voronoi 2D o wielkości *Island Size*, z wykrzywieniem domeny (*Winding*), więc kanały są kręte, a nie w kratkę. Ciecz ma szerokość *Channel Width* ± *Width Variation*. Na skrzyżowaniach powstają większe jeziora.
+- **Labirynt:** ze wszystkich możliwych przejść między sąsiednimi wyspami wybierane jest losowe drzewo rozpinające (algorytm Kruskala). Każda wyspa jest osiągalna dokładnie jedną drogą, a *Extra Routes* dodaje kilka dodatkowych pętli. Przejścia trafiają w wąskie miejsca kanału, ustawione w poprzek nurtu.
+- **Lava:** przejścia to kładki. Dodaj warstwę w trybie **Crossings**: jedna instancja na przejście, wydłużona tylko wzdłuż kanału, z końcami opartymi na brzegach.
+- **Bog:** przejścia to płytkie brody (*Ford Width*, *Ford Height* nad lustrem topieli), widoczne jako błotniste pasy.
+- **Teren:** ląd stoi zawsze co najmniej *Bank Height* nad lustrem cieczy (*Liquid Level*). Wszystkie warstwy scattera domyślnie omijają ciecz z marginesem (*Avoid Liquid*, *Shore Margin*).
+- **Szwy:** ten sam *Liquid Seed* na sąsiednich kawałkach sprawia, że kanały przechodzą przez wspólne krawędzie bez szczelin. *Dry sides* (±X, ±Y) wygaszają ciecz przy wybranych bokach, tam gdzie sąsiad nie ma cieczy.
+- **Kolory (panel Terrain Paint → Liquid, przycisk *Liquid Palette*):**
+  - Lawa: środek żółty, dalej pomarańcz, przy brzegu ciemna czerwień, do tego pływająca, zastygła skorupa (*Crust*). Ląd przy lawie jest przypalony na czerwono-brązowo (*Shore*).
+  - Bagno: ciemna głębia, plamy glonów, błotniste brody, mokry brzeg.
+- **Emission:** ściany lawy dostają drugi slot materiału `LD57 Stylized Glow` (Col → Emission), jak świecące elementy assetów. W Unity ten slot idzie na `SG_VertexColorGlow` (patrz [WSF_Biom.md](WSF_Biom.md#2-shadery-shader-graph--do-przygotowania-przez-programistę)).
+- **Atrybuty dla kodu:** maski są zapisane w atrybutach `psg_liquid` (stosunek odległości od środka kanału do jego szerokości; poniżej 1 to ciecz) i `psg_ford`. Do Unity przez FBX nie trafiają. Gra musi sama wiedzieć, gdzie jest ciecz, np. z koloru albo z osobnej maski.
 
 ## Malowanie terenu (kolory jak w assetach)
 

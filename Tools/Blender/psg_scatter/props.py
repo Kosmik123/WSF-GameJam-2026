@@ -41,7 +41,7 @@ def _parent_items(self, _context):
 
 
 PATH_MODES = ('LINE', 'EDGES', 'BAND', 'AROUND')
-AREA_MODES = ('SCATTER', 'CLUSTER', 'AROUND')
+AREA_MODES = ('SCATTER', 'CLUSTER', 'AROUND', 'CROSSING')
 
 
 class PSG_Layer(bpy.types.PropertyGroup):
@@ -72,7 +72,12 @@ class PSG_Layer(bpy.types.PropertyGroup):
             ('SCATTER', "Scatter", "Area: uniform random scatter by Density"),
             ('CLUSTER', "Clusters", "Area: groups of instances around random centers, some single"),
             ('AROUND', "Around", "Instances around every instance of the Parent layer (grass and bushes around trees)"),
+            ('CROSSING', "Crossings", "Area: one instance across every crossing of the Liquid Maze (bridges), "
+                                      "scaled to the channel width"),
         ])
+    avoid_liquid: BoolProperty(name="Avoid Liquid", default=True, update=_scatter_changed,
+                               description="Skip points in the lava / bog (Liquid Maze) and too close to it")
+    liquid_margin: FloatProperty(name="Shore Margin", default=0.6, min=0.0, unit='LENGTH', update=_scatter_changed)
     cluster_density: FloatProperty(name="Clusters / 100 m²", default=0.5, min=0.0, soft_max=20.0,
                                    update=_scatter_changed)
     cluster_radius: FloatProperty(name="Cluster Radius", default=4.0, min=0.0, unit='LENGTH', update=_scatter_changed)
@@ -213,6 +218,33 @@ class PSG_Ground(bpy.types.PropertyGroup):
                                 update=_ground_changed, description="Random brightness per face (assets: 5-12%)")
     seed: IntProperty(name="Seed", default=0, update=_ground_changed)
 
+    # liquid (from Terrain Shape > Liquid Maze); defaults are lava, Bog preset swaps them
+    liquid_core: FloatVectorProperty(name="Core", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                     default=(1.0, 0.64, 0.04), update=_ground_changed,
+                                     description="Middle of the channel (hottest lava / deepest bog)")
+    liquid_mid: FloatVectorProperty(name="Mid", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                    default=(1.0, 0.19, 0.01), update=_ground_changed)
+    liquid_edge: FloatVectorProperty(name="Edge", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                     default=(0.45, 0.02, 0.004), update=_ground_changed)
+    liquid_crust: FloatVectorProperty(name="Crust", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                      default=(0.04, 0.012, 0.008), update=_ground_changed,
+                                      description="Cooled crust floating on lava / algae on the bog")
+    crust_amount: FloatProperty(name="Crust", default=0.55, min=0.0, max=1.0, subtype='FACTOR',
+                                update=_ground_changed)
+    crust_scale: FloatProperty(name="Crust Scale", default=0.35, min=0.01, update=_ground_changed)
+    near_color: FloatVectorProperty(name="Shore", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                    default=(0.13, 0.02, 0.01), update=_ground_changed,
+                                    description="Land tint next to the liquid (scorched / wet)")
+    near_reach: FloatProperty(name="Shore Reach", default=1.2, min=0.0, update=_ground_changed,
+                              description="How far the shore tint reaches, in channel widths")
+    near_strength: FloatProperty(name="Shore Strength", default=0.6, min=0.0, max=1.0, subtype='FACTOR',
+                                 update=_ground_changed)
+    ford_color: FloatVectorProperty(name="Ford", subtype='COLOR', size=3, min=0.0, max=1.0,
+                                    default=(0.09, 0.075, 0.035), update=_ground_changed,
+                                    description="Shallow crossings in a bog")
+    liquid_glow: BoolProperty(name="Glow (Emission)", default=True, update=_ground_changed,
+                              description="Liquid faces use the 'LD57 Stylized Glow' material (emission)")
+
 
 def _shape_changed(self, _context):
     if self.enabled:
@@ -254,6 +286,36 @@ class PSG_Shape(bpy.types.PropertyGroup):
                           description="Random XY offset of vertices to break the grid (low poly look)")
     triangulate: BoolProperty(name="Triangulate", default=True, update=_shape_changed,
                               description="Flat triangles like low poly assets (cannot be undone by Reset)")
+
+    liquid_enabled: BoolProperty(name="Liquid Maze", default=False, update=_shape_changed,
+                                 description="Network of lava / bog channels that splits the terrain into islands")
+    liquid_type: EnumProperty(name="Liquid", default='LAVA', update=_shape_changed, items=[
+        ('LAVA', "Lava", "Glowing lava, islands joined by bridges (Crossing layer)"),
+        ('BOG', "Bog", "Deep impassable bog, islands joined by shallow fords"),
+    ])
+    liquid_size: FloatProperty(name="Island Size", default=13.0, min=2.0, unit='LENGTH', update=_shape_changed)
+    liquid_width: FloatProperty(name="Channel Width", default=4.5, min=0.2, unit='LENGTH', update=_shape_changed)
+    liquid_variation: FloatProperty(name="Width Variation", default=0.45, min=0.0, max=0.9, subtype='FACTOR',
+                                    update=_shape_changed, description="Narrow channels and wide lakes")
+    liquid_level: FloatProperty(name="Liquid Level", default=0.2, min=0.0, unit='LENGTH', update=_shape_changed)
+    bank_height: FloatProperty(name="Bank Height", default=0.3, min=0.0, unit='LENGTH', update=_shape_changed,
+                               description="Land stays at least this much above the liquid")
+    liquid_loops: FloatProperty(name="Extra Routes", default=0.15, min=0.0, max=1.0, subtype='FACTOR',
+                                update=_shape_changed,
+                                description="0 = a strict maze (one route between islands), 1 = every crossing")
+    ford_width: FloatProperty(name="Ford Width", default=1.6, min=0.2, unit='LENGTH', update=_shape_changed)
+    ford_height: FloatProperty(name="Ford Height", default=0.06, min=0.0, unit='LENGTH', update=_shape_changed,
+                               description="Shallow fords rise this much above the deep bog surface")
+    liquid_warp: FloatProperty(name="Winding", default=0.45, min=0.0, max=1.5, update=_shape_changed,
+                               description="Bends the channels into organic, winding shapes")
+    liquid_seed: IntProperty(name="Liquid Seed", default=1, update=_shape_changed,
+                             description="Use the same value on all pieces of a biome: channels continue "
+                                         "across their shared edges")
+    dry_x_min: BoolProperty(name="-X", default=False, update=_shape_changed)
+    dry_x_max: BoolProperty(name="+X", default=False, update=_shape_changed)
+    dry_y_min: BoolProperty(name="-Y", default=False, update=_shape_changed)
+    dry_y_max: BoolProperty(name="+Y", default=False, update=_shape_changed)
+    crossings_json: StringProperty()
 
 
 class PSG_SceneSettings(bpy.types.PropertyGroup):

@@ -110,7 +110,7 @@ def build_piece(biome, index, preset, overrides, seed, location):
     bpy.ops.psg.make_area('EXEC_DEFAULT', preset=True, biome=biome, paint=True, shape_preset='NONE')
     customize = CUSTOM_LAYERS.get(biome)
     if customize is not None:
-        customize(piece)
+        customize(piece, index)
     core.run_shape(piece)  # shape with the overrides above; re-snaps scatter and repaints
     for layer in piece.psg.layers:
         layer.seed = seed * 10 + layer.uid
@@ -127,21 +127,61 @@ def add_layer(piece, name, collection, mode, **values):
     return layer
 
 
-def volcano_layers(piece):
-    """Lava puddles as their own layer with a wide size range, footbridges over some of them."""
+def volcano_layers(piece, index):
+    """Big lava lakes and channels split the ground into islands; bridges form the only routes (a maze)."""
     drobne = bpy.data.collections.get("Wulkan_Drobne")
     for layer in piece.psg.layers:
         if layer.source == drobne:
             layer.source_filter = ", ".join(t for t in (layer.source_filter, "!Kaluza") if t)
-    puddles = add_layer(piece, "Kaluze lawy", drobne, 'SCATTER', source_filter="Kaluza",
-                        density=0.012, scale_min=0.45, scale_max=2.3, min_distance=5.0, avoid_distance=2.5,
-                        max_slope=math.radians(12.0), align_to_normal=1.0)
-    add_layer(piece, "Kladki", bpy.data.collections.get(BRIDGES), 'AROUND', parent=str(puddles.uid),
-              around_min=0.0, around_max=0.0, around_count_min=1, around_count_max=1, around_chance=0.7,
-              inherit_parent_scale=True, scale_min=1.0, scale_max=1.1, align_to_normal=1.0)
+    shape_settings = piece.psg_shape
+    shape_settings.liquid_enabled = True
+    shape_settings.liquid_type = 'LAVA'
+    shape_settings.liquid_size = 16.0
+    shape_settings.liquid_width = 4.0
+    shape_settings.liquid_variation = 0.5
+    shape_settings.liquid_level = 0.2
+    shape_settings.bank_height = 0.3
+    shape_settings.liquid_loops = 0.1
+    core.set_liquid_palette(piece, 'LAVA')
+    add_layer(piece, "Kladki", bpy.data.collections.get(BRIDGES), 'CROSSING', scale_min=1.0, scale_max=1.0)
 
 
-CUSTOM_LAYERS = {"Wulkan": volcano_layers}
+def swamp_layers(piece, index):
+    """Dead-marsh style: deep bog you sink in, islands joined only by narrow shallow fords."""
+    shape_settings = piece.psg_shape
+    shape_settings.liquid_enabled = True
+    shape_settings.liquid_type = 'BOG'
+    shape_settings.liquid_size = 11.0
+    shape_settings.liquid_width = 2.6
+    shape_settings.liquid_variation = 0.5
+    shape_settings.liquid_level = 0.2
+    shape_settings.bank_height = 0.25
+    shape_settings.liquid_loops = 0.08
+    shape_settings.ford_width = 1.5
+    shape_settings.ford_height = 0.05
+    core.set_liquid_palette(piece, 'BOG')
+
+
+def biome_liquid(piece, index, seed):
+    """Same liquid seed on all 3 pieces (channels run across their seams); the outer sides of the
+    biome are dry, so the neighbouring biomes (no liquid) still meet it on flat land."""
+    shape_settings = piece.psg_shape
+    shape_settings.liquid_seed = seed
+    shape_settings.dry_x_min = index == 0
+    shape_settings.dry_x_max = index == 2
+
+
+def volcano(piece, index):
+    volcano_layers(piece, index)
+    biome_liquid(piece, index, 61)
+
+
+def swamp(piece, index):
+    swamp_layers(piece, index)
+    biome_liquid(piece, index, 41)
+
+
+CUSTOM_LAYERS = {"Wulkan": volcano, "Bagno": swamp}
 
 
 def main():
