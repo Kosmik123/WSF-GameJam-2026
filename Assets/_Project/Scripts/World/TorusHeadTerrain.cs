@@ -16,6 +16,9 @@ namespace WSFGameJam2026.World
 
         private float[] neckHeights;
         private AnimationCurve tailCurve;
+        private float[,] headMap;
+        private float headMapLength;
+        private float headMapRampLength;
 
         /// <summary>Changes every time anything affecting the terrain changes. Used to skip needless mesh updates.</summary>
         public int Version { get; private set; }
@@ -50,12 +53,27 @@ namespace WSFGameJam2026.World
             Version++;
         }
 
+        /// <summary>
+        /// Sets the height map of the top of the head. Rows go along the body from the rear end of the head, columns around phi
+        /// (evenly spaced from phi = 0). Heights are above the base tube. Without it the head is the neck outline extruded along theta.
+        /// </summary>
+        /// <param name="mapLength">Length covered by the rows, in radians of theta (the measured length of the head).</param>
+        /// <param name="rampLength">Distance from the rear end over which the neck outline changes into the map, in radians of theta.</param>
+        public void ConfigureHeadMap(float[,] heights, float mapLength, float rampLength)
+        {
+            headMap = heights != null && heights.GetLength(0) > 1 && heights.GetLength(1) > 0 ? (float[,])heights.Clone() : null;
+            headMapLength = Mathf.Max(0.0001f, mapLength);
+            headMapRampLength = Mathf.Max(0f, rampLength);
+            Version++;
+        }
+
         public void Deactivate()
         {
             if (neckHeights == null)
                 return;
 
             neckHeights = null;
+            headMap = null;
             Version++;
         }
 
@@ -80,6 +98,41 @@ namespace WSFGameJam2026.World
             int first = Mathf.FloorToInt(position) % count;
             int second = (first + 1) % count;
             return Mathf.Lerp(neckHeights[first], neckHeights[second], position - Mathf.Floor(position));
+        }
+
+        /// <summary>
+        /// Height of the head's own surface at theta and phi (radians), above the base tube. Only meaningful on the head
+        /// (<see cref="GetWeight"/> = 1): the neck outline at the rear end, changing into the height map over the ramp.
+        /// </summary>
+        public float GetHeadHeight(float theta, float phi)
+        {
+            float neckHeight = GetNeckHeight(phi);
+            if (headMap == null)
+                return neckHeight;
+
+            float distanceFromNeck = Mathf.Repeat(theta - NeckTheta, TwoPi);
+            float mapHeight = SampleHeadMap(Mathf.Min(distanceFromNeck, headMapLength), phi);
+            float ramp = headMapRampLength <= 0f ? 1f : Mathf.SmoothStep(0f, 1f, distanceFromNeck / headMapRampLength);
+            return Mathf.Lerp(neckHeight, mapHeight, ramp);
+        }
+
+        private float SampleHeadMap(float distanceFromNeck, float phi)
+        {
+            int rows = headMap.GetLength(0);
+            int columns = headMap.GetLength(1);
+
+            float rowPosition = distanceFromNeck / headMapLength * (rows - 1);
+            int firstRow = Mathf.Clamp(Mathf.FloorToInt(rowPosition), 0, rows - 2);
+            float rowT = Mathf.Clamp01(rowPosition - firstRow);
+
+            float columnPosition = Mathf.Repeat(phi, TwoPi) / TwoPi * columns;
+            int firstColumn = Mathf.FloorToInt(columnPosition) % columns;
+            int secondColumn = (firstColumn + 1) % columns;
+            float columnT = columnPosition - Mathf.Floor(columnPosition);
+
+            float near = Mathf.Lerp(headMap[firstRow, firstColumn], headMap[firstRow, secondColumn], columnT);
+            float far = Mathf.Lerp(headMap[firstRow + 1, firstColumn], headMap[firstRow + 1, secondColumn], columnT);
+            return Mathf.Lerp(near, far, rowT);
         }
 
         /// <summary>
@@ -132,7 +185,7 @@ namespace WSFGameJam2026.World
         {
             float weight = GetWeight(theta);
             if (weight > 0f)
-                return Mathf.Lerp(terrainHeight, GetNeckHeight(phi), weight);
+                return Mathf.Lerp(terrainHeight, GetHeadHeight(theta, phi), weight);
 
             float scale = GetTailRadiusScale(theta);
             return scale >= 1f ? terrainHeight : (minorRadius + terrainHeight) * scale - minorRadius;
