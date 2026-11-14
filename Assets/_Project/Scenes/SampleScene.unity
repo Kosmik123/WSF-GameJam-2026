@@ -595,7 +595,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   world: {fileID: 1142851114}
-  angularMoveSpeedDegrees: 0.1
+  angularMoveSpeedDegrees: 0.15
   startThetaDegrees: 0
   theta: 0
 --- !u!4 &505864689

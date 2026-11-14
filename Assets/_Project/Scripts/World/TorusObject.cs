@@ -96,7 +96,7 @@ namespace WSFGameJam2026.World
             // Directions of growing theta and phi are perpendicular, so the speed stays constant.
             float theta = angles.Theta;
             float phi = angles.Phi;
-            var phiDirection = new Vector3(-Mathf.Sin(phi) * Mathf.Cos(theta), Mathf.Cos(phi), -Mathf.Sin(phi) * Mathf.Sin(theta));
+            var phiDirection = new Vector3(-Mathf.Sin(phi) * Mathf.Sin(theta), Mathf.Cos(phi), -Mathf.Sin(phi) * Mathf.Cos(theta));
 
             var surface = world.Surface;
             float thetaDistance = Vector3.Dot(localFacing, localRunDirection) * distance;
