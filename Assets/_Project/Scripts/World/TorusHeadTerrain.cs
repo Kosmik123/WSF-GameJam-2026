@@ -6,7 +6,7 @@ namespace WSFGameJam2026.World
     /// Terrain shaped by the snake's head. The head sits on the torus and the body grows out of its back,
     /// so near the head the terrain is blended into the outline of the head's neck.
     /// Height is full "neck" height (<see cref="GetNeckHeight"/>) on the head and fades to the normal terrain
-    /// over <see cref="BlendLength"/> behind the neck. Ahead of the head (the tail being eaten) the terrain is untouched.
+    /// over <see cref="BlendLength"/> behind the neck. Ahead of the head the tail being eaten thins out over <see cref="TailLength"/>.
     /// All angles are in radians. The data is applied both to the heights used by gameplay
     /// (<see cref="TorusSurface.GetHeight(float, float)"/>) and to the segment meshes (<see cref="TorusHeadMeshBlender"/>).
     /// </summary>
@@ -15,6 +15,7 @@ namespace WSFGameJam2026.World
         private const float TwoPi = TorusGeometry.TwoPi;
 
         private float[] neckHeights;
+        private AnimationCurve tailCurve;
 
         /// <summary>Changes every time anything affecting the terrain changes. Used to skip needless mesh updates.</summary>
         public int Version { get; private set; }
@@ -32,6 +33,9 @@ namespace WSFGameJam2026.World
 
         /// <summary>Length of the transition from the head outline to the normal terrain behind the neck, in radians of theta.</summary>
         public float BlendLength { get; private set; }
+
+        /// <summary>Length of the zone ahead of the head where the tail thins out, in radians of theta.</summary>
+        public float TailLength { get; private set; }
 
         /// <summary>Theta of the rear end of the head, where the body grows out of it.</summary>
         public float NeckTheta => Theta - NeckOffset;
@@ -98,17 +102,47 @@ namespace WSFGameJam2026.World
             return Mathf.SmoothStep(1f, 0f, behindNeck / BlendLength);
         }
 
-        public float Apply(float terrainHeight, float theta, float phi)
+        /// <summary>
+        /// Sets how the tail ahead of the head thins out just before it is eaten. The curve is evaluated from 0 (start of the
+        /// zone, away from the head) to 1 (the front of the head) and gives the factor of the tube radius: 0 is the centre, 1 the original radius.
+        /// </summary>
+        public void ConfigureTail(float tailLength, AnimationCurve radiusCurve)
         {
-            float weight = GetWeight(theta);
-            return weight <= 0f ? terrainHeight : Mathf.Lerp(terrainHeight, GetNeckHeight(phi), weight);
+            TailLength = Mathf.Max(0f, tailLength);
+            tailCurve = radiusCurve == null ? null : new AnimationCurve(radiusCurve.keys);
+            Version++;
         }
 
-        /// <summary>Range of theta (start and length, radians) where the weight is above zero.</summary>
+        /// <summary>Factor (0-1) of the tube radius at the given theta. 1 outside the tail zone.</summary>
+        public float GetTailRadiusScale(float theta)
+        {
+            if (IsActive == false || tailCurve == null || TailLength <= 0f)
+                return 1f;
+
+            float behindNeck = Mathf.Repeat(NeckTheta - theta + Mathf.PI, TwoPi) - Mathf.PI;
+            float aheadOfHead = -behindNeck - HeadLength;
+            if (aheadOfHead < 0f || aheadOfHead >= TailLength)
+                return 1f;
+
+            return Mathf.Max(0f, tailCurve.Evaluate(1f - aheadOfHead / TailLength));
+        }
+
+        /// <summary>Terrain height after the head shaped it: the neck outline on and behind the head, a thinner tube on the tail ahead of it.</summary>
+        public float Apply(float terrainHeight, float theta, float phi, float minorRadius)
+        {
+            float weight = GetWeight(theta);
+            if (weight > 0f)
+                return Mathf.Lerp(terrainHeight, GetNeckHeight(phi), weight);
+
+            float scale = GetTailRadiusScale(theta);
+            return scale >= 1f ? terrainHeight : (minorRadius + terrainHeight) * scale - minorRadius;
+        }
+
+        /// <summary>Range of theta (start and length, radians) where the terrain is changed.</summary>
         public void GetAffectedRange(out float start, out float length)
         {
             start = NeckTheta - BlendLength;
-            length = HeadLength + BlendLength;
+            length = BlendLength + HeadLength + TailLength;
         }
     }
 }

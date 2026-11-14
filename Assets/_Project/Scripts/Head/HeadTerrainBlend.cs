@@ -21,6 +21,15 @@ namespace WSFGameJam2026.Head
         [Min(0f)]
         private float blendLengthDegrees = 25f;
 
+        [Tooltip("Length of the zone ahead of the head where the tail thins out just before it is eaten, in degrees along the snake body. 0 = no thinning.")]
+        [SerializeField]
+        [Min(0f)]
+        private float tailTaperLengthDegrees = 30f;
+
+        [Tooltip("Factor of the tail's tube radius along the taper zone. X: 0 = start of the zone (away from the head), 1 = the front of the head. Y: 0 = centre of the tube, 1 = original radius.")]
+        [SerializeField]
+        private AnimationCurve tailTaperCurve = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
+
         [Tooltip("Thickness of the slice of the head, measured from its rear end, whose widest points make the outline.")]
         [SerializeField]
         [Min(0.01f)]
@@ -120,6 +129,15 @@ namespace WSFGameJam2026.Head
             Gizmos.color = Color.red;
             DrawRing(gizmoWorld, neckTheta - blendLength, null);
 
+            // Where the tail starts thinning out ahead of the head (magenta), with the radius at the middle of the zone.
+            if (tailTaperLengthDegrees > 0f)
+            {
+                var tailLength = tailTaperLengthDegrees * Mathf.Deg2Rad;
+                Gizmos.color = Color.magenta;
+                DrawRing(gizmoWorld, headEndTheta + tailLength, null);
+                DrawScaledRing(gizmoWorld, headEndTheta + tailLength * 0.5f, tailTaperCurve.Evaluate(0.5f));
+            }
+
             Gizmos.matrix = previousMatrix;
         }
 
@@ -134,6 +152,16 @@ namespace WSFGameJam2026.Head
                 Gizmos.DrawLine(previous, current);
                 previous = current;
             }
+        }
+
+        /// <summary>Draws the plain tube at theta with its radius multiplied by the given factor.</summary>
+        private static void DrawScaledRing(TorusWorld world, float theta, float scale)
+        {
+            var heights = new float[OutlineResolution];
+            for (int i = 0; i < heights.Length; i++)
+                heights[i] = world.MinorRadius * (Mathf.Max(0f, scale) - 1f);
+
+            DrawRing(world, theta, heights);
         }
 
         private static Vector3 GetOutlinePoint(TorusWorld world, float theta, int index, float height)
@@ -166,6 +194,7 @@ namespace WSFGameJam2026.Head
 
             headLength = GetAdjustedHeadLength(headLength, world.MajorRadius);
             world.HeadTerrain.Configure(neckOffset, headLength, blendLengthDegrees * Mathf.Deg2Rad, heights);
+            world.HeadTerrain.ConfigureTail(tailTaperLengthDegrees * Mathf.Deg2Rad, tailTaperCurve);
             world.HeadTerrain.SetTheta(movement.Theta);
             return true;
         }
