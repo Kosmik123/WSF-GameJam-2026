@@ -178,7 +178,17 @@ Zasady, te same co w assetach z [WSF_Biom.md](WSF_Biom.md#wspólne-reguły-kolor
 `blender -b --factory-startup --python Tools/Blender/psg_examples/export_biomes.py`
 
 W Unity teren i assety używają materiałów `LD57 Stylized` i `LD57 Stylized Glow` (lawa), więc trzeba je przemapować na `SG_VertexColorLit` / `SG_VertexColorGlow`, jak w [WSF_Biom.md](WSF_Biom.md).
-Przycisk **Export FBX for Unity** eksportuje instancje i tereny ścieżek z ustawieniami z [WSF_Biom.md](WSF_Biom.md#3-ustawienia-importu-fbx-model-importer): *Apply Scalings: FBX All*, *Forward: -Z*, *Up: Y*, *Apply Transform*, vertex colory sRGB, tylko meshe.
+
+### Biomy na torusie (Unity)
+
+Menu **WSF GameJam → Setup → Biomes On Torus** (przy otwartej scenie gry) robi wszystko naraz:
+
+1. **Import FBX z `Assets/Bioms`:** włącza *Read/Write*, wyłącza kompresję meshy i przemapowuje materiały `LD57 Stylized` i `LD57 Stylized Glow` na `Assets/_Project/Materials/Biomes/Biome Vertex Color(.Glow).mat`. Materiały używają shadera `WSF/Vertex Color Lit` (kolor z wierzchołków sRGB → linear, obie strony ścian, GPU instancing).
+2. **Profile terenu:** dla każdego biomu tworzy `Assets/_Project/Terrain Profiles/Biomes/Biome <Nazwa>.asset` (*Mesh Torus Segment Profile*) z meshem `Teren_<Nazwa>`. Ustawia siatkę 158 × 178, przesunięcie wysokości −0,5 m (płaski brzeg biomu = podstawa rury), 160 podziałów wzdłuż i materiał z kolorem wierzchołków. Wulkan dostaje *Biome Terrain Lava*: ciepłe kolory lawy świecą, mimo że teren segmentu ma jeden materiał.
+3. **Torus World:** jeden segment na biom (6 × 314 m = obwód torusa o promieniu 300 m), profile w kolejności Pustynia, Las, Bagno, Wybrzeże, Wulkan, Lód i 180 podziałów dookoła rury. Poprzednie wartości są wypisane w konsoli.
+4. **Assety:** komponent `TorusBiomeDecorations` na obiekcie świata przenosi każdy asset z płaskiego terenu na torus według tego samego mapowania co profil (X terenu → wzdłuż segmentu, Z → dookoła rury, Y → wysokość, góra = normalna rury). Rysuje je przez `Graphics.RenderMeshInstanced`: jedno wywołanie na mesh i materiał, bez GameObjectów. Po przebudowie świata przelicza się sam. Assety nie mają colliderów.
+
+Wymiary biomu (314 × 354 m) są wciskane w segment (314 m wzdłuż na promieniu 300 m, 314 m dookoła rury o promieniu 50 m), więc dookoła rury wszystko jest ok. 11% ciaśniej niż w Blenderze.Przycisk **Export FBX for Unity** eksportuje instancje i tereny ścieżek z ustawieniami z [WSF_Biom.md](WSF_Biom.md#3-ustawienia-importu-fbx-model-importer): *Apply Scalings: FBX All*, *Forward: -Z*, *Up: Y*, *Apply Transform*, vertex colory sRGB, tylko meshe.
 
 W Unity: Model Importer jak dla assetów biomów (Bake Axis Conversion, Normals: Import), materiał terenu na `SG_VertexColorLit` (konwersja sRGB → Linear w shaderze).
 
