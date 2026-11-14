@@ -114,23 +114,25 @@ Panel **Terrain Shape** działa na zaznaczonym meshu, najlepiej na gęstej siatc
 
 Inspiracje: tarasowanie wysokości do płaskowyżów i warstwy noise (baza, górki, doliny) za [pracą o proceduralnym terenie low poly z tarasowaniem](https://export.arxiv.org/pdf/2505.09350) i [opisem płaskowyżów przez obcinanie noise](https://www.moddb.com/news/procedural-heightmap-terrain-generation). Losowe przesunięcie wierzchołków w XY zamiast idealnej siatki za [narzędziem Low Poly Terrain Jeana Simoneta](https://jeansimonet.net/low-poly-terrain).
 
-## Przykładowy biom: `Assets/Blender/PSG_Biomes.blend`
+## Przykładowe biomy: `Assets/Blender/PSG_Biome_*.blend`
 
 **Assety biomów są w osobnym pliku `Assets/Blender/LD57_Biomes.blend`** (kolekcja `LD57_Biomes`: 6 biomów, 190 obiektów, materiały `LD57 Stylized` i `LD57 Stylized Glow`). Wcześniej siedziały w `all_models.blend`, ale ten plik służy teraz do modeli głowy i zmiany w nim psuły biomy (brakujący materiał dawał czarny teren). Zmiany assetów biomów rób w `LD57_Biomes.blend`, a `PSG_Biomes.blend` podlinkuje je automatycznie.
 
-Jeden pełny biom, **Bagno**, na jednym meshu wielkości segmentu terenu gry `SM_Terrain_S1`: **314 × 354 m**, oczko 2 m (ok. 56 tys. trójkątów), bez podziału na pasy.
+Każdy biom to jeden mesh wielkości segmentu terenu gry `SM_Terrain_S1`, czyli **314 × 354 m** (oczko 2 m, ok. 56 tys. trójkątów, bez podziału na pasy). Biomów jest sześć, w kolejności wzdłuż X (dookoła torusa): **Pustynia, Las, Bagno, Wybrzeże, Wulkan, Lód**.
 
-- Ukształtowanie: łagodne pagórki i niskie tarasy, wysokość 0,2–1,6 m. Formy terenu są przeskalowane do tej powierzchni (*Base Size* 90 m, *Valley Size* 110 m, *Hill Size* 14 m).
-- Topiel zajmuje ok. 57% (jeziora o wielkości ~55 m). Ląd łączy 16 płytkich brodów, które razem tworzą labirynt.
-- Cały brzeg segmentu jest płaski na 0,5 m (*Dry sides* ze wszystkich stron, przejście 8 m), więc segment łączy się z sąsiednimi biomami.
-- Scatter, ok. 4800 elementów (gęstości dobrane pod laptop):
-  - trzciny i turzyca przy brzegach, lilie na wodzie,
-  - kępy drzew na korzeniach z kłodami, grzybami i trawą wokół,
-  - martwe drzewa i cyprysy przy brzegu, powalone olbrzymy.
-- Skrypt: [Tools/Blender/psg_examples/build_biomes.py](../Tools/Blender/psg_examples/build_biomes.py). Inny biom buduje się podając jego nazwę (`Pustynia`, `Las`, `Bagno`, `Wybrzeze`, `Wulkan`, `Lod`). Każde uruchomienie nadpisuje plik:
-  `blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py -- Bagno`
-- Wymiary segmentu i gęstość siatki ustawiają `SEGMENT_X`, `SEGMENT_Y` i `CELL`, a ukształtowanie słownik `BIOMES`. Warstwy Bagna i Wulkanu są w funkcjach `swamp()` i `volcano()`.
-- Unity zaimportuje `.blend` z `Assets/` tylko z zainstalowanym Blenderem. Do gry lepiej eksportować przez **Export FBX for Unity**.
+| Plik (`Assets/Blender`) | Zawartość |
+|---|---|
+| `PSG_Biome_<Nazwa>.blend` | jeden biom. Ten plik otwierasz do edycji (warstwy, kształt, malowanie). Kolekcja główna `Biom_<Nazwa>` |
+| `PSG_Biomes.blend` | podgląd całości: 6 biomów podlinkowanych jako instancje kolekcji, obok siebie co 314 m. Lekki plik, do edycji się nie nadaje |
+
+- Każdy biom ma płaski brzeg na 0,5 m ze wszystkich stron (przejście 8 m). Wszystkie 5 szwów między biomami ma identyczne wierzchołki.
+- **Bagno:** topiel ok. 57% z płytkimi brodami (labirynt), trzciny, lilie, drzewa na korzeniach, cyprysy. Ok. 4800 elementów.
+- **Wulkan:** jeziora lawy z groblami (labirynt), kolumny bazaltowe, spalone lasy, kominy, iglice. Ok. 3900 elementów.
+- **Las, Pustynia, Wybrzeże, Lód:** klastry drzew (kaktusów, palm, sosen) z krzewami i drobnicą wokół, pojedyncze duże i średnie elementy, kamyki, rzadkie landmarki. 3500–4400 elementów.
+- W całym rzędzie jest ok. 24 tys. elementów, ale każdy plik biomu ma tylko 3,5–5 tys. Do pracy otwieraj pojedyncze biomy.
+- Skrypt: [Tools/Blender/psg_examples/build_biomes.py](../Tools/Blender/psg_examples/build_biomes.py). Bez argumentów buduje wszystkie biomy i plik zbiorczy (ok. 100 s), z nazwami tylko wybrane. Nadpisuje istniejące pliki:
+  `blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py -- Bagno Wulkan`
+- Wymiary segmentu i gęstość siatki ustawiają `SEGMENT_X`, `SEGMENT_Y` i `CELL`, a ukształtowanie słownik `BIOMES`. Warstwy są w `swamp()`, `volcano()` i `STANDARD` (pozostałe biomy).- Unity zaimportuje `.blend` z `Assets/` tylko z zainstalowanym Blenderem. Do gry lepiej eksportować przez **Export FBX for Unity**.
 ## Ciecze: lawa i bagno (Liquid Maze)
 
 Panel **Terrain Shape → Liquid Maze**. Sieć kanałów cieczy dzieli teren na wyspy, a przejścia między nimi tworzą labirynt.

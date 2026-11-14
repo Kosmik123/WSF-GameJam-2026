@@ -1,12 +1,16 @@
-"""Builds Assets/Blender/PSG_Biomes.blend: one full biome on one terrain segment.
+"""Builds one full biome per terrain segment and an assembly of all of them.
 
-The segment has the size of the game's terrain segment `SM_Terrain_S1` (314 x 354 m). It is one
-mesh (no strips), shaped into low-poly landforms, painted with the biome palette and scattered with
-the biome assets linked from `LD57_Biomes.blend` (not copied). Its border is flat at Edge Level, so
-neighbouring biomes built the same way join without gaps.
+Every biome is one mesh of the size of the game's terrain segment `SM_Terrain_S1` (314 x 354 m),
+shaped into low-poly landforms, painted with the biome palette and scattered with the biome assets
+linked from `LD57_Biomes.blend` (not copied). Its border is flat at Edge Level, so the biomes join
+without gaps.
 
-Run (from the repository root), optionally with a biome name (default: Bagno):
-    blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py -- Bagno
+Output (Assets/Blender):
+    PSG_Biome_<Name>.blend   one biome, root collection `Biom_<Name>` (open these to edit)
+    PSG_Biomes.blend         all biomes linked as collection instances, side by side along X
+
+Run (from the repository root); without names it builds all six:
+    blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py -- Bagno Wulkan
 """
 
 import math
@@ -210,21 +214,101 @@ def swamp(piece):
               min_distance=0.4, scale_min=0.6, scale_max=1.3)
 
 
+# Layer stacks for the biomes without a liquid, sized for a 314 x 354 m segment (~4-5k instances).
+# key -> (landmarks filter, tree filter, extra big filter, medium filter, small filter, rocks filter)
+STANDARD = {
+    "Las": dict(landmarks="", trees="Drzewo, !Martwe", big_extra="Martwe", medium="Krzak, Glaz, Pniak, Kloda",
+                small="Trawa, Kwiaty, Paproc, Grzyby", rocks="Kamyki", tree_density=0.25, max_height_trees=28),
+    "Pustynia": dict(landmarks="", trees="Kaktus, Palma", big_extra="Slup", medium="Opuncja, Skala, Szkielet",
+                     small="Kaktus_kulisty, Sucha, Toczace", rocks="Kamyki", tree_density=0.14,
+                     max_height_trees=30),
+    "Wybrzeze": dict(landmarks="", trees="Palma", big_extra="Skala", medium="Drewno, Koral",
+                     small="Trawa, Muszle, Rozgwiazda, Wodorosty", rocks="Otoczaki", tree_density=0.14,
+                     max_height_trees=25),
+    "Lod": dict(landmarks="", trees="Sosna", big_extra="Bryla", medium="Skala, Krysztaly, Zaspa",
+                small="Kolce, Krzak", rocks="Kamyki", tree_density=0.22, max_height_trees=28),
+}
+
+
+def standard(piece, biome):
+    """Clusters of trees with bushes and grass around them, scattered extras, rare landmarks."""
+    spec = STANDARD[biome]
+    clear_layers(piece)
+    landmarks, big, medium, small = (collection(biome + "_" + n) for n in ("Landmarki", "Duze", "Srednie", "Drobne"))
+    add_layer(piece, "Landmarki", landmarks, 'SCATTER', source_filter=spec["landmarks"], density=0.00025,
+              min_distance=45.0, scale_min=0.85, scale_max=1.2, max_slope=deg(15))
+    trees = add_layer(piece, "Drzewa", big, 'CLUSTER', source_filter=spec["trees"],
+                      cluster_density=spec["tree_density"], cluster_radius=6.0, cluster_min=2, cluster_max=5,
+                      single_chance=0.35, min_distance=2.6, scale_min=0.75, scale_max=1.35,
+                      max_slope=deg(spec["max_height_trees"]))
+    add_layer(piece, "Duze pojedyncze", big, 'SCATTER', source_filter=spec["big_extra"], density=0.0012,
+              min_distance=12.0, scale_min=0.7, scale_max=1.3, avoid_distance=3.0, max_slope=deg(30))
+    add_layer(piece, "Krzewy wokol", medium, 'AROUND', source_filter=spec["medium"], parent=str(trees.uid),
+              around_min=1.5, around_max=4.5, around_count_min=0, around_count_max=2, around_chance=0.7,
+              min_distance=1.2, scale_min=0.6, scale_max=1.2, max_slope=deg(35))
+    add_layer(piece, "Srednie", medium, 'SCATTER', source_filter=spec["medium"], density=0.003,
+              min_distance=4.0, scale_min=0.6, scale_max=1.3, avoid_distance=2.0, max_slope=deg(35))
+    add_layer(piece, "Drobne wokol", small, 'AROUND', source_filter=spec["small"], parent=str(trees.uid),
+              around_min=0.8, around_max=3.0, around_count_min=1, around_count_max=4, min_distance=0.5,
+              scale_min=0.6, scale_max=1.3, max_slope=deg(35))
+    add_layer(piece, "Drobne", small, 'SCATTER', source_filter=spec["small"], density=0.014, min_distance=1.0,
+              scale_min=0.6, scale_max=1.4, avoid_distance=1.0, max_slope=deg(35))
+    add_layer(piece, "Kamyki", small, 'SCATTER', source_filter=spec["rocks"], density=0.003, min_distance=3.0,
+              scale_min=0.6, scale_max=1.6, avoid_distance=1.0)
+
+
 CUSTOM_LAYERS = {"Wulkan": volcano, "Bagno": swamp}
+CUSTOM_LAYERS.update({name: (lambda piece, name=name: standard(piece, name)) for name in STANDARD})
+
+ORDER = ("Pustynia", "Las", "Bagno", "Wybrzeze", "Wulkan", "Lod")  # along X, i.e. around the torus
+
+
+def biome_file(biome):
+    return os.path.join(REPO, "Assets", "Blender", "PSG_Biome_%s.blend" % biome)
+
+
+def build_biome_file(biome):
+    """One biome per file (light enough for a laptop); root collection `Biom_<name>` for linking."""
+    path = biome_file(biome)
+    bpy.ops.wm.read_homefile(use_empty=True)
+    bpy.ops.wm.save_as_mainfile(filepath=path)  # saved first, so the library link is relative
+    link_biome_collections()
+    piece = build_segment(biome)
+    root = bpy.data.collections.new("Biom_" + biome)
+    bpy.context.scene.collection.children.link(root)
+    for child in (piece.users_collection[0], piece.psg.output):
+        for parent in [c for c in bpy.data.collections if child.name in c.children] + [bpy.context.scene.collection]:
+            if child.name in parent.children:
+                parent.children.unlink(child)
+        root.children.link(child)
+    bpy.ops.wm.save_as_mainfile(filepath=path, relative_remap=True)
+    print("PSG biome %-9s %.0f x %.0f m, instances %d -> %s" % (
+        biome, piece.dimensions.x, piece.dimensions.y, piece.psg.instance_count, os.path.basename(path)))
+
+
+def build_assembly(biomes):
+    """PSG_Biomes.blend: every biome file linked as one collection instance, side by side along X."""
+    bpy.ops.wm.read_homefile(use_empty=True)
+    bpy.ops.wm.save_as_mainfile(filepath=OUTPUT)
+    for index, biome in enumerate(biomes):
+        with bpy.data.libraries.load(biome_file(biome), link=True, relative=True) as (data_from, data_to):
+            data_to.collections = ["Biom_" + biome]
+        empty = bpy.data.objects.new("Biom_" + biome, None)
+        empty.instance_type = 'COLLECTION'
+        empty.instance_collection = data_to.collections[0]
+        empty.location = (index * SEGMENT_X, 0.0, 0.0)
+        bpy.context.scene.collection.objects.link(empty)
+    bpy.ops.wm.save_as_mainfile(filepath=OUTPUT, relative_remap=True)
+    print("PSG assembly saved", OUTPUT)
 
 
 def main():
     args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-    biome = args[0] if args else "Bagno"
-    bpy.ops.wm.read_homefile(use_empty=True)
+    biomes = [b for b in ORDER if not args or "all" in args or b in args]
     psg_scatter.register()
-    bpy.ops.wm.save_as_mainfile(filepath=OUTPUT)  # saved first, so the library link is relative
-    link_biome_collections()
-    piece = build_segment(biome)
-    print("PSG segment %s %.0f x %.0f m, instances %d" % (piece.name, piece.dimensions.x, piece.dimensions.y,
-                                                         piece.psg.instance_count))
-    bpy.ops.wm.save_as_mainfile(filepath=OUTPUT, relative_remap=True)
-    print("PSG saved", OUTPUT)
+    for biome in biomes:
+        build_biome_file(biome)
+    build_assembly([b for b in ORDER if os.path.exists(biome_file(b))])
 
 
 if __name__ == "__main__":
