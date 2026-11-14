@@ -114,33 +114,23 @@ Panel **Terrain Shape** działa na zaznaczonym meshu, najlepiej na gęstej siatc
 
 Inspiracje: tarasowanie wysokości do płaskowyżów i warstwy noise (baza, górki, doliny) za [pracą o proceduralnym terenie low poly z tarasowaniem](https://export.arxiv.org/pdf/2505.09350) i [opisem płaskowyżów przez obcinanie noise](https://www.moddb.com/news/procedural-heightmap-terrain-generation). Losowe przesunięcie wierzchołków w XY zamiast idealnej siatki za [narzędziem Low Poly Terrain Jeana Simoneta](https://jeansimonet.net/low-poly-terrain).
 
-## Przykładowe biomy: `Assets/Blender/PSG_Biomes.blend`
+## Przykładowy biom: `Assets/Blender/PSG_Biomes.blend`
 
 **Assety biomów są w osobnym pliku `Assets/Blender/LD57_Biomes.blend`** (kolekcja `LD57_Biomes`: 6 biomów, 190 obiektów, materiały `LD57 Stylized` i `LD57 Stylized Glow`). Wcześniej siedziały w `all_models.blend`, ale ten plik służy teraz do modeli głowy i zmiany w nim psuły biomy (brakujący materiał dawał czarny teren). Zmiany assetów biomów rób w `LD57_Biomes.blend`, a `PSG_Biomes.blend` podlinkuje je automatycznie.
 
-Sześć biomów. Każdy biom to jeden segment 40×40 m podzielony wzdłuż X na 3 kawałki 13,3×40 m (Grid 13×40 oczek), razem 18 kawałków na 240 m. Labirynt cieczy (Wulkan, Bagno) jest liczony raz dla całego segmentu (`shape.grid_crossings`) i wspólny dla jego 3 kawałków (*Lock Crossings*), więc groble i brody przechodzą przez szwy. Przejście w płaski szew zajmuje 2,5 m (*Edge Blend*). Wszystkie stoją w jednym rzędzie wzdłuż X, w tej kolejności, i łączą się ze sobą, także na granicach biomów. Każdy biom ma własną paletę terenu i scatter z presetu biomu, a każdy kawałek inne ukształtowanie:
+Jeden pełny biom, **Bagno**, na jednym meshu wielkości segmentu terenu gry `SM_Terrain_S1`: **314 × 354 m**, oczko 2 m (ok. 56 tys. trójkątów), bez podziału na pasy.
 
-| Biom | Kawałek 1 | Kawałek 2 | Kawałek 3 |
-|---|---|---|---|
-| Pustynia | mesy (ostre tarasy, 2,5 m) | kanion (2 poziomy + doliny) | wydmy (łagodne, 1,4 m) |
-| Las | Mixed | Plateaus | Valleys |
-| Bagno | łagodne (0,9 m) | płytkie doliny (1,1 m) | niskie tarasy (1,2 m) |
-| Wybrzeże | plaża (1,0 m) | klify (2 poziomy, 2,2 m) | laguna (doliny, 1,4 m) |
-| Wulkan | tarasy lawowe (4 poziomy, 2,5 m) | ryft (wąskie doliny) | poszarpany Mixed |
-| Lód | dolina lodowcowa | Mixed z górkami | pole śnieżne (1,2 m) |
-
-- **Wulkan, jeziora lawy:** 50–70% powierzchni to świecące jeziora lawy różnej wielkości, z wyspami i półwyspami. Lawa ma falujący gradient od żółtego środka przez pomarańcz do czerwieni przy brzegu, z płatami zastygłej skorupy. Osobne kawałki lądu łączą tylko **groble** na tym samym meshu: pasy 2,2 m podniesione 0,3 m nad lawę, w kolorze zastygłego bazaltu, bez emission.
-  - Scatter: iglice bazaltowe, skupiska kolumn bazaltowych z obsydianem wokół, spalone lasy z żużlem, kominy, skały z lawą i żużel przy brzegach, rzadkie kałuże lawy. Razem 180–330 elementów na kawałek.
-- **Bagno, Martwe Bagna:** ok. 50% to głęboka topiel (ciemna woda z plamami glonów), przez którą nie da się przejść. Ląd łączą tylko wąskie, płytkie **brody** na meshu: pasy 1,4 m tuż nad wodą, w kolorze błota.
-  - Scatter: trzciny i turzyca gęsto wzdłuż brzegów, lilie na wodzie, martwe drzewa i stare cyprysy przy brzegu, kępy drzew na korzeniach z kłodami, grzybami i trawą wokół, powalone olbrzymy. Razem 450–500 elementów na kawałek.
-- Obie ciecze płyną przez szwy wszystkich 3 kawałków biomu (wspólny *Liquid Seed*). Zewnętrzne brzegi biomu są suche, więc sąsiednie biomy dalej łączą się płaskim lądem.
-- Te dwa biomy nie używają presetu, tylko własnych warstw: funkcje `volcano()` i `swamp()` w skrypcie.
-- Kawałki nazywają się `Teren_<Biom>_<1-3>` i leżą w kolekcjach `Teren_<Biom>`. Instancje są w `PSG_Generated`.
-- Assety **nie są kopiowane**: kolekcje biomów są podlinkowane z `Assets/Blender/LD57_Biomes.blend` (ścieżka względna, kolekcja `PSG_Sources (linked)` jest wykluczona z widoku). Zmiany modeli w `all_models.blend` od razu widać w biomach.
-- Plik buduje skrypt [Tools/Blender/psg_examples/build_biomes.py](../Tools/Blender/psg_examples/build_biomes.py). Ustawienia każdego kawałka (preset, nadpisania, seed) są w słowniku `BIOMES`. Ponowne uruchomienie nadpisuje plik:
-  `blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py`
-- Unity zaimportuje `.blend` z `Assets/` tylko z zainstalowanym Blenderem (tak jak inne pliki `.blend` w `Assets/Blender`). Do gry lepiej eksportować przez **Export FBX for Unity**.
-
+- Ukształtowanie: łagodne pagórki i niskie tarasy, wysokość 0,2–1,6 m. Formy terenu są przeskalowane do tej powierzchni (*Base Size* 90 m, *Valley Size* 110 m, *Hill Size* 14 m).
+- Topiel zajmuje ok. 57% (jeziora o wielkości ~55 m). Ląd łączy 16 płytkich brodów, które razem tworzą labirynt.
+- Cały brzeg segmentu jest płaski na 0,5 m (*Dry sides* ze wszystkich stron, przejście 8 m), więc segment łączy się z sąsiednimi biomami.
+- Scatter, ok. 4800 elementów (gęstości dobrane pod laptop):
+  - trzciny i turzyca przy brzegach, lilie na wodzie,
+  - kępy drzew na korzeniach z kłodami, grzybami i trawą wokół,
+  - martwe drzewa i cyprysy przy brzegu, powalone olbrzymy.
+- Skrypt: [Tools/Blender/psg_examples/build_biomes.py](../Tools/Blender/psg_examples/build_biomes.py). Inny biom buduje się podając jego nazwę (`Pustynia`, `Las`, `Bagno`, `Wybrzeze`, `Wulkan`, `Lod`). Każde uruchomienie nadpisuje plik:
+  `blender -b --factory-startup --python Tools/Blender/psg_examples/build_biomes.py -- Bagno`
+- Wymiary segmentu i gęstość siatki ustawiają `SEGMENT_X`, `SEGMENT_Y` i `CELL`, a ukształtowanie słownik `BIOMES`. Warstwy Bagna i Wulkanu są w funkcjach `swamp()` i `volcano()`.
+- Unity zaimportuje `.blend` z `Assets/` tylko z zainstalowanym Blenderem. Do gry lepiej eksportować przez **Export FBX for Unity**.
 ## Ciecze: lawa i bagno (Liquid Maze)
 
 Panel **Terrain Shape → Liquid Maze**. Sieć kanałów cieczy dzieli teren na wyspy, a przejścia między nimi tworzą labirynt.
