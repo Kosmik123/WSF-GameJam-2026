@@ -73,7 +73,7 @@ namespace WSFGameJam2026.World
         /// <summary>Outward normal of the base tube for angles in radians.</summary>
         public Vector3 GetBaseNormal(float theta, float phi)
         {
-            return new Vector3(Mathf.Cos(phi) * Mathf.Cos(theta), Mathf.Sin(phi), Mathf.Cos(phi) * Mathf.Sin(theta));
+            return new Vector3(Mathf.Cos(phi) * Mathf.Sin(theta), Mathf.Sin(phi), Mathf.Cos(phi) * Mathf.Cos(theta));
         }
 
         /// <summary>Surface point including terrain height.</summary>
