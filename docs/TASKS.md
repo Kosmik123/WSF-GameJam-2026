@@ -64,7 +64,7 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 ## Etap 2b: progresja (MUST)
 
 - [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku); reset poziomu i sprzętu przy śmierci. `C`
-- [ ] **Trudność zależna od paszczy** (jest: `EnemySpawner.GetDifficulty` z krzywą od odległości od paszczy i mnożnikiem rundy; brakuje spadku trudności w miarę zbliżania się paszczy): funkcja trudności segmentu z odległości od paszczy (blisko = łatwo, czubek głowy = najtrudniej), spadająca w miarę zbliżania się paszczy, plus mnożnik rundy. Samo bieganie ma nie wystarczać. `C`
+- [x] **Trudność zależna od paszczy:** `EnemySpawner.GetDifficulty` liczy trudność z aktualnej odległości miejsca od paszczy (krzywa, blisko = łatwo, czubek głowy = najtrudniej) razem z mnożnikiem rundy. Poziom wroga ustalany raz, przy pojawieniu się. Nie testowane w Unity. `C`
 - [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
 - [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`
 - [ ] **Ikony i modele przedmiotów** (broń, pancerz, dodatki). `G`
