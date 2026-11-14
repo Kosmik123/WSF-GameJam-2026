@@ -7,7 +7,7 @@ namespace WSFGameJam2026.Head
     /// <summary>
     /// Makes the terrain around the head follow the outline of the head's neck, so the body grows out of the head
     /// without a step. The outline is measured from the head's meshes on the first frame.
-    /// The head may rotate around its own forward axis: the outline and the height map turn with the reference transform.
+    /// The head must not rotate around its own forward axis.
     /// </summary>
     [RequireComponent(typeof(HeadMovement))]
     public class HeadTerrainBlend : MonoBehaviour
@@ -37,10 +37,6 @@ namespace WSFGameJam2026.Head
         private float neckHeightOffset;
 
         [Header("Head surface")]
-        [Tooltip("The head's rotation around its forward axis is read from this transform: its local Z is the forward axis of the head and its local Y shows the roll. Empty = this object.")]
-        [SerializeField]
-        private Transform rollReference;
-
         [Tooltip("The player walks on the real surface of the head, baked from its meshes into a height map. Off = the neck outline stretched along the head.")]
         [SerializeField]
         private bool useHeadHeightMap = true;
@@ -67,7 +63,6 @@ namespace WSFGameJam2026.Head
         
         private HeadMovement movement;
         private bool isMeasured;
-        private float measuredRoll;
 
         private void Reset()
         {
@@ -97,11 +92,8 @@ namespace WSFGameJam2026.Head
             if (isMeasured == false)
                 isMeasured = Measure();
 
-            if (isMeasured == false)
-                return;
-
-            world.HeadTerrain.SetTheta(movement.Theta);
-            world.HeadTerrain.SetRoll(GetRoll() - measuredRoll);
+            if (isMeasured)
+                world.HeadTerrain.SetTheta(movement.Theta);
         }
 
         private void OnDrawGizmosSelected()
@@ -207,16 +199,6 @@ namespace WSFGameJam2026.Head
             return Mathf.Max(0f, measuredLength + headFrontOffsetDegrees * Mathf.Deg2Rad);
         }
 
-        /// <summary>Angle (radians of phi) of the up direction of the reference transform in the cross-section of the tube at the head.</summary>
-        private float GetRoll()
-        {
-            var reference = rollReference ? rollReference : transform;
-            var localUp = world.transform.InverseTransformDirection(reference.up);
-            var outward = TorusGeometry.GetNormal(movement.Theta, 0f);
-            var up = TorusGeometry.GetNormal(movement.Theta, Mathf.PI * 0.5f);
-            return Mathf.Atan2(Vector3.Dot(localUp, up), Vector3.Dot(localUp, outward));
-        }
-
         private void BakeHeadMap(Renderer[] renderers)
         {
             if (useHeadHeightMap == false)
@@ -238,7 +220,6 @@ namespace WSFGameJam2026.Head
         private bool Measure()
         {
             movement.Refresh();
-            measuredRoll = GetRoll();
 
             var heights = new float[OutlineResolution];
             var renderers = GetComponentsInChildren<Renderer>();

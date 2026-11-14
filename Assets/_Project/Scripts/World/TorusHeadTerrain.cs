@@ -19,15 +19,11 @@ namespace WSFGameJam2026.World
         private float[,] headMap;
         private float headMapLength;
         private float headMapRampLength;
-        private float roll;
 
         /// <summary>Changes every time anything affecting the terrain changes. Used to skip needless mesh updates.</summary>
         public int Version { get; private set; }
 
         public bool IsActive => neckHeights != null;
-
-        /// <summary>Rotation of the head around its own forward axis since it was measured, in radians of phi. The neck outline and the height map turn with it.</summary>
-        public float Roll => roll;
 
         /// <summary>Theta of the head's pivot, in radians.</summary>
         public float Theta { get; private set; }
@@ -78,7 +74,6 @@ namespace WSFGameJam2026.World
 
             neckHeights = null;
             headMap = null;
-            roll = 0f;
             Version++;
         }
 
@@ -89,16 +84,6 @@ namespace WSFGameJam2026.World
                 return;
 
             Theta = theta;
-            Version++;
-        }
-
-        public void SetRoll(float newRoll)
-        {
-            newRoll = Mathf.DeltaAngle(0f, newRoll * Mathf.Rad2Deg) * Mathf.Deg2Rad;
-            if (Mathf.Approximately(newRoll, roll))
-                return;
-
-            roll = newRoll;
             Version++;
         }
 
@@ -121,7 +106,6 @@ namespace WSFGameJam2026.World
         /// </summary>
         public float GetHeadHeight(float theta, float phi)
         {
-            phi -= roll;
             float neckHeight = GetNeckHeight(phi);
             if (headMap == null)
                 return neckHeight;
