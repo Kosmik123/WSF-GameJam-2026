@@ -24,15 +24,20 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] Przebudowa świata po zmianie w Inspectorze (OnValidate).
 - [x] `TorusObject`: ogólna klasa dla wszystkiego, co stoi na torusie (gracz, NPC, przedmioty), pozycja jako `θ`, `φ`; `TorusPlayerMovement` tylko steruje nim z wejścia (A/D obrót, W/S przód i tył).
 - [x] Kamera z góry pod skosem za graczem.
+- [x] Profil segmentu jako klasa odkształcająca mesh (`Deform`), `NoiseTorusSegmentProfile`, wygładzanie normalnych na granicach.
+- [x] Szyja głowy wtopiona w teren: `HeadTerrainBlend`, `TorusHeadMeshBlender`, `TorusHeadTerrain`. Nie testowane w Unity.
+- [x] Kolory wierzchołków z meshy grafika trafiają do meshy segmentów (`MeshHeightRasterizer`, profile). Brakuje jeszcze shadera czytającego Vertex Color i koloru szyi głowy.
+- [x] `comms.md`: kanał wiadomości między agentami (zasada w `AGENTS.md`).
 
 ## W trakcie
 
-- [ ] Profil segmentu jako klasa odkształcająca mesh (`Deform`), `NoiseTorusSegmentProfile`, wygładzanie normalnych na granicach (gałąź `feature/torus-segment-deformers`, czeka na merge). Właściciel: C.
+- [ ] Propsy na torusie (`TorusPropDefinition` jako ScriptableObject: nazwa, promień kolizji, blokowanie ruchu; rysowanie przez instancing później). Projekt uzgodniony, kodu jeszcze nie ma.
+- [ ] Shader czytający Vertex Color (kolory biomów) i kolor szyi głowy. `G`
 
 ## Etap 1: prototyp grywalny (MUST)
 
-- [ ] **Gracz: ruch po torusie** w współrzędnych `(θ, φ)`, orientacja według normalnej powierzchni, sterowanie (Input System). `C`
-- [ ] **Kamera** z góry pod skosem, podążająca za graczem, „góra” = normalna powierzchni. `C`
+- [x] **Gracz: ruch po torusie** w współrzędnych `(θ, φ)`, orientacja według normalnej powierzchni, sterowanie (Input System). `C`
+- [x] **Kamera** z góry pod skosem, podążająca za graczem. Orientację „góry ekranu” i obrót kamery ustawimy przy dostrajaniu walki, tak by była wygodna (odłożone). `C`
 - [x] **Paszcza (logika):** jednostajny ruch po `θ` (`HeadMovement`), strefa działa na każde `Health`: gracza stopniowo pozbawia życia, NPC zabija od razu (pole `MawDamageMode` w `Health`, `MawKillZone`, tylko kąty). `C`
 - [x] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia na czubek głowy: `LapTracker` (suma zmian kąta gracz-głowa, tylko `θ`). `C`
 - [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci z wynikiem (liczba rund), zapis rekordu i restart od rundy 1. `P`
@@ -53,13 +58,13 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [x] **Wróg 2 (strzelec)** (z LD57): trzyma dystans, strafe, ucieka, strzał z zapowiedzią i linią celowania: `ShooterEnemy`, `EnemyProjectile`. `C`
 - [x] **Spawner wrogów** przed graczem, poziom z odległości od paszczy (krzywa) × `RoundMultiplier`, usuwanie wrogów daleko za graczem: `EnemySpawner`. `C`
 - [ ] **Test i balans walki w Unity** (feel ataku i uniku, statystyki wrogów). `?`
-- [ ] **Podpięcie pod pętlę rund:** `EnemySpawner.RoundMultiplier` i `Clear()`, `PlayerCombat.Revive()`, reakcja na `Health.OnDied` gracza (ekran śmierci). `P`
+- [x] **Podpięcie pod pętlę rund:** `RoundController` ustawia `EnemySpawner.RoundMultiplier`, woła `Clear()` i `PlayerCombat.Revive()`, a ekran śmierci pokazuje `RoundScreens`. Nie testowane w Unity. `C`
 - [ ] **Modele i animacje wrogów 1 i 2** (teraz są placeholdery z prymitywów). Zdarzenia do animacji: `PlayerCombat.OnAttackStarted/OnDodgeStarted`. `G`
 
 ## Etap 2b: progresja (MUST)
 
 - [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku); reset poziomu i sprzętu przy śmierci. `C`
-- [ ] **Trudność zależna od paszczy:** funkcja trudności segmentu z odległości od paszczy (blisko = łatwo, czubek głowy = najtrudniej), spadająca w miarę zbliżania się paszczy, plus mnożnik rundy. Samo bieganie ma nie wystarczać. `C`
+- [ ] **Trudność zależna od paszczy** (jest: `EnemySpawner.GetDifficulty` z krzywą od odległości od paszczy i mnożnikiem rundy; brakuje spadku trudności w miarę zbliżania się paszczy): funkcja trudności segmentu z odległości od paszczy (blisko = łatwo, czubek głowy = najtrudniej), spadająca w miarę zbliżania się paszczy, plus mnożnik rundy. Samo bieganie ma nie wystarczać. `C`
 - [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
 - [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`
 - [ ] **Ikony i modele przedmiotów** (broń, pancerz, dodatki). `G`
