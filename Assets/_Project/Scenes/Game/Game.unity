@@ -2096,6 +2096,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1142851115}
   - component: {fileID: 1142851114}
+  - component: {fileID: 1142851116}
   m_Layer: 0
   m_Name: Torus World
   m_TagString: Untagged
@@ -2117,11 +2118,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusWorld
   majorRadius: 300
   minorRadius: 50
-  segmentCount: 16
-  sidesResolution: 60
+  segmentCount: 6
+  sidesResolution: 180
   segmentProfiles:
-  - {fileID: 11400000, guid: fdf2e221983bfb6458ee27b4316bea44, type: 2}
-  - {fileID: 11400000, guid: 2f3c84b6e09517f4ea6a6a2030fd290d, type: 2}
+  - {fileID: 11400000, guid: edf6c2a1a9e188f48b605eb7205e6981, type: 2}
+  - {fileID: 11400000, guid: d99350bfb174d184ab9171b8b347aca0, type: 2}
+  - {fileID: 11400000, guid: c05c8366fe884ad49bc1129c050fdb26, type: 2}
+  - {fileID: 11400000, guid: 2c4991ca5f6ff7f4187919b5f6e3c3b7, type: 2}
+  - {fileID: 11400000, guid: fda19e253147a3b42bb49c111c412dd6, type: 2}
+  - {fileID: 11400000, guid: 92b4a6fd6f3df0447958e58146bf2f1a, type: 2}
   blendWidth: 0.2
   defaultMaterial: {fileID: 0}
   generateColliders: 1
@@ -2141,6 +2146,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1167247100}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1142851116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1142851113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9d96759530040498c532bef2b52259b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusBiomeDecorations
+  world: {fileID: 1142851114}
+  biomeModels:
+  - {fileID: 919132149155446097, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
+  - {fileID: 919132149155446097, guid: b10ea4a96465cc049be4f3c8ab4e2a5c, type: 3}
+  - {fileID: 919132149155446097, guid: a5344fb83d788b14c87215e32f4aaaa9, type: 3}
+  - {fileID: 919132149155446097, guid: 8a8b7178233adf547b5a1fdcce5516ee, type: 3}
+  - {fileID: 919132149155446097, guid: ebeefd2fe8a55b7438a9687f110866ce, type: 3}
+  - {fileID: 919132149155446097, guid: e0a5c0726d3e2e54f996b50e9e4128a9, type: 3}
+  terrainPrefix: Teren_
+  shadowCasting: 1
+  receiveShadows: 1
 --- !u!1 &1167247099
 GameObject:
   m_ObjectHideFlags: 0

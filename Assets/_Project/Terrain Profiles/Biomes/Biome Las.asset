@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ab6f92e800be274ba18e38236b838af, type: 3}
+  m_Name: Biome Las
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.MeshTorusSegmentProfile
+  lengthResolution: 160
+  materialOverride: {fileID: 2100000, guid: 46f40fc2110e1294293d6bc250ee7358, type: 2}
+  aroundTiling: 1
+  seamBlendWidth: 0
+  terrainMesh: {fileID: 4776583431589185837, guid: b10ea4a96465cc049be4f3c8ab4e2a5c, type: 3}
+  gridResolutionAlong: 158
+  gridResolutionAround: 178
+  heightScale: 1
+  heightOffset: -0.5
