@@ -89,6 +89,7 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [x] **PSG (addon Blendera):** scatter assetów na płaszczyźnie (klastry drzew, trawa i krzaki wokół, warstwy) i wzdłuż linii adnotacji, na instancjach (linked duplicates) + malowanie podłoża vertex colorem, eksport FBX do Unity. Opis: [PSG.md](PSG.md). `C`
 - [ ] **Shadery i efekty:** łuski, mgła, post-processing (URP Volume), efekty cząsteczkowe walki. `G`
 - [ ] **Muzyka i dźwięki:** napięcie przy zbliżaniu się paszczy, walka, UI. `?`
+  - [x] Pętla dźwięku głowy węża (`Assets/SFX/SnakeHead_Loop.wav`: rumble + ogień, mono, -1 dBFS) jako 3D `AudioSource` na prefabie `Snake Head`. Licencje źródeł (Pixabay/Freesound) do potwierdzenia.
 - [ ] **Balans:** prędkość paszczy, siła wrogów, tempo rund.
 - [ ] **Build i test** na docelowej platformie jamu.
 - [ ] **Prezentacja:** nagranie / trailer, opis gry, zrzuty ekranu. `?`
