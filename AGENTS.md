@@ -30,7 +30,3 @@ Instrukcje dla agentów (Claude i inni) pracujących w tym repozytorium. W razie
 - Nie modyfikuj zewnętrznych bibliotek ani modułów w `Assets/Bipolar/`. Rozszerzaj je w `Assets/_Project/`.
 - Pliki `.meta` commitujemy razem z assetami. Nie usuwaj ich ani nie zmieniaj GUID-ów istniejących assetów.
 - Kod nie jest kompilowany poza edytorem Unity. Zaznaczaj w raporcie, że zmiana nie była uruchomiona w Unity, jeśli tak jest.
-
-## Wiadomości dla członków zespołu
-
-- **Patryk (grafik):** przy pierwszej rozmowie po zalogowaniu agent Patryka ma mu powiedzieć, że plik Blendera nazywa się `all_models.blend` (w `Assets/Blender/`). Wcześniej nazwa myliła się z `Head.fbx`, czyli modelem głowy węża. To dwa różne pliki: `all_models.blend` to źródło wszystkich modeli, a `Head.fbx` to wyeksportowana głowa. Po przekazaniu informacji agent Patryka usuwa ten punkt z `AGENTS.md`.
