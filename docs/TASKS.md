@@ -32,13 +32,13 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 
 ## W trakcie
 
-- [ ] Propsy na torusie (`TorusPropDefinition` jako ScriptableObject: nazwa, promień kolizji, blokowanie ruchu; rysowanie przez instancing później). Projekt uzgodniony, kodu jeszcze nie ma.
+- [x] **Propsy na torusie:** `TorusPropDefinition` (ScriptableObject na mesh, z referencją do niego, nazwa propa to nazwa mesha: promień pseudo-collidera `blockRadius`, jeden suwak `visibleRangeDegrees` (θ wokół gracza; 180 = zawsze widoczny, np. drzewa, 0 = klasa wyłączona w całości)), `TorusPropCatalog`, `TorusPropObstacles` (siatka przeszkód, `TorusObject` odpycha się od nich, pole `bodyRadius`), menu *WSF GameJam/Setup/Create Prop Definitions*. Nie testowane w Unity, wartości początkowe zgadnięte z rozmiaru mesha. `C`
 - [ ] Kolor szyi głowy i wtopienie głowy w teren biomu (głowa stoi na segmencie biomu). `G`
 - [ ] **Biomy, poprawki grafiki** (`G`):
   - [ ] Assety są za gęsto, lekko je przerzedzić (PSG: *Density*, *Min Distance*, liczby w warstwach).
   - [ ] Wybrzeże: dodać wodę, której teraz nie ma. Woda ma leżeć niżej, piasek wyżej.
   - [ ] Lodowiec: niebieski lód niżej, biały śnieg wyżej.
-- [ ] Kolizje assetów biomów (promień, blokowanie ruchu) i wpływ biomów na rozgrywkę (np. rodzaje wrogów), do ustalenia. `?`
+- [ ] Wpływ biomów na rozgrywkę (np. rodzaje wrogów), do ustalenia. `?`
 
 ## Etap 1: prototyp grywalny (MUST)
 
