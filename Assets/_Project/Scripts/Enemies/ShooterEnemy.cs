@@ -173,6 +173,7 @@ namespace WSFGameJam2026.Enemies
             if (BodyFlash)
                 BodyFlash.Telegraph(telegraphColor, windup);
             SetAimLine(true);
+            RaiseWindupStarted();
         }
 
         private void UpdateShooting(Vector3 offset)
@@ -203,6 +204,7 @@ namespace WSFGameJam2026.Enemies
             if (projectilePrefab == null)
                 return;
 
+            RaiseAttackReleased();
             var projectile = Instantiate(projectilePrefab);
             projectile.Launch(TorusObject.World, TorusObject.Angles, aimDirection, projectileSpeed, Enemy.ScaleDamage(damage), projectileLifetime, Health.Team);
         }

@@ -205,6 +205,8 @@ namespace WSFGameJam2026.Enemies
             SetState(State.Windup, windup);
             if (BodyFlash)
                 BodyFlash.Telegraph(telegraphColor, windup);
+
+            RaiseWindupStarted();
         }
 
         private void EnterLunge()
@@ -212,6 +214,7 @@ namespace WSFGameJam2026.Enemies
             lungeDirection = TorusObject.Facing;
             lungeHit = false;
             SetState(State.Lunge, lungeDuration);
+            RaiseAttackReleased();
         }
 
         private void UpdateLunge()

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using WSFGameJam2026.Combat;
 using WSFGameJam2026.World;
@@ -11,6 +12,12 @@ namespace WSFGameJam2026.Enemies
     [RequireComponent(typeof(Enemy))]
     public abstract class EnemyBehaviour : MonoBehaviour
     {
+        /// <summary>The telegraph of an attack started (windup). For animations.</summary>
+        public event Action OnWindupStarted;
+
+        /// <summary>The attack was released (lunge, shot). For animations.</summary>
+        public event Action OnAttackReleased;
+
         [Header("Movement")]
         [SerializeField]
         [Min(0f)]
@@ -28,6 +35,7 @@ namespace WSFGameJam2026.Enemies
         protected float DetectRange => detectRange;
 
         private Knockback knockback;
+        private StatusEffects statusEffects;
         private BodyFlash bodyFlash;
         protected BodyFlash BodyFlash => bodyFlash;
 
@@ -37,8 +45,14 @@ namespace WSFGameJam2026.Enemies
 
         protected Health Target => Enemy.Target;
 
-        /// <summary>The enemy can act: alive, after the spawn delay, not being pushed, with a living target.</summary>
-        protected bool CanAct => Enemy.IsActive && (knockback == null || knockback.IsActive == false) && Target && Target.IsDead == false;
+        /// <summary>The enemy can act: alive, after the spawn delay, not being pushed, not stunned, with a living target.</summary>
+        protected bool CanAct => Enemy.IsActive
+            && (knockback == null || knockback.IsActive == false)
+            && (statusEffects == null || statusEffects.IsStunned == false)
+            && Target && Target.IsDead == false;
+
+        /// <summary>Slow from skills (frost nova). 1 = full speed.</summary>
+        private float StatusSpeedMultiplier => statusEffects ? statusEffects.SpeedMultiplier : 1f;
 
         protected virtual void Awake()
         {
@@ -47,6 +61,17 @@ namespace WSFGameJam2026.Enemies
             Health = GetComponent<Health>();
             TryGetComponent(out bodyFlash);
             TryGetComponent(out knockback);
+            TryGetComponent(out statusEffects);
+        }
+
+        protected void RaiseWindupStarted()
+        {
+            OnWindupStarted?.Invoke();
+        }
+
+        protected void RaiseAttackReleased()
+        {
+            OnAttackReleased?.Invoke();
         }
 
         /// <summary>Surface offset from this enemy to the target (see <see cref="TorusObject.GetSurfaceOffsetTo(TorusObject)"/>).</summary>
@@ -62,13 +87,13 @@ namespace WSFGameJam2026.Enemies
 
             // Slower while still turning, so enemies do not run in circles around the target.
             float alignment = Mathf.Clamp01(Vector3.Dot(TorusObject.Facing, worldDirection.normalized));
-            TorusObject.Move(moveSpeed * speedMultiplier * alignment * Time.deltaTime);
+            TorusObject.Move(moveSpeed * speedMultiplier * StatusSpeedMultiplier * alignment * Time.deltaTime);
         }
 
         /// <summary>Moves along a direction without turning (strafe, retreat).</summary>
         protected void Slide(Vector3 worldDirection, float speedMultiplier = 1f)
         {
-            TorusObject.MoveInDirection(worldDirection, moveSpeed * speedMultiplier * Time.deltaTime);
+            TorusObject.MoveInDirection(worldDirection, moveSpeed * speedMultiplier * StatusSpeedMultiplier * Time.deltaTime);
         }
 
         protected void Face(Vector3 worldDirection, float turnMultiplier = 1f)
