@@ -125,7 +125,7 @@ namespace WSFGameJam2026.World
             smoothedHeight = Mathf.Lerp(smoothedHeight, surface.GetHeight(angles), heightBlend);
 
             localUp = surface.GetBaseNormal(angles);
-            localRunDirection = new Vector3(-Mathf.Sin(angles.Theta), 0f, Mathf.Cos(angles.Theta));
+            localRunDirection = new Vector3(Mathf.Cos(angles.Theta), 0f, -Mathf.Sin(angles.Theta));
             localPosition = surface.GetBasePoint(angles) + localUp * smoothedHeight;
         }
 
@@ -145,6 +145,11 @@ namespace WSFGameJam2026.World
             transform.SetPositionAndRotation(
                 worldTransform.TransformPoint(localPosition + localUp * groundOffset),
                 Quaternion.LookRotation(Facing, Up));
+        }
+
+        private void OnValidate()
+        {
+            Refresh();
         }
     }
 }
