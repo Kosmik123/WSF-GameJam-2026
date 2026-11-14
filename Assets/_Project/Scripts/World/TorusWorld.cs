@@ -10,23 +10,23 @@ namespace WSFGameJam2026.World
     {
         [Header("Shape")]
         [SerializeField]
-        [Min(1f)]
+        [Min(1f)] [Delayed]
         private float majorRadius = 40f;
         public float MajorRadius => majorRadius;
 
         [SerializeField]
-        [Min(0.5f)]
+        [Min(0.5f)] [Delayed]
         private float minorRadius = 10f;
         public float MinorRadius => minorRadius;
 
         [SerializeField]
-        [Range(3, 64)]
+        [Range(3, 64)][Delayed]
         private int segmentCount = 14;
         public int SegmentCount => segmentCount;
 
         [Tooltip("Subdivisions around the tube. Shared by all segments so their borders match.")]
         [SerializeField]
-        [Range(8, 256)]
+        [Range(8, 256)][Delayed]
         private int sidesResolution = 64;
 
         [Header("Terrain")]
