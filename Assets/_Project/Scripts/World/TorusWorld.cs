@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -74,6 +75,8 @@ namespace WSFGameJam2026.World
             Clear();
             surface = new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
 
+            InvalidateProfiles();
+
             var meshes = new Mesh[segmentCount];
             for (int i = 0; i < segmentCount; i++)
                 meshes[i] = CreateMesh(i);
@@ -82,6 +85,14 @@ namespace WSFGameJam2026.World
 
             for (int i = 0; i < segmentCount; i++)
                 CreateSegment(i, meshes[i]);
+        }
+
+        private void InvalidateProfiles()
+        {
+            var invalidated = new HashSet<TorusSegmentProfile>();
+            for (int i = 0; i < segmentCount; i++)
+                if (invalidated.Add(surface.GetProfile(i)))
+                    surface.GetProfile(i).Invalidate();
         }
 
         private Mesh CreateMesh(int segmentIndex)
