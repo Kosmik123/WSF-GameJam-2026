@@ -4,7 +4,7 @@ namespace WSFGameJam2026.World
 {
     /// <summary>
     /// Settings of one class of biome props (all variants of a mesh, so <c>Las_Drzewo_v0</c>...<c>_v3</c> share one definition named <c>Las_Drzewo</c>).
-    /// The catalog finds the definition by the mesh name. Props without a definition use the defaults (no blocking, never hidden).
+    /// The catalog finds the definition by the mesh name. Props without a definition use the defaults (no blocking, always visible).
     /// </summary>
     [CreateAssetMenu(menuName = "WSF GameJam/World/Prop Definition")]
     public class TorusPropDefinition : ScriptableObject
@@ -20,20 +20,12 @@ namespace WSFGameJam2026.World
         private float blockRadius;
         public float BlockRadius => blockRadius;
 
-        [Tooltip("Hide the prop when it is further from the camera than the distance below. For small props such as grass. Trees stay visible far away.")]
+        [Tooltip("How far from the player along the body (theta, degrees, plus and minus) the prop is drawn. 180 = always visible (trees), 0 = the class is turned off completely: not placed, not drawn, does not block. Small props such as grass get a small value.")]
         [SerializeField]
-        private bool hideWhenFar;
-        public bool HideWhenFar => hideWhenFar;
+        [Range(0f, 180f)]
+        private float visibleRangeDegrees = 180f;
+        public float VisibleRangeDegrees => visibleRangeDegrees;
 
-        [Tooltip("Distance from the camera, in world units, behind which the prop is hidden.")]
-        [SerializeField]
-        [Min(1f)]
-        private float hideDistance = 120f;
-        public float HideDistance => hideDistance;
-
-        [Tooltip("Turns the whole class off: it is not placed, not drawn and does not block.")]
-        [SerializeField]
-        private bool isDisabled;
-        public bool IsDisabled => isDisabled;
+        public bool IsDisabled => visibleRangeDegrees <= 0f;
     }
 }

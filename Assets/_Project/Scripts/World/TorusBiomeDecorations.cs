@@ -93,7 +93,7 @@ namespace WSFGameJam2026.World
             public readonly List<Matrix4x4> LocalMatrices = new List<Matrix4x4>();
             public readonly List<Placement> Owners = new List<Placement>();
             public float[] Thetas;
-            public float HideDistance;
+            public float VisibleRange;
             public Matrix4x4[] WorldMatrices;
         }
 
@@ -227,8 +227,8 @@ namespace WSFGameJam2026.World
                 var onTerrain = toTerrain * renderer.transform.localToWorldMatrix;
                 var placement = new Placement();
                 placement.BaseMatrix = GetTorusMatrix(surface, segment, terrainBounds, onTerrain, heightScale, heightOffset, placement);
-                float hideDistance = definition && definition.HideWhenFar ? definition.HideDistance : 0f;
-                AddInstance(filter.sharedMesh, renderer.sharedMaterials, placement, hideDistance, batchLookup);
+                float visibleRange = definition ? definition.VisibleRangeDegrees * Mathf.Deg2Rad : TorusGeometry.TwoPi;
+                AddInstance(filter.sharedMesh, renderer.sharedMaterials, placement, visibleRange, batchLookup);
                 placements.Add(placement);
                 InstanceCount++;
 
@@ -264,7 +264,7 @@ namespace WSFGameJam2026.World
             return Matrix4x4.TRS(position, frame * onTerrain.rotation, onTerrain.lossyScale);
         }
 
-        private void AddInstance(Mesh mesh, Material[] materials, Placement placement, float hideDistance, Dictionary<(Mesh, int, Material), Batch> batchLookup)
+        private void AddInstance(Mesh mesh, Material[] materials, Placement placement, float visibleRange, Dictionary<(Mesh, int, Material), Batch> batchLookup)
         {
             if (materials == null || materials.Length == 0)
                 return;
@@ -278,7 +278,7 @@ namespace WSFGameJam2026.World
                 var key = (mesh, subMesh, material);
                 if (batchLookup.TryGetValue(key, out var batch) == false)
                 {
-                    batch = new Batch { Mesh = mesh, SubMesh = subMesh, Material = material, HideDistance = hideDistance };
+                    batch = new Batch { Mesh = mesh, SubMesh = subMesh, Material = material, VisibleRange = visibleRange };
                     batchLookup.Add(key, batch);
                     batches.Add(batch);
                 }
@@ -351,9 +351,9 @@ namespace WSFGameJam2026.World
         // Instances near the shadow target cast shadows, all the others do not: two groups of draws per batch.
         private void DrawBatch(Batch batch, Camera camera, Bounds bounds)
         {
-            if (batch.HideDistance > 0f)
+            if (batch.VisibleRange < Mathf.PI && shadowTarget != null)
             {
-                DrawHideable(batch, camera, bounds);
+                DrawLimited(batch, camera, bounds);
                 return;
             }
 
@@ -393,9 +393,9 @@ namespace WSFGameJam2026.World
             DrawRange(noShadowParams, batch, wrappedLast, first);
         }
 
-        // Props that are hidden when far (grass...): every instance is checked against the camera distance,
-        // and the visible ones are copied into two buffers, with and without shadows.
-        private void DrawHideable(Batch batch, Camera camera, Bounds bounds)
+        // Props with a limited visible range (grass...): only the ones within the range of theta around the shadow target are drawn.
+        // The visible ones are copied into two buffers, with and without shadows.
+        private void DrawLimited(Batch batch, Camera camera, Bounds bounds)
         {
             int count = batch.WorldMatrices.Length;
             if (shadowBuffer.Length < count)
@@ -404,34 +404,27 @@ namespace WSFGameJam2026.World
                 plainBuffer = new Matrix4x4[count];
             }
 
-            float hideDistance = batch.HideDistance * Mathf.Max(1f, world.transform.lossyScale.x);
-            float maxSqrDistance = hideDistance * hideDistance;
-            var cameraPosition = camera.transform.position;
-
-            bool hasTarget = shadowTarget != null;
-            float range = nearShadowRangeDegrees * Mathf.Deg2Rad;
-            float start = hasTarget ? Mathf.Repeat(shadowTarget.Angles.Theta - range, TorusGeometry.TwoPi) : 0f;
+            float targetTheta = shadowTarget.Angles.Theta;
+            float shadowRange = nearShadowRangeDegrees * Mathf.Deg2Rad;
 
             int shadowCount = 0;
             int plainCount = 0;
             for (int i = 0; i < count; i++)
             {
-                var matrix = batch.WorldMatrices[i];
-                if (((Vector3)matrix.GetColumn(3) - cameraPosition).sqrMagnitude > maxSqrDistance)
+                float distance = Mathf.Abs(Mathf.Repeat(batch.Thetas[i] - targetTheta + Mathf.PI, TorusGeometry.TwoPi) - Mathf.PI);
+                if (distance > batch.VisibleRange)
                     continue;
 
-                bool isNear = hasTarget == false || Mathf.Repeat(batch.Thetas[i] - start, TorusGeometry.TwoPi) <= range * 2f;
-                if (isNear)
+                if (distance <= shadowRange)
                 {
-                    shadowBuffer[shadowCount++] = matrix;
+                    shadowBuffer[shadowCount++] = batch.WorldMatrices[i];
                     continue;
                 }
 
-                plainBuffer[plainCount++] = matrix;
+                plainBuffer[plainCount++] = batch.WorldMatrices[i];
             }
 
-            var nearMode = hasTarget ? ShadowCastingMode.On : shadowCasting;
-            DrawBuffer(CreateRenderParams(batch, camera, bounds, nearMode), batch, shadowBuffer, shadowCount);
+            DrawBuffer(CreateRenderParams(batch, camera, bounds, ShadowCastingMode.On), batch, shadowBuffer, shadowCount);
             DrawBuffer(CreateRenderParams(batch, camera, bounds, ShadowCastingMode.Off), batch, plainBuffer, plainCount);
         }
 

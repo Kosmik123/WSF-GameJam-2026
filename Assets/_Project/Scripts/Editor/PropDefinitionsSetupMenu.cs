@@ -11,7 +11,7 @@ namespace WSFGameJam2026.Editor
     /// Creates a <see cref="TorusPropDefinition"/> for every class of props found in the biome models of <see cref="TorusBiomeDecorations"/>
     /// (a class = mesh name without the variant suffix), puts them into a <see cref="TorusPropCatalog"/> and connects it to the decorations.
     /// Safe to run again: it only adds the definitions that are missing, so settings you changed are kept.
-    /// The first values are a guess from the size of the mesh: props lower than <see cref="SmallPropHeight"/> are hidden when far and
+    /// The first values are a guess from the size of the mesh: props lower than <see cref="SmallPropHeight"/> are visible only near the player (<see cref="SmallPropVisibleRange"/>) and
     /// can be walked through, taller ones block a circle of about a third of their width. Adjust them in the assets.
     /// </summary>
     public static class PropDefinitionsSetupMenu
@@ -19,7 +19,7 @@ namespace WSFGameJam2026.Editor
         private const string Folder = "Assets/_Project/Data/Props";
         private const string CatalogPath = Folder + "/Prop Catalog.asset";
         private const float SmallPropHeight = 1f;
-        private const float DefaultHideDistance = 120f;
+        private const float SmallPropVisibleRange = 25f;
         private const float MaxBlockRadius = 3f;
 
         [MenuItem("WSF GameJam/Setup/Create Prop Definitions")]
@@ -128,8 +128,7 @@ namespace WSFGameJam2026.Editor
             var serialized = new SerializedObject(definition);
             serialized.FindProperty("meshName").stringValue = meshName;
             serialized.FindProperty("blockRadius").floatValue = radius;
-            serialized.FindProperty("hideWhenFar").boolValue = isSmall;
-            serialized.FindProperty("hideDistance").floatValue = DefaultHideDistance;
+            serialized.FindProperty("visibleRangeDegrees").floatValue = isSmall ? SmallPropVisibleRange : 180f;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(definition);
             return definition;
