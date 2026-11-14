@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Head
@@ -35,9 +36,10 @@ namespace WSFGameJam2026.Head
         [Min(0.01f)]
         private float neckSliceDepth = 1f;
 
-        [Tooltip("Added to the measured length of the head, in world units. Negative moves the front end (white gizmo) back, so the terrain stops blending earlier.")]
+        [Tooltip("Added to the measured length of the head, in degrees along the snake body. Negative moves the front end (white gizmo) back, so the terrain stops blending earlier.")]
+        [FormerlySerializedAs("headFrontOffset")]
         [SerializeField]
-        private float headFrontOffset;
+        private float headFrontOffsetDegrees;
 
         [Tooltip("Added to the measured height of the outline. Positive lifts the terrain at the neck.")]
         [SerializeField]
@@ -94,7 +96,7 @@ namespace WSFGameJam2026.Head
             var majorRadius = gizmoWorld.MajorRadius;
             var neckTheta = theta - neckOffset;
             var sliceTheta = neckTheta + neckSliceDepth / majorRadius;
-            var headEndTheta = neckTheta + GetAdjustedHeadLength(headLength, majorRadius);
+            var headEndTheta = neckTheta + GetAdjustedHeadLength(headLength);
             var blendLength = blendLengthDegrees * Mathf.Deg2Rad;
 
             var previousMatrix = Gizmos.matrix;
@@ -170,10 +172,10 @@ namespace WSFGameJam2026.Head
             return TorusGeometry.GetCenterPoint(world.MajorRadius, theta) + TorusGeometry.GetNormal(theta, phi) * (world.MinorRadius + height);
         }
 
-        /// <summary>Measured head length (radians) with <see cref="headFrontOffset"/> applied.</summary>
-        private float GetAdjustedHeadLength(float measuredLength, float majorRadius)
+        /// <summary>Measured head length (radians) with <see cref="headFrontOffsetDegrees"/> applied.</summary>
+        private float GetAdjustedHeadLength(float measuredLength)
         {
-            return Mathf.Max(0f, measuredLength + headFrontOffset / majorRadius);
+            return Mathf.Max(0f, measuredLength + headFrontOffsetDegrees * Mathf.Deg2Rad);
         }
 
         private bool Measure()
@@ -192,7 +194,7 @@ namespace WSFGameJam2026.Head
             for (int i = 0; i < heights.Length; i++)
                 heights[i] += neckHeightOffset;
 
-            headLength = GetAdjustedHeadLength(headLength, world.MajorRadius);
+            headLength = GetAdjustedHeadLength(headLength);
             world.HeadTerrain.Configure(neckOffset, headLength, blendLengthDegrees * Mathf.Deg2Rad, heights);
             world.HeadTerrain.ConfigureTail(tailTaperLengthDegrees * Mathf.Deg2Rad, tailTaperCurve);
             world.HeadTerrain.SetTheta(movement.Theta);
