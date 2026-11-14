@@ -30,6 +30,9 @@ namespace WSFGameJam2026.Combat
         /// <summary>Damage taken (after invulnerability check). Not raised for blocked hits.</summary>
         public event DamagedHandler OnDamaged;
 
+        /// <summary>Any Health took damage (after the invulnerability check). For effects that do not belong to one body, like damage numbers.</summary>
+        public static event DamagedHandler OnAnyDamaged;
+
         /// <summary>Hit points changed by damage or healing. The argument is the change (negative = damage).</summary>
         public event Action<int> OnHealthChanged;
 
@@ -117,6 +120,7 @@ namespace WSFGameJam2026.Combat
                 knockback.Apply(damage.Direction, damage.Knockback);
 
             OnDamaged?.Invoke(this, damage);
+            OnAnyDamaged?.Invoke(this, damage);
             OnHealthChanged?.Invoke(-damage.Amount);
             if (currentHealth <= 0)
                 OnDied?.Invoke(this);
