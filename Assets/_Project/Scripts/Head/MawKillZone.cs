@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using WSFGameJam2026.Combat;
 using WSFGameJam2026.World;
@@ -7,19 +8,16 @@ namespace WSFGameJam2026.Head
     /// <summary>
     /// Danger zone of the jaw, checked with angles only (no physics, no colliders). Its shape is not a plain band:
     /// how far it reaches in front of the head and behind it depends on phi (around the tube), so the jaws can
-    /// reach forward while the cheeks stay back. Whoever stands in it gradually loses hit points
-    /// (<see cref="Health.LoseHealth"/>, which ignores i-frames) until the jaw kills them.
+    /// reach forward while the cheeks stay back. It affects every active <see cref="Health"/>, and each one chooses
+    /// in its <see cref="Health.MawDamageMode"/> whether it is killed at once (<see cref="Health.Kill"/>) or loses
+    /// hit points over time (<see cref="Health.LoseHealth"/>). Both ignore i-frames.
     /// </summary>
     public class MawKillZone : MonoBehaviour
     {
         [SerializeField]
         private HeadMovement head;
 
-        [Tooltip("Who the jaw hurts. Usually only the player.")]
-        [SerializeField]
-        private Health[] victims;
-
-        [Tooltip("Hit points taken per second while standing in the zone. Ignores i-frames, so the dodge does not help.")]
+        [Tooltip("Hit points per second taken from bodies set to Gradual in their Health. Ignores i-frames, so the dodge does not help.")]
         [SerializeField]
         [Min(0f)]
         private float damagePerSecond = 15f;
@@ -41,7 +39,8 @@ namespace WSFGameJam2026.Head
         [SerializeField]
         private bool drawGizmos = true;
 
-        private float[] pendingDamage;
+        private readonly Dictionary<Health, float> pendingDamage = new Dictionary<Health, float>();
+        private readonly List<Health> buffer = new List<Health>();
 
         private void Reset()
         {
@@ -53,26 +52,33 @@ namespace WSFGameJam2026.Head
             if (head == null)
                 return;
 
-            if (pendingDamage == null || pendingDamage.Length != victims.Length)
-                pendingDamage = new float[victims.Length];
+            // A copy, because killing a body can disable it and change the list of active bodies.
+            buffer.Clear();
+            buffer.AddRange(Health.Active);
 
-            for (var i = 0; i < victims.Length; i++)
+            for (var i = 0; i < buffer.Count; i++)
             {
-                var victim = victims[i];
-                if (victim == null || victim.IsDead || victim.isActiveAndEnabled == false || IsInside(victim) == false)
+                var victim = buffer[i];
+                if (victim == null || victim.IsDead || IsInside(victim) == false)
                 {
-                    pendingDamage[i] = 0f;
+                    pendingDamage.Remove(victim);
+                    continue;
+                }
+
+                if (victim.MawDamageMode == MawDamageMode.Instant)
+                {
+                    victim.Kill();
+                    pendingDamage.Remove(victim);
                     continue;
                 }
 
                 // Health is whole, so the damage is collected until it makes at least one point.
-                pendingDamage[i] += damagePerSecond * Time.deltaTime;
-                var wholeDamage = Mathf.FloorToInt(pendingDamage[i]);
-                if (wholeDamage <= 0)
-                    continue;
-
-                pendingDamage[i] -= wholeDamage;
-                victim.LoseHealth(wholeDamage);
+                pendingDamage.TryGetValue(victim, out var pending);
+                pending += damagePerSecond * Time.deltaTime;
+                var wholeDamage = Mathf.FloorToInt(pending);
+                pendingDamage[victim] = pending - wholeDamage;
+                if (wholeDamage > 0)
+                    victim.LoseHealth(wholeDamage);
             }
         }
 
@@ -135,8 +141,8 @@ namespace WSFGameJam2026.Head
             var surface = head.World.Surface;
             var worldTransform = head.World.transform;
             var isAnyoneInside = false;
-            for (var i = 0; victims != null && i < victims.Length; i++)
-                isAnyoneInside |= victims[i] != null && victims[i].IsDead == false && IsInside(victims[i]);
+            foreach (var health in Health.Active)
+                isAnyoneInside |= health.IsDead == false && IsInside(health);
 
             var centerTheta = GetCenterTheta();
             var front = new Vector3[Steps + 1];
