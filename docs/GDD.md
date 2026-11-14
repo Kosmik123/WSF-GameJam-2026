@@ -73,7 +73,8 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
   - dalej: coraz silniejsi,
   - tuż za paszczą, przy czubku głowy: najsilniejsi (cel okrążenia jest najtrudniejszy).
 - **Paszcza osłabia segmenty, które pożera.** Gdy paszcza zbliża się do kolejnych segmentów, trudność każdego z nich spada, bo dzieli go od niej coraz mniej. Jest to też nagroda za wolne tempo: zostawanie z tyłu oznacza łatwiejszych wrogów, ale mniej czasu.
-- **Kolejne rundy:** do trudności z odległości dochodzi mnożnik rundy (liczniejsi i silniejsi wrogowie, szybsza paszcza). **[DO USTALENIA]** czy wrogowie już na planszy słabną wraz ze zmianą trudności segmentu, czy tylko nowo pojawiający się.
+- **Kolejne rundy:** do trudności z odległości dochodzi mnożnik rundy (liczniejsi i silniejsi wrogowie, szybsza paszcza).
+- **Wróg dostaje siłę raz, w momencie pojawienia się**, na podstawie trudności segmentu, w którym powstaje. Później jej nie zmienia, więc gracz może ocenić ryzyko walki. Wrogów pojawiamy blisko gracza (kilka sekund przed nim), żeby ich poziom odpowiadał miejscu, w którym naprawdę walczy.
 - **Dylemat:** walka daje siłę, ale kosztuje czas, a paszcza goni. Pominięcie walk na początku oznacza słabszego gracza później.
 - **Kolejne rundy:** poziom i ekwipunek **zostają** po wygranej rundzie. Trudność kolejnej rundy rośnie szybciej niż samo wzmocnienie gracza.
 - **Po śmierci:** koniec przejścia, poziom i sprzęt przepadają, nowa gra zaczyna się od rundy 1 (patrz sekcja 6). To klasyczny roguelite: każda próba zaczyna od zera.
