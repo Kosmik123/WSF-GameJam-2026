@@ -11,6 +11,7 @@ import bmesh
 import bpy
 import numpy as np
 from mathutils import Vector, noise
+from mathutils.kdtree import KDTree
 
 REST_ATTRIBUTE = "psg_rest"
 
@@ -121,42 +122,77 @@ def heights(settings, xy):
     return np.clip(base, 0.0, 1.0)
 
 
-def edge_mask(xy, width):
+def edge_mask(xy, boundary, width):
+    """0 on the mesh boundary, 1 farther than `width` from it (any outline, not just rectangles)."""
     if width <= 0.0:
         return np.ones(len(xy))
-    low, high = xy.min(axis=0), xy.max(axis=0)
-    distance = np.minimum(xy - low, high - xy).min(axis=1)
+    border = np.flatnonzero(boundary)
+    if len(border) == 0:
+        return np.ones(len(xy))
+    tree = KDTree(len(border))
+    for i, index in enumerate(border):
+        tree.insert((xy[index, 0], xy[index, 1], 0.0), i)
+    tree.balance()
+    distance = np.fromiter((tree.find((x, y, 0.0))[2] for x, y in xy), dtype=np.float64, count=len(xy))
     return _smoothstep(0.0, width, distance)
 
 
+def boundary_vertices(mesh):
+    """Vertices on open (boundary) edges: edges used by exactly one face."""
+    edge_count = len(mesh.edges)
+    loop_edges = np.empty(len(mesh.loops), dtype=np.int32)
+    mesh.loops.foreach_get("edge_index", loop_edges)
+    uses = np.bincount(loop_edges, minlength=edge_count)
+    edge_verts = np.empty(edge_count * 2, dtype=np.int32)
+    mesh.edges.foreach_get("vertices", edge_verts)
+    edge_verts = edge_verts.reshape(-1, 2)
+    on_border = np.zeros(len(mesh.vertices), dtype=bool)
+    on_border[edge_verts[uses == 1].ravel()] = True
+    return on_border
+
+
 def shape_terrain(obj):
-    """Reshape a mesh from its rest positions using obj.psg_shape."""
+    """Reshape a mesh from its rest positions using obj.psg_shape.
+
+    Seamless segments: boundary vertices keep their rest XY (no jitter) and all get the same
+    height (Edge Height), the terrain blends into that level over Flatten Edges. Neighbouring
+    meshes with the same border spacing and Edge Height therefore share identical, flat edges.
+    """
     settings = obj.psg_shape
     mesh = obj.data
     if settings.triangulate:
         rest_positions(mesh)  # store before topology changes keep vertex order
         triangulate(mesh)
     rest = rest_positions(mesh)
+    border = boundary_vertices(mesh)
     xy = rest[:, :2].copy()
 
     if settings.jitter > 0.0:
-        # break the grid: random XY offset, border vertices only slide along their border
+        # break the grid: random XY offset; boundary vertices stay put so edges match neighbours
         cell = cell_size(rest)
         ids = np.arange(len(rest))
         offset = (np.stack([_hash01(ids, 11 + settings.seed), _hash01(ids, 977 + settings.seed)], axis=1)
                   * 2.0 - 1.0) * settings.jitter * cell * 0.5
-        low, high = xy.min(axis=0), xy.max(axis=0)
-        on_border = (np.abs(xy - low) < 1e-5) | (np.abs(xy - high) < 1e-5)
-        offset[on_border] = 0.0
+        offset[border] = 0.0
+        if settings.edge_flatten > 0.0:
+            # also keep the first ring near the edge calm, so the flat band stays straight
+            offset *= edge_mask(xy, border, min(settings.edge_flatten, cell * 1.5))[:, None]
         xy = xy + offset
 
-    height = heights(settings, xy)
-    mask = edge_mask(xy, settings.edge_flatten)
-    height = settings.edge_height + (height - settings.edge_height) * mask
+    # noise is sampled in world XY, so neighbouring segments continue each other instead of repeating
+    matrix = np.array(obj.matrix_world, dtype=np.float64)
+    world_xy = (np.column_stack([xy, rest[:, 2]]) @ matrix[:3, :3].T + matrix[:3, 3])[:, :2]
+    height = heights(settings, world_xy)
+    if settings.flat_edges:
+        mask = edge_mask(xy, border, max(settings.edge_flatten, 1e-4))
+    else:
+        mask = np.ones(len(xy))
+    edge_level = min(settings.edge_level, settings.max_height)
+    lift = edge_level + (height * settings.max_height - edge_level) * mask
 
     co = np.empty((len(rest), 3))
     co[:, :2] = xy
-    co[:, 2] = rest[:, 2] + height * settings.max_height
+    co[:, 2] = rest[:, 2] + lift
     mesh.vertices.foreach_set("co", co.astype(np.float32).ravel())
     mesh.update()
     for polygon in mesh.polygons:

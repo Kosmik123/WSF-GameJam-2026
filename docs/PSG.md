@@ -101,7 +101,13 @@ Panel **Terrain Shape** działa na zaznaczonym meshu, najlepiej na gęstej siatc
   - *Plateaus*: tarasowanie wysokości na *Levels* poziomów. *Cliff Width* ustawia, jak szeroki i stromy jest uskok.
   - *Hills*: drobne górki na wierzchu.
 - **Low poly:** *Vertex Jitter* przesuwa wierzchołki losowo w XY i rozbija regularną siatkę. Wierzchołki brzegowe przesuwają się tylko wzdłuż brzegu, więc brzeg zostaje prosty. *Triangulate* dzieli siatkę na płaskie trójkąty jak w assetach, a cieniowanie jest płaskie.
-- **Flatten Edges / Edge Height**: przy brzegu teren schodzi do stałej wysokości. Przydaje się, żeby sąsiednie segmenty się łączyły.
+- **Flat Seamless Edges** (domyślnie włączone): kawałki terenu łączą się ze sobą bez szczelin.
+  - Wszystkie wierzchołki brzegu meshu (krawędzie z jedną ścianą, więc działa dla każdego obrysu, nie tylko prostokąta) dostają tę samą wysokość *Edge Level*, w metrach nad pozycją wyjściową (domyślnie 0,5 m). Poziom nie zależy od presetu ani od *Max Height*.
+  - Wierzchołki brzegu nie dostają jittera, więc zostają w pozycjach siatki i pokrywają się z brzegiem sąsiada. Pierwszy rząd przy brzegu jest jitterowany słabiej.
+  - Teren przechodzi w płaski brzeg na odległości *Edge Blend* (domyślnie 5 m). *Edge Level* powyżej 0 pozwala dolinom zejść niżej niż brzeg.
+  - Warunki łączenia: sąsiednie kawałki mają ten sam *Edge Level* i ten sam rozstaw wierzchołków na wspólnym brzegu (np. Grid o tej samej wielkości oczka).
+  - Noise kształtu jest liczony we współrzędnych świata, więc sąsiednie kawałki nie powtarzają tego samego wzoru. Gradient koloru Z ma przy ukształtowanym terenie stały zakres (poziom wyjściowy do *Max Height*), więc ta sama wysokość daje ten sam kolor na obu kawałkach.
+  - Test: trzy sąsiednie Gridy 40×40 m z presetami Mixed, Plateaus i Valleys mają wszystkie 160 wierzchołków brzegu na 0,50 m, a wspólne brzegi (po 41 wierzchołków) pokrywają się co do pozycji.
 - **Nieniszcząco:** oryginalne pozycje wierzchołków są zapisane w atrybucie `psg_rest`, a każda zmiana liczy kształt od nich. *Reset Shape* przywraca płaski mesh. Triangulacja zostaje.
 - Po zmianie kształtu scatter obszaru i ścieżek przykleja się do nowej powierzchni, a malowanie terenu się odświeża. Uskoki tarasów są strome, więc same dostają paletę skały, a preset biomu nie stawia na nich drzew.
 - Po pierwszym użyciu presetu zmiana każdego suwaka przelicza teren na żywo, z opóźnieniem jak Live Update.

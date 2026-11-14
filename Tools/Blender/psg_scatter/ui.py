@@ -240,9 +240,13 @@ class PSG_PT_shape(PSGPanel, bpy.types.Panel):
         col = layout.column(align=True)
         col.prop(settings, "jitter")
         col.prop(settings, "triangulate")
-        row = col.row(align=True)
-        row.prop(settings, "edge_flatten")
-        row.prop(settings, "edge_height")
+        box = layout.box()
+        box.prop(settings, "flat_edges")
+        if settings.flat_edges:
+            row = box.row(align=True)
+            row.prop(settings, "edge_flatten")
+            row.prop(settings, "edge_level")
+            box.label(text="Use the same Edge Level on all pieces", icon='INFO')
 
 
 class PSG_PT_terrain(PSGPanel, bpy.types.Panel):

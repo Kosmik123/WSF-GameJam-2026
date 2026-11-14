@@ -426,11 +426,31 @@ def _hash01(indices, seed):
     return (x & np.uint64(0xFFFFFF)).astype(np.float64) / float(0x1000000)
 
 
-def terrain_colors(settings, points, normals, element_ids):
+def shaped_height_range(obj):
+    """World Z range a shaped terrain can span: rest level .. rest level + Max Height.
+
+    Fixed per budget (not per mesh), so equal heights on neighbouring pieces get equal colors.
+    """
+    if not obj.psg_shape.enabled:
+        return None
+    attr = obj.data.attributes.get(shape.REST_ATTRIBUTE)
+    if attr is None:
+        return None
+    rest = np.empty(len(obj.data.vertices) * 3, dtype=np.float32)
+    attr.data.foreach_get("vector", rest)
+    matrix = np.array(obj.matrix_world, dtype=np.float64)
+    world = rest.reshape(-1, 3).astype(np.float64) @ matrix[:3, :3].T + matrix[:3, 3]
+    low = float(world[:, 2].min())
+    return low, low + obj.psg_shape.max_height * float(np.linalg.norm(matrix[:3, 2]))
+
+
+def terrain_colors(settings, points, normals, element_ids, z_range=None):
     """Asset-style terrain shading: Z gradient (dark low, light high), slope palette, biased noise."""
     count = len(points)
     z = points[:, 2]
-    if settings.gradient_auto:
+    if settings.gradient_auto and z_range is not None:
+        z_min, z_max = z_range
+    elif settings.gradient_auto:
         z_min, z_max = float(z.min()), float(z.max())
     else:
         z_min, z_max = settings.gradient_min, settings.gradient_max
@@ -493,7 +513,7 @@ def repaint_ground(ground):
     ids = np.arange(element_count)
 
     if settings.terrain_enabled:
-        rgb = terrain_colors(settings, points, normals, ids)
+        rgb = terrain_colors(settings, points, normals, ids, shaped_height_range(ground))
     else:
         rgb = np.tile(np.array(settings.base_color[:3], dtype=np.float64), (element_count, 1))
 

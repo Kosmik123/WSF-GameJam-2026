@@ -237,10 +237,15 @@ class PSG_Shape(bpy.types.PropertyGroup):
     hill_amount: FloatProperty(name="Hills", default=0.3, min=0.0, max=1.0, subtype='FACTOR',
                                update=_shape_changed, description="Small bumps on top of everything")
     hill_size: FloatProperty(name="Hill Size", default=6.0, min=0.5, unit='LENGTH', update=_shape_changed)
-    edge_flatten: FloatProperty(name="Flatten Edges", default=0.0, min=0.0, unit='LENGTH', update=_shape_changed,
-                                description="Blend to Edge Height near the mesh border (seamless segments)")
-    edge_height: FloatProperty(name="Edge Height", default=0.0, min=0.0, max=1.0, subtype='FACTOR',
-                               update=_shape_changed)
+    flat_edges: BoolProperty(name="Flat Seamless Edges", default=True, update=_shape_changed,
+                             description="All boundary vertices at Edge Height and without jitter, so "
+                                         "neighbouring terrain pieces join without gaps")
+    edge_flatten: FloatProperty(name="Edge Blend", default=5.0, min=0.0, unit='LENGTH', update=_shape_changed,
+                                description="Distance over which the terrain blends into the flat edge level")
+    edge_level: FloatProperty(name="Edge Level", default=0.5, min=0.0, soft_max=5.0, unit='LENGTH',
+                              update=_shape_changed,
+                              description="Height of the flat border above the rest position, in meters. "
+                                          "Same value on every piece = seamless joins, whatever the preset")
     jitter: FloatProperty(name="Vertex Jitter", default=0.35, min=0.0, max=0.9, subtype='FACTOR',
                           update=_shape_changed,
                           description="Random XY offset of vertices to break the grid (low poly look)")
