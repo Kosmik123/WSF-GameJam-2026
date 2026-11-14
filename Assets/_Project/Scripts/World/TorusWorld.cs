@@ -43,6 +43,7 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private Material defaultMaterial;
 
+        [Tooltip("Colliders are built from the terrain without the head blend, so they do not follow the terrain near the head.")]
         [SerializeField]
         private bool generateColliders = true;
 
@@ -52,12 +53,16 @@ namespace WSFGameJam2026.World
         private bool shouldRebuildOnValidate = true;
 
         private TorusSurface surface;
+        private TorusHeadMeshBlender headMeshBlender;
+
+        /// <summary>Terrain shaped by the snake's head. It belongs to the world, so it survives rebuilds.</summary>
+        public TorusHeadTerrain HeadTerrain { get; } = new TorusHeadTerrain();
 
         public TorusSurface Surface
         {
             get
             {
-                surface ??= new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
+                surface ??= new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth, HeadTerrain);
                 return surface;
             }
         }
@@ -72,7 +77,7 @@ namespace WSFGameJam2026.World
         public void Rebuild()
         {
             Clear();
-            surface = new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth);
+            surface = new TorusSurface(majorRadius, minorRadius, segmentCount, segmentProfiles, blendWidth, HeadTerrain);
 
             InvalidateProfiles();
 
@@ -84,6 +89,14 @@ namespace WSFGameJam2026.World
 
             for (int i = 0; i < segmentCount; i++)
                 CreateSegment(i, meshes[i]);
+
+            headMeshBlender = new TorusHeadMeshBlender(surface, meshes, sidesResolution, HeadTerrain);
+            headMeshBlender.Update();
+        }
+
+        private void LateUpdate()
+        {
+            headMeshBlender?.Update();
         }
 
         private void InvalidateProfiles()
@@ -133,6 +146,8 @@ namespace WSFGameJam2026.World
 
         private void Clear()
         {
+            headMeshBlender = null;
+
             for (int i = transform.childCount - 1; i >= 0; i--)
             {
                 var child = transform.GetChild(i).gameObject;

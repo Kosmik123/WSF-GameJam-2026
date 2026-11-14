@@ -21,8 +21,12 @@ namespace WSFGameJam2026.World
         public float BlendWidth { get; }
         public float SegmentAngle => TwoPi / SegmentCount;
 
-        public TorusSurface(float majorRadius, float minorRadius, int segmentCount, IReadOnlyList<TorusSegmentProfile> segmentProfiles, float blendWidth)
+        /// <summary>Terrain shaped by the snake's head. Null = no head influence.</summary>
+        public TorusHeadTerrain HeadTerrain { get; }
+
+        public TorusSurface(float majorRadius, float minorRadius, int segmentCount, IReadOnlyList<TorusSegmentProfile> segmentProfiles, float blendWidth, TorusHeadTerrain headTerrain = null)
         {
+            HeadTerrain = headTerrain;
             MajorRadius = majorRadius;
             MinorRadius = minorRadius;
             SegmentCount = Mathf.Max(1, segmentCount);
@@ -114,7 +118,7 @@ namespace WSFGameJam2026.World
             float scaled = wrapped / SegmentAngle;
             int index = Mathf.Min(Mathf.FloorToInt(scaled), SegmentCount - 1);
 
-            return TorusSegmentBlend.GetHeight(
+            float height = TorusSegmentBlend.GetHeight(
                 GetProfile(index),
                 GetProfile(index - 1),
                 GetProfile(index + 1),
@@ -122,6 +126,8 @@ namespace WSFGameJam2026.World
                 Mathf.Repeat(phi, TwoPi) / TwoPi,
                 BlendWidth,
                 GetBasePoint(wrapped, phi));
+
+            return HeadTerrain == null ? height : HeadTerrain.Apply(height, wrapped, phi);
         }
 
         private TorusSegmentProfile GetAssignedProfile(IReadOnlyList<TorusSegmentProfile> segmentProfiles, int segmentIndex)
