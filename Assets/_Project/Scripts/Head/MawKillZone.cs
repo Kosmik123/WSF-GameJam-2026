@@ -79,7 +79,8 @@ namespace WSFGameJam2026.Head
         /// </summary>
         public float GetShapeRotationDegrees()
         {
-            // The head's right points to phi 0 and its up to phi 90, so the roll is the angle of the right axis in that plane.
+            // This is the roll around the head's forward axis. The head's right points to the inner side of the torus
+            // (phi 180) and its up to phi 90, so growing phi turns against the roll: see GetShapePosition.
             var relative = Quaternion.Inverse(head.transform.rotation) * transform.rotation;
             var right = relative * Vector3.right;
             return Mathf.Atan2(right.y, right.x) * Mathf.Rad2Deg;
@@ -88,7 +89,7 @@ namespace WSFGameJam2026.Head
         // Position on the shape curves (0-1) for a real phi in degrees: the shape is turned by the rotation of the zone.
         private float GetShapePosition(float phiDegrees)
         {
-            return Mathf.Repeat(phiDegrees - GetShapeRotationDegrees(), 360f) / 360f;
+            return Mathf.Repeat(phiDegrees + GetShapeRotationDegrees(), 360f) / 360f;
         }
 
         /// <summary>True when the object stands in the zone at its own phi.</summary>
