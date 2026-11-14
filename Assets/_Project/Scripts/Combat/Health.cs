@@ -103,6 +103,22 @@ namespace WSFGameJam2026.Combat
             return true;
         }
 
+        /// <summary>
+        /// Kills at once, ignoring HP, i-frames and teams. For things that can not be survived, like the jaw.
+        /// Returns false when already dead.
+        /// </summary>
+        public bool Kill()
+        {
+            if (IsDead)
+                return false;
+
+            var lostHealth = currentHealth;
+            currentHealth = 0;
+            OnHealthChanged?.Invoke(-lostHealth);
+            OnDied?.Invoke(this);
+            return true;
+        }
+
         public void Heal(int amount)
         {
             if (IsDead || amount <= 0)
