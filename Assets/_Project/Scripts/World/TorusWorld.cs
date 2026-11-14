@@ -64,6 +64,7 @@ namespace WSFGameJam2026.World
 
         private void OnEnable()
         {
+            majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f);
             Rebuild();
         }
 
@@ -172,7 +173,7 @@ namespace WSFGameJam2026.World
 
         private void OnValidate()
         {
-            majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f);
+            //majorRadius = Mathf.Max(majorRadius, minorRadius + 0.1f);
             surface = null;
 
 #if UNITY_EDITOR
