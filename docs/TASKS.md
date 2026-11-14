@@ -60,10 +60,14 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [ ] **Test i balans walki w Unity** (feel ataku i uniku, statystyki wrogów). `?`
 - [x] **Podpięcie pod pętlę rund:** `RoundController` ustawia `EnemySpawner.RoundMultiplier`, woła `Clear()` i `PlayerCombat.Revive()`, a ekran śmierci pokazuje `RoundScreens`. Nie testowane w Unity. `C`
 - [ ] **Modele i animacje wrogów 1 i 2** (teraz są placeholdery z prymitywów). Zdarzenia do animacji: `PlayerCombat.OnAttackStarted/OnDodgeStarted`. `G`
+- [x] **Skille i klasa Mag** (z LD57): sloty Q/E/R/F (akcje `Skill1`–`Skill4`), cooldowny, 4 poziomy skilla (`SkillDefinition` jako ScriptableObject, jedna podklasa na skill, bez enuma), 5 skilli maga (kula ognia, lodowa nova, łańcuch błyskawic, teleport, magiczne kule), strzał maga `RangedAttack`, klasy `PlayerClass` (Mag, Wojownik) i `PlayerClassApplier`, spowolnienie i ogłuszenie wrogów `StatusEffects`, pasek skilli `SkillBar`, reset skilli po śmierci w `RoundController`. Menu *WSF GameJam/Setup/Create Skills And Mage*. Efekty skilli to placeholdery z linii i kul (`SkillVfx`). Skompilowane poza Unity (ze stubami Input System, TMP, UI), nie testowane w Unity. `C`
+- [ ] **Test i balans skilli maga w Unity** (obrażenia z LD57 ×4, cooldowny, zasięgi). `?`
+- [ ] **Efekty skilli i strzału maga** (zamiast placeholderów `SkillVfx`), ikony skilli (`SkillDefinition.Icon`), model maga. Zdarzenia: `SkillUser.OnSkillExecuted`, `RangedAttack.OnShot`. `G`
+- [ ] **Wybór klasy** na ekranie startowym (`PlayerClassApplier.Apply`) i ewentualnie skille Wojownika z LD57 (wir, szarża, uderzenie w ziemię, rzut toporem, okrzyk). `?`
 
 ## Etap 2b: progresja (MUST)
 
-- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku); reset poziomu i sprzętu przy śmierci. `C`
+- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku); reset poziomu i sprzętu przy śmierci. Awans może dawać karty skilli: `SkillSlots.GetOfferableSkills` i `SkillSlots.Grant` są gotowe. `C`
 - [x] **Trudność zależna od paszczy:** `EnemySpawner.GetDifficulty` liczy trudność z aktualnej odległości miejsca od paszczy (krzywa, blisko = łatwo, czubek głowy = najtrudniej) razem z mnożnikiem rundy. Poziom wroga ustalany raz, przy pojawieniu się. Nie testowane w Unity. `C`
 - [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
 - [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`

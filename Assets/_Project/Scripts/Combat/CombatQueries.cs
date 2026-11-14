@@ -39,5 +39,54 @@ namespace WSFGameJam2026.Combat
         {
             FindInArc(center, attackerTeam, radius, 360f, results);
         }
+
+        /// <summary>
+        /// Like <see cref="FindInRadius(TorusObject, CombatTeam, float, List{Health})"/>, but around any point of the surface
+        /// (an explosion, a burning spot), not around an object. The distance is measured from each target to the point.
+        /// </summary>
+        public static void FindInRadius(TorusAngles center, CombatTeam attackerTeam, float radius, List<Health> results)
+        {
+            var targets = Health.Active;
+            for (int i = 0; i < targets.Count; i++)
+            {
+                var target = targets[i];
+                if (target.Team == attackerTeam || target.IsDead)
+                    continue;
+
+                if (target.TorusObject.GetSurfaceOffsetTo(center).magnitude > radius + target.BodyRadius)
+                    continue;
+
+                results.Add(target);
+            }
+        }
+
+        /// <summary>
+        /// The living target of another team closest to the given object (distance along the surface), within the range.
+        /// Targets in <paramref name="exclude"/> are skipped. Returns null when there is none.
+        /// </summary>
+        public static Health FindNearest(TorusObject from, CombatTeam attackerTeam, float range, ICollection<Health> exclude = null)
+        {
+            Health nearest = null;
+            float nearestDistance = float.MaxValue;
+            var targets = Health.Active;
+            for (int i = 0; i < targets.Count; i++)
+            {
+                var target = targets[i];
+                if (target.Team == attackerTeam || target.IsDead || target.TorusObject == from)
+                    continue;
+
+                if (exclude != null && exclude.Contains(target))
+                    continue;
+
+                float distance = from.GetSurfaceOffsetTo(target.TorusObject).magnitude - target.BodyRadius;
+                if (distance > range || distance >= nearestDistance)
+                    continue;
+
+                nearest = target;
+                nearestDistance = distance;
+            }
+
+            return nearest;
+        }
     }
 }
