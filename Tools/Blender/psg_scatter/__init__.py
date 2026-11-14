@@ -9,7 +9,7 @@ shared meshes.
 bl_info = {
     "name": "PSG Path Scatter",
     "author": "WSF GameJam 2026",
-    "version": (0, 9, 0),
+    "version": (0, 10, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > PSG",
     "description": "Instanced area and path scatter with vertex-color ground paint, Unity-ready",

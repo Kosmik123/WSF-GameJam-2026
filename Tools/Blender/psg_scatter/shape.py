@@ -329,10 +329,40 @@ def lake_crossings(settings, mesh, world_xy, ratios):
     shore-to-shore gap that runs over the liquid becomes a candidate, then a random spanning tree
     (plus Extra Routes) is kept. Returns [(x, y, dir_x, dir_y, length)].
     """
-    land = ratios >= 1.0
     edges = np.empty(len(mesh.edges) * 2, dtype=np.int32)
     mesh.edges.foreach_get("vertices", edges)
-    edges = edges.reshape(-1, 2)
+    return crossings_from_graph(settings, world_xy, ratios, edges.reshape(-1, 2))
+
+
+def grid_crossings(settings, x0, x1, y0, y1, step=1.0, dry_sides=(), dry_width=2.5):
+    """Crossings for a whole area (e.g. one biome segment split into several pieces).
+
+    Evaluates the same world-space liquid field on a temporary grid, so every piece of the area
+    can share one maze (set the result on all pieces and enable Lock Crossings).
+    """
+    xs = np.arange(x0, x1 + step * 0.5, step)
+    ys = np.arange(y0, y1 + step * 0.5, step)
+    gx, gy = np.meshgrid(xs, ys)
+    world_xy = np.stack([gx.ravel(), gy.ravel()], axis=1)
+    if settings.liquid_style == 'LAKES':
+        ratios, _meters = lake_fields(settings, world_xy)
+    else:
+        ratios = liquid_fields(settings, world_xy)[0]
+    dry = np.ones(len(world_xy))
+    distances = {'X_MIN': world_xy[:, 0] - x0, 'X_MAX': x1 - world_xy[:, 0],
+                 'Y_MIN': world_xy[:, 1] - y0, 'Y_MAX': y1 - world_xy[:, 1]}
+    for side in dry_sides:
+        dry = np.minimum(dry, _smoothstep(0.0, max(dry_width, 1.0), distances[side]))
+    ratios = np.maximum(ratios, (1.0 - dry) * 3.0)
+    nx, ny = len(xs), len(ys)
+    index = np.arange(nx * ny).reshape(ny, nx)
+    edges = np.concatenate([np.stack([index[:, :-1].ravel(), index[:, 1:].ravel()], axis=1),
+                            np.stack([index[:-1, :].ravel(), index[1:, :].ravel()], axis=1)])
+    return crossings_from_graph(settings, world_xy, ratios, edges)
+
+
+def crossings_from_graph(settings, world_xy, ratios, edges):
+    land = ratios >= 1.0
     parent = np.arange(len(world_xy))
 
     def find(i):
@@ -505,7 +535,10 @@ def apply_liquid(obj, settings, world_xy, lift, edge_level, border, local_xy):
     if settings.liquid_style == 'LAKES':
         ratios, _meters = lake_fields(settings, world_xy)
         ratios = np.maximum(ratios, (1.0 - dry) * 3.0)  # dry side: always land
-        crossings = lake_crossings(settings, mesh, world_xy, ratios)
+        if settings.lock_crossings:
+            crossings = globals()["crossings"](obj)  # shared maze of the whole area, set from outside
+        else:
+            crossings = lake_crossings(settings, mesh, world_xy, ratios)
     else:
         ratios, id_a, id_b, site_a, site_b, widths = liquid_fields(settings, world_xy)
         ratios = np.maximum(ratios, (1.0 - dry) * 3.0)  # dry side: always land
@@ -527,7 +560,8 @@ def apply_liquid(obj, settings, world_xy, lift, edge_level, border, local_xy):
     if crossings:
         # crossings are part of the terrain: a raised causeway over lava, a shallow ford in a bog
         fords = ford_mask(world_xy, crossings, settings.ford_width) * liquid
-        fords[border] = 0.0
+        if not settings.lock_crossings:
+            fords[border] = 0.0  # per-piece crossings would not match the neighbour's border
         result = result + (level + settings.ford_height - result) * fords
 
     _store_point_float(mesh, LIQUID_ATTRIBUTE, ratios)

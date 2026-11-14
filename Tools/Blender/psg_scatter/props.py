@@ -334,6 +334,9 @@ class PSG_Shape(bpy.types.PropertyGroup):
     dry_x_max: BoolProperty(name="+X", default=False, update=_shape_changed)
     dry_y_min: BoolProperty(name="-Y", default=False, update=_shape_changed)
     dry_y_max: BoolProperty(name="+Y", default=False, update=_shape_changed)
+    lock_crossings: BoolProperty(name="Lock Crossings", default=False, update=_shape_changed,
+                                 description="Keep the stored crossings (a maze computed for a whole biome "
+                                             "made of several pieces) instead of computing them per piece")
     crossings_json: StringProperty()
 
 
