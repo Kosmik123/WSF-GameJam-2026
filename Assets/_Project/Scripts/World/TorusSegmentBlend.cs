@@ -31,6 +31,32 @@ namespace WSFGameJam2026.World
             return Mathf.Lerp(neighbourHeight, ownHeight, ownWeight);
         }
 
+        /// <summary>Cross-fades vertex colors the same way as <see cref="GetHeight"/> does heights.</summary>
+        public static Color GetColor(TorusSegmentProfile own, TorusSegmentProfile previous, TorusSegmentProfile next, float along, float around, float blendWidth, Vector3 basePoint)
+        {
+            var ownColor = SampleColor(own, along, around, basePoint);
+
+            if (along < blendWidth)
+                return BlendColorWithNeighbour(ownColor, previous, along + 1f, around, basePoint, along / blendWidth);
+
+            if (along > 1f - blendWidth)
+                return BlendColorWithNeighbour(ownColor, next, along - 1f, around, basePoint, (1f - along) / blendWidth);
+
+            return ownColor;
+        }
+
+        private static Color BlendColorWithNeighbour(Color ownColor, TorusSegmentProfile neighbour, float neighbourAlong, float around, Vector3 basePoint, float distanceFromBorder)
+        {
+            var neighbourColor = SampleColor(neighbour, neighbourAlong, around, basePoint);
+            float ownWeight = Mathf.SmoothStep(0f, 1f, 0.5f + 0.5f * distanceFromBorder);
+            return Color.Lerp(neighbourColor, ownColor, ownWeight);
+        }
+
+        private static Color SampleColor(TorusSegmentProfile profile, float along, float around, Vector3 basePoint)
+        {
+            return profile ? profile.SampleColor(along, around, basePoint) : Color.white;
+        }
+
         private static float SampleHeight(TorusSegmentProfile profile, float along, float around, Vector3 basePoint)
         {
             return profile ? profile.SampleHeight(along, around, basePoint) : 0f;
