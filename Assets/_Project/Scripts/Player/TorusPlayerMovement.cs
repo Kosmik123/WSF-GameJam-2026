@@ -7,8 +7,9 @@ namespace WSFGameJam2026.Player
     /// <summary>
     /// Moves the player over the torus surface. The position is kept as surface angles (theta, phi),
     /// so the player always stands on the terrain, at the height given by the segment profiles.
-    /// Up/down on the input runs along the snake body, left/right goes around the tube.
-    /// Speed is measured on the smooth base tube, so rough terrain doesn't make the movement erratic.
+    /// Tank-like controls: left/right on the input turns the character, up/down moves it forward/back
+    /// along the direction it faces. Speed is measured on the smooth base tube, so rough terrain
+    /// doesn't make the movement erratic.
     /// </summary>
     public class TorusPlayerMovement : MonoBehaviour
     {
@@ -31,10 +32,10 @@ namespace WSFGameJam2026.Player
         [Min(0.1f)]
         private float inputResponse = 8f;
 
-        [Tooltip("Turning speed of the character in degrees per second.")]
+        [Tooltip("Turning speed of the character (left/right) in degrees per second.")]
         [SerializeField]
         [Min(0f)]
-        private float turnSpeed = 720f;
+        private float turnSpeed = 180f;
 
         [Header("Terrain following")]
         [Tooltip("Distance of the character's pivot from the ground.")]
@@ -81,7 +82,6 @@ namespace WSFGameJam2026.Player
         private Vector3 localPosition;
         private Vector3 localNormal = Vector3.up;
         private Vector3 localRunDirection = Vector3.forward;
-        private Vector3 localRight = Vector3.right;
         private Vector3 localFacing = Vector3.forward;
         private Vector3 localBaseNormal = Vector3.up;
         private Vector3 localBaseRunDirection = Vector3.forward;
@@ -100,6 +100,9 @@ namespace WSFGameJam2026.Player
 
         /// <summary>Direction of running along the snake body (growing theta) on the base tube, in world space.</summary>
         public Vector3 RunDirection { get; private set; } = Vector3.forward;
+
+        /// <summary>Direction the character is facing, in world space.</summary>
+        public Vector3 Facing { get; private set; } = Vector3.forward;
 
         private void Reset()
         {
@@ -128,7 +131,9 @@ namespace WSFGameJam2026.Player
 
             TorusSurface surface = world.Surface;
             smoothedInput = Vector2.MoveTowards(smoothedInput, ReadInput(), inputResponse * Time.deltaTime);
-            Move(surface, smoothedInput * (moveSpeed * Time.deltaTime));
+
+            Turn(smoothedInput.x * turnSpeed * Time.deltaTime);
+            Move(surface, smoothedInput.y * moveSpeed * Time.deltaTime);
 
             UpdateFrame(surface);
             UpdateFacing();
@@ -148,11 +153,24 @@ namespace WSFGameJam2026.Player
             return Mathf.Max(0.1f, surface.MajorRadius + surface.MinorRadius * Mathf.Cos(phi));
         }
 
-        private void Move(TorusSurface surface, Vector2 distance)
+        /// <summary>Turns the character around the surface normal. Positive angle turns right.</summary>
+        private void Turn(float degrees)
         {
-            // Right of the screen is the negative direction of phi (see UpdateFrame).
-            theta = Mathf.Repeat(theta + distance.y / GetRingRadius(surface), TwoPi);
-            phi = Mathf.Repeat(phi - distance.x / surface.MinorRadius, TwoPi);
+            localFacing = Quaternion.AngleAxis(degrees, localNormal) * localFacing;
+        }
+
+        /// <summary>Moves along the facing direction. Negative distance moves back.</summary>
+        private void Move(TorusSurface surface, float distance)
+        {
+            // Directions of growing theta and phi on the base tube, in the local space of the world.
+            var thetaDirection = new Vector3(-Mathf.Sin(theta), 0f, Mathf.Cos(theta));
+            var phiDirection = new Vector3(-Mathf.Sin(phi) * Mathf.Cos(theta), Mathf.Cos(phi), -Mathf.Sin(phi) * Mathf.Sin(theta));
+
+            float thetaDistance = Vector3.Dot(localFacing, thetaDirection) * distance;
+            float phiDistance = Vector3.Dot(localFacing, phiDirection) * distance;
+
+            theta = Mathf.Repeat(theta + thetaDistance / GetRingRadius(surface), TwoPi);
+            phi = Mathf.Repeat(phi + phiDistance / surface.MinorRadius, TwoPi);
         }
 
         private void UpdateFrame(TorusSurface surface)
@@ -172,7 +190,6 @@ namespace WSFGameJam2026.Player
             Vector3 targetNormal = Vector3.Cross(alongPhi, alongTheta).normalized;
             localNormal = Vector3.Slerp(localNormal, targetNormal, tiltBlend);
             localRunDirection = Vector3.ProjectOnPlane(alongTheta, localNormal).normalized;
-            localRight = Vector3.ProjectOnPlane(-alongPhi, localNormal).normalized;
 
             localPosition = surface.GetBasePoint(theta, phi) + surface.GetBaseNormal(theta, phi) * smoothedHeight;
             localBaseNormal = surface.GetBaseNormal(theta, phi);
@@ -183,18 +200,6 @@ namespace WSFGameJam2026.Player
         {
             Vector3 projected = Vector3.ProjectOnPlane(localFacing, localNormal);
             localFacing = projected.sqrMagnitude < 0.0001f ? localRunDirection : projected.normalized;
-
-            if (smoothedInput.sqrMagnitude < 0.01f)
-                return;
-
-            Vector3 desired = Vector3.ProjectOnPlane(localRunDirection * smoothedInput.y + localRight * smoothedInput.x, localNormal);
-            if (desired.sqrMagnitude < 0.0001f)
-                return;
-
-            // Turning in the tangent plane by angle, so a 180 degree turn works too.
-            float angle = Vector3.SignedAngle(localFacing, desired, localNormal);
-            float step = Mathf.MoveTowardsAngle(0f, angle, turnSpeed * Time.deltaTime);
-            localFacing = Quaternion.AngleAxis(step, localNormal) * localFacing;
         }
 
         private void ApplyTransform()
@@ -203,6 +208,7 @@ namespace WSFGameJam2026.Player
             SurfaceNormal = worldTransform.TransformDirection(localNormal);
             BaseNormal = worldTransform.TransformDirection(localBaseNormal);
             RunDirection = worldTransform.TransformDirection(localBaseRunDirection);
+            Facing = worldTransform.TransformDirection(localFacing);
 
             transform.position = worldTransform.TransformPoint(localPosition + localNormal * groundOffset);
             transform.rotation = Quaternion.LookRotation(worldTransform.TransformDirection(localFacing), SurfaceNormal);
