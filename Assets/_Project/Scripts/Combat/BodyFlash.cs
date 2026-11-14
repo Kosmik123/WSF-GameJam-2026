@@ -33,7 +33,7 @@ namespace WSFGameJam2026.Combat
 
         private void Reset()
         {
-            health = GetComponent<Health>();
+            health = GetComponentInChildren<Health>();
         }
 
         private void Awake()
@@ -44,16 +44,8 @@ namespace WSFGameJam2026.Combat
 
         private void OnEnable()
         {
-            if (health != null)
+            if (health)
                 health.OnDamaged += Health_OnDamaged;
-        }
-
-        private void OnDisable()
-        {
-            if (health != null)
-                health.OnDamaged -= Health_OnDamaged;
-
-            Clear();
         }
 
         /// <summary>Colours the body for the given time (game time). Used for attack warnings.</summary>
@@ -79,17 +71,19 @@ namespace WSFGameJam2026.Combat
             if (Time.unscaledTime < damageFlashUntil)
             {
                 Apply(damageFlashColor);
+                return;
             }
-            else if (Time.time < telegraphUntil)
+
+            if (Time.time < telegraphUntil)
             {
                 // Pulses, so the warning reads as "something is coming".
                 float pulse = 0.5f + 0.5f * Mathf.Sin(Time.time * 30f);
                 Apply(Color.Lerp(telegraphColor * 0.6f, telegraphColor, pulse));
+                return;
             }
-            else if (isTinted)
-            {
+
+            if (isTinted)
                 Clear();
-            }
         }
 
         private void Apply(Color color)
@@ -99,7 +93,7 @@ namespace WSFGameJam2026.Combat
             block.SetColor(ColorId, color);
             block.SetColor(EmissionColorId, color);
             for (int i = 0; i < renderers.Length; i++)
-                if (renderers[i] != null)
+                if (renderers[i])
                     renderers[i].SetPropertyBlock(block);
 
             isTinted = true;
@@ -111,10 +105,18 @@ namespace WSFGameJam2026.Combat
                 return;
 
             for (int i = 0; i < renderers.Length; i++)
-                if (renderers[i] != null)
+                if (renderers[i])
                     renderers[i].SetPropertyBlock(null);
 
             isTinted = false;
+        }
+
+        private void OnDisable()
+        {
+            if (health)
+                health.OnDamaged -= Health_OnDamaged;
+
+            Clear();
         }
     }
 }

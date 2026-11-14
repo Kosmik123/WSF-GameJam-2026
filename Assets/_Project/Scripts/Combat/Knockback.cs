@@ -32,11 +32,6 @@ namespace WSFGameJam2026.Combat
             torusObject = GetComponent<TorusObject>();
         }
 
-        private void OnDisable()
-        {
-            IsActive = false;
-        }
-
         public void Apply(Vector3 worldDirection, float distance)
         {
             float scaledDistance = distance * distanceMultiplier;
@@ -65,6 +60,11 @@ namespace WSFGameJam2026.Combat
 
             if (progress >= 1f)
                 IsActive = false;
+        }
+
+        private void OnDisable()
+        {
+            IsActive = false;
         }
     }
 }

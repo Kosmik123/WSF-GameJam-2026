@@ -14,8 +14,10 @@ namespace WSFGameJam2026.Enemies
     [RequireComponent(typeof(Health))]
     public class Enemy : MonoBehaviour
     {
+        public delegate void EnemyDamagedHandler(Enemy enemy, DamageInfo damage);
+
         /// <summary>Any enemy took damage. Used by hit feedback and damage numbers.</summary>
-        public static event Action<Enemy, DamageInfo> OnAnyEnemyDamaged;
+        public static event EnemyDamagedHandler OnAnyEnemyDamaged;
 
         /// <summary>Any enemy died. Raised before the object is destroyed, so its position and reward can still be read.</summary>
         public static event Action<Enemy> OnAnyEnemyDied;
@@ -51,13 +53,14 @@ namespace WSFGameJam2026.Enemies
         private float deathDuration = 0.35f;
 
         private Health health;
+        public Health Health => health;
+
         private TorusObject torusObject;
+        public TorusObject TorusObject => torusObject;
+
         private int baseMaxHealth;
         private float activeFrom;
         private Vector3 baseScale;
-
-        public Health Health => health;
-        public TorusObject TorusObject => torusObject;
 
         /// <summary>Level set once at spawn. It never changes later (GDD 9).</summary>
         public int Level { get; private set; } = 1;
@@ -82,12 +85,6 @@ namespace WSFGameJam2026.Enemies
         {
             health.OnDamaged += Health_OnDamaged;
             health.OnDied += Health_OnDied;
-        }
-
-        private void OnDisable()
-        {
-            health.OnDamaged -= Health_OnDamaged;
-            health.OnDied -= Health_OnDied;
         }
 
         /// <summary>Places a freshly spawned enemy and gives it its level and target. Call right after Instantiate.</summary>
@@ -123,10 +120,10 @@ namespace WSFGameJam2026.Enemies
                 behaviour.enabled = false;
 
             OnAnyEnemyDied?.Invoke(this);
-            StartCoroutine(DeathRoutine());
+            StartCoroutine(DyingCo());
         }
 
-        private IEnumerator DeathRoutine()
+        private IEnumerator DyingCo()
         {
             // Short pop, then shrink into the ground. Placeholder until there are death animations.
             float time = 0f;
@@ -140,6 +137,12 @@ namespace WSFGameJam2026.Enemies
             }
 
             Destroy(gameObject);
+        }
+
+        private void OnDisable()
+        {
+            health.OnDamaged -= Health_OnDamaged;
+            health.OnDied -= Health_OnDied;
         }
     }
 }

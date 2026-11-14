@@ -220,7 +220,7 @@ namespace WSFGameJam2026.Editor
         {
             string path = $"{MaterialsFolder}/{name}.mat";
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (material != null)
+            if (material)
                 return material;
 
             var shader = Shader.Find("Universal Render Pipeline/Lit");

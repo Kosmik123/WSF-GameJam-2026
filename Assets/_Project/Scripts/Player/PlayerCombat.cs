@@ -158,30 +158,18 @@ namespace WSFGameJam2026.Player
             movement = GetComponent<TorusPlayerMovement>();
             torusObject = GetComponent<TorusObject>();
             health = GetComponent<Health>();
-            knockbackComponent = GetComponent<Knockback>();
+            TryGetComponent(out knockbackComponent);
         }
 
         private void OnEnable()
         {
-            if (attackAction != null)
+            if (attackAction)
                 attackAction.action.performed += AttackAction_Performed;
-            if (dodgeAction != null)
+            if (dodgeAction)
                 dodgeAction.action.performed += DodgeAction_Performed;
 
             health.OnDamaged += Health_OnDamaged;
             health.OnDied += Health_OnDied;
-        }
-
-        private void OnDisable()
-        {
-            if (attackAction != null)
-                attackAction.action.performed -= AttackAction_Performed;
-            if (dodgeAction != null)
-                dodgeAction.action.performed -= DodgeAction_Performed;
-
-            health.OnDamaged -= Health_OnDamaged;
-            health.OnDied -= Health_OnDied;
-            EnterReady();
         }
 
         /// <summary>Restores control after the death (restart of the run).</summary>
@@ -220,7 +208,7 @@ namespace WSFGameJam2026.Player
                 return;
 
             // Being pushed by a hit takes over the movement.
-            bool isKnockedBack = knockbackComponent != null && knockbackComponent.IsActive;
+            bool isKnockedBack = knockbackComponent && knockbackComponent.IsActive;
             movement.IsLocked = state == State.Dodge || isKnockedBack;
 
             switch (state)
@@ -367,6 +355,18 @@ namespace WSFGameJam2026.Player
             EnterReady();
             health.MakeInvulnerable(dodgeInvulnerabilityTail);
             OnDodgeEnded?.Invoke();
+        }
+
+        private void OnDisable()
+        {
+            if (attackAction)
+                attackAction.action.performed -= AttackAction_Performed;
+            if (dodgeAction)
+                dodgeAction.action.performed -= DodgeAction_Performed;
+
+            health.OnDamaged -= Health_OnDamaged;
+            health.OnDied -= Health_OnDied;
+            EnterReady();
         }
 
         private void OnDrawGizmosSelected()

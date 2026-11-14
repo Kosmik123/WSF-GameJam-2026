@@ -12,10 +12,10 @@ namespace WSFGameJam2026.Combat
     [RequireComponent(typeof(TorusObject))]
     public class Health : MonoBehaviour
     {
-        private static readonly List<Health> active = new List<Health>();
+        public delegate void DamagedHandler(Health health, DamageInfo damage);
 
         /// <summary>Damage taken (after invulnerability check). Not raised for blocked hits.</summary>
-        public event Action<Health, DamageInfo> OnDamaged;
+        public event DamagedHandler OnDamaged;
 
         /// <summary>Hit points changed by damage or healing. The argument is the change (negative = damage).</summary>
         public event Action<int> OnHealthChanged;
@@ -24,30 +24,34 @@ namespace WSFGameJam2026.Combat
 
         [SerializeField]
         private CombatTeam team = CombatTeam.Enemy;
+        public CombatTeam Team => team;
 
         [SerializeField]
         [Min(1)]
         private int maxHealth = 30;
+        public int MaxHealth => maxHealth;
 
         [Tooltip("Radius of the body on the surface. Attacks reach the edge of the body, not only its centre.")]
         [SerializeField]
         [Min(0f)]
         private float bodyRadius = 0.5f;
+        public float BodyRadius => bodyRadius;
 
-        private int currentHealth;
-        private TorusObject torusObject;
-        private Knockback knockback;
-        private float invulnerableUntil = -1f;
+        private static readonly List<Health> active = new List<Health>();
 
         /// <summary>All enabled, living and dead Health components. Do not modify.</summary>
         public static IReadOnlyList<Health> Active => active;
 
-        public CombatTeam Team => team;
-        public int MaxHealth => maxHealth;
+        private int currentHealth;
         public int CurrentHealth => currentHealth;
-        public float BodyRadius => bodyRadius;
-        public TorusObject TorusObject => torusObject;
         public bool IsDead => currentHealth <= 0;
+
+        private TorusObject torusObject;
+        public TorusObject TorusObject => torusObject;
+
+        private Knockback knockback;
+        private float invulnerableUntil = -1f;
+
         public float Normalized => maxHealth > 0 ? (float)currentHealth / maxHealth : 0f;
 
         /// <summary>Set by code that needs i-frames for an open-ended time (for example the dodge). Healing always works.</summary>
@@ -58,18 +62,13 @@ namespace WSFGameJam2026.Combat
         private void Awake()
         {
             torusObject = GetComponent<TorusObject>();
-            knockback = GetComponent<Knockback>();
+            TryGetComponent(out knockback);
             currentHealth = maxHealth;
         }
 
         private void OnEnable()
         {
             active.Add(this);
-        }
-
-        private void OnDisable()
-        {
-            active.Remove(this);
         }
 
         /// <summary>Changes the maximum (enemy level, player level). Optionally fills the hit points to the new maximum.</summary>
@@ -93,7 +92,7 @@ namespace WSFGameJam2026.Combat
                 return false;
 
             currentHealth = Mathf.Max(0, currentHealth - damage.Amount);
-            if (knockback != null && damage.Knockback > 0f)
+            if (knockback && damage.Knockback > 0f)
                 knockback.Apply(damage.Direction, damage.Knockback);
 
             OnDamaged?.Invoke(this, damage);
@@ -137,6 +136,11 @@ namespace WSFGameJam2026.Combat
             invulnerableUntil = -1f;
             IsInvulnerable = false;
             OnHealthChanged?.Invoke(0);
+        }
+
+        private void OnDisable()
+        {
+            active.Remove(this);
         }
     }
 }

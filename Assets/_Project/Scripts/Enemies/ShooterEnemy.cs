@@ -96,14 +96,6 @@ namespace WSFGameJam2026.Enemies
             SetAimLine(false);
         }
 
-        private void OnDisable()
-        {
-            isShooting = false;
-            SetAimLine(false);
-            if (BodyFlash != null)
-                BodyFlash.StopTelegraph();
-        }
-
         private void Update()
         {
             if (CanAct == false)
@@ -119,7 +111,7 @@ namespace WSFGameJam2026.Enemies
 
             if (isAware == false)
             {
-                if (distance > detectRange)
+                if (distance > DetectRange)
                     return;
                 isAware = true;
             }
@@ -158,13 +150,19 @@ namespace WSFGameJam2026.Enemies
 
             var side = Vector3.Cross(TorusObject.Up, toTarget) * strafeSide;
             var move = side * strafeSpeedMultiplier;
-            if (distance > keepDistance + keepBand)
-                move += toTarget;
-            else if (distance < keepDistance - keepBand)
-                move -= toTarget;
+            move += GetDistanceCorrection(toTarget, distance);
 
             if (move.sqrMagnitude > 0.0001f)
                 Slide(move.normalized, Mathf.Min(1f, move.magnitude));
+        }
+
+        /// <summary>Towards the target when too far, away from it when too close, zero inside the band.</summary>
+        private Vector3 GetDistanceCorrection(Vector3 toTarget, float distance)
+        {
+            if (distance > keepDistance + keepBand)
+                return toTarget;
+
+            return distance < keepDistance - keepBand ? -toTarget : Vector3.zero;
         }
 
         private void StartWindup()
@@ -172,7 +170,7 @@ namespace WSFGameJam2026.Enemies
             isShooting = true;
             shotsLeft = Mathf.Max(1, burstCount);
             shotTime = Time.time + windup;
-            if (BodyFlash != null)
+            if (BodyFlash)
                 BodyFlash.Telegraph(telegraphColor, windup);
             SetAimLine(true);
         }
@@ -214,13 +212,13 @@ namespace WSFGameJam2026.Enemies
             isShooting = false;
             nextShotTime = Time.time + cooldown * 0.5f;
             SetAimLine(false);
-            if (BodyFlash != null)
+            if (BodyFlash)
                 BodyFlash.StopTelegraph();
         }
 
         private void SetAimLine(bool visible)
         {
-            if (aimLine != null)
+            if (aimLine)
                 aimLine.enabled = visible;
         }
 
@@ -234,6 +232,14 @@ namespace WSFGameJam2026.Enemies
             aimLine.positionCount = 2;
             aimLine.SetPosition(0, start);
             aimLine.SetPosition(1, start + offset.normalized * Mathf.Min(shootRange, offset.magnitude));
+        }
+
+        private void OnDisable()
+        {
+            isShooting = false;
+            SetAimLine(false);
+            if (BodyFlash)
+                BodyFlash.StopTelegraph();
         }
     }
 }

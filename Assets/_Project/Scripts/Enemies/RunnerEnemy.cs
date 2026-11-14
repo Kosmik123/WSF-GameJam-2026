@@ -19,8 +19,6 @@ namespace WSFGameJam2026.Enemies
             Retreat,
         }
 
-        private static readonly List<RunnerEnemy> chasers = new List<RunnerEnemy>();
-
         [Header("Idle")]
         [SerializeField]
         private Vector2 wanderInterval = new Vector2(1.5f, 3f);
@@ -92,6 +90,8 @@ namespace WSFGameJam2026.Enemies
         [Min(0f)]
         private float attackCooldown = 1.2f;
 
+        private static readonly List<RunnerEnemy> chasers = new List<RunnerEnemy>();
+
         private State state = State.Idle;
         private float stateEndTime;
         private float nextAttackTime;
@@ -104,13 +104,6 @@ namespace WSFGameJam2026.Enemies
         {
             base.Awake();
             sectorDegrees = Random.value * 360f;
-        }
-
-        private void OnDisable()
-        {
-            chasers.Remove(this);
-            if (BodyFlash != null)
-                BodyFlash.StopTelegraph();
         }
 
         private void Update()
@@ -158,7 +151,7 @@ namespace WSFGameJam2026.Enemies
 
         private void UpdateIdle(float distance)
         {
-            if (distance <= detectRange)
+            if (distance <= DetectRange)
             {
                 SetState(State.Chase, 0f);
                 return;
@@ -166,7 +159,7 @@ namespace WSFGameJam2026.Enemies
 
             if (Time.time >= stateEndTime)
             {
-                var randomAngle = Random.Range(0f, 360f);
+                float randomAngle = Random.Range(0f, 360f);
                 wanderDirection = Quaternion.AngleAxis(randomAngle, TorusObject.Up) * TorusObject.Facing;
                 stateEndTime = Time.time + Random.Range(wanderInterval.x, wanderInterval.y);
             }
@@ -189,28 +182,28 @@ namespace WSFGameJam2026.Enemies
             }
 
             // Ready to attack: straight at the target. Otherwise to its own place on the circle around it.
-            Vector3 destinationOffset;
-            if (Time.time >= nextAttackTime)
+            var destinationOffset = Time.time >= nextAttackTime ? offset : GetSurroundOffset(offset);
+            if (destinationOffset.magnitude > 0.3f)
             {
-                destinationOffset = offset;
-            }
-            else
-            {
-                var target = Target.TorusObject;
-                var sectorDirection = Quaternion.AngleAxis(GetSectorDegrees(), target.Up) * target.RunDirection;
-                destinationOffset = offset + sectorDirection * surroundRadius;
+                MoveTowards(destinationOffset);
+                return;
             }
 
-            if (destinationOffset.magnitude > 0.3f)
-                MoveTowards(destinationOffset);
-            else
-                Face(offset);
+            Face(offset);
+        }
+
+        /// <summary>Offset to the runner's own place on the circle around the target.</summary>
+        private Vector3 GetSurroundOffset(Vector3 offset)
+        {
+            var target = Target.TorusObject;
+            var sectorDirection = Quaternion.AngleAxis(GetSectorDegrees(), target.Up) * target.RunDirection;
+            return offset + sectorDirection * surroundRadius;
         }
 
         private void EnterWindup()
         {
             SetState(State.Windup, windup);
-            if (BodyFlash != null)
+            if (BodyFlash)
                 BodyFlash.Telegraph(telegraphColor, windup);
         }
 
@@ -233,7 +226,7 @@ namespace WSFGameJam2026.Enemies
 
         private void EnterRetreat()
         {
-            if (BodyFlash != null)
+            if (BodyFlash)
                 BodyFlash.StopTelegraph();
 
             SetState(State.Retreat, retreatTime);
@@ -244,15 +237,11 @@ namespace WSFGameJam2026.Enemies
         {
             state = newState;
             stateEndTime = Time.time + duration;
-            if (newState == State.Chase || newState == State.Retreat)
-            {
-                if (chasers.Contains(this) == false)
-                    chasers.Add(this);
-            }
-            else if (newState == State.Idle)
-            {
+            if (newState == State.Idle)
                 chasers.Remove(this);
-            }
+
+            if ((newState == State.Chase || newState == State.Retreat) && chasers.Contains(this) == false)
+                chasers.Add(this);
         }
 
         /// <summary>Runners within groupRadius of this one split the circle around the target into equal sectors.</summary>
@@ -275,6 +264,13 @@ namespace WSFGameJam2026.Enemies
 
             // Alone: keeps its own random place on the circle.
             return count <= 1 ? sectorDegrees : index * 360f / count;
+        }
+
+        private void OnDisable()
+        {
+            chasers.Remove(this);
+            if (BodyFlash)
+                BodyFlash.StopTelegraph();
         }
     }
 }
