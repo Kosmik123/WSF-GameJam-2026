@@ -26,6 +26,7 @@ namespace WSFGameJam2026.Rounds
         [SerializeField]
         [Min(0f)]
         private float goalBehindHeadDegrees = 20f;
+        public float GoalBehindHeadDegrees => goalBehindHeadDegrees;
 
         private bool isRunning;
         private float lastRelativeDegrees;
