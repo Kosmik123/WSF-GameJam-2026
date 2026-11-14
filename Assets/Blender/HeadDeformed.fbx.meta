@@ -1,14 +1,9 @@
 fileFormatVersion: 2
-guid: 0910fd88224699d459b0ecf18c451b48
+guid: 0aebfd8f0f0cd874ba75b032721c3521
 ModelImporter:
   serializedVersion: 24400
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: LD57 Stylized
-    second: {fileID: 2100000, guid: 46f40fc2110e1294293d6bc250ee7358, type: 2}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0

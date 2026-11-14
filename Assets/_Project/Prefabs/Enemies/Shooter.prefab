@@ -266,6 +266,7 @@ GameObject:
   - component: {fileID: 2013710080294896779}
   - component: {fileID: 6044714617924555975}
   - component: {fileID: 8607703772458000947}
+  - component: {fileID: 7488546342552117367}
   m_Layer: 0
   m_Name: Shooter
   m_TagString: Untagged
@@ -304,6 +305,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusObject
   world: {fileID: 0}
   groundOffset: 0.8
+  bodyRadius: 0.5
   heightSharpness: 25
   startAngles:
     thetaRadians: 0
@@ -451,6 +453,24 @@ MonoBehaviour:
   hitSquash: 0.85
   hitPunch: 0.15
   recoverSharpness: 12
+  flappingParts: []
+  flapDegrees: 35
+  flapHz: 6
+  windupFlapDegrees: 0
+--- !u!114 &7488546342552117367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1679357185605392958}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a436dd21f11c4bb38bca3527660c6ebd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Audio.EnemySfx
+  windup: {fileID: 11400000, guid: 0e1baf5624cb15546941b9f67c321f5e, type: 2}
+  attack: {fileID: 11400000, guid: 29f4f47b6cd53524a817f2d652aabaa4, type: 2}
 --- !u!1 &1790714040526417849
 GameObject:
   m_ObjectHideFlags: 0

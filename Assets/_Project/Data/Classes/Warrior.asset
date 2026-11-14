@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Warrior
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.PlayerClass
   displayName: Warrior
-  description: Melee combo and dodge, 100 HP. No skills yet.
+  description: 'Melee combo and dodge, 100 HP. Skills: spin, charge, ground slam,
+    axe throw, war cry.'
   isRanged: 0
   rangedDamage: 8
   rangedCooldown: 0.35
@@ -21,5 +22,14 @@ MonoBehaviour:
   modelPrefab: {fileID: 5352958571798197664, guid: c564c8c0d0cdc45429417f315e9f3e41, type: 3}
   modelMaterial: {fileID: 0}
   hiddenParts: []
-  skillPool: []
-  startingSkills: []
+  skillPool:
+  - {fileID: 11400000, guid: 3c0f59b8f62923145a7bf0e077ba55b8, type: 2}
+  - {fileID: 11400000, guid: 335e97ee41629604f95548afc2f941b7, type: 2}
+  - {fileID: 11400000, guid: a09964b17f0a924478df6a35ddc02a15, type: 2}
+  - {fileID: 11400000, guid: f584769745d4fef4fa6885b5822b8c67, type: 2}
+  - {fileID: 11400000, guid: 49daf9bd8bf4ff24ea1e5ef82ad5f029, type: 2}
+  startingSkills:
+  - {fileID: 11400000, guid: 3c0f59b8f62923145a7bf0e077ba55b8, type: 2}
+  - {fileID: 11400000, guid: 335e97ee41629604f95548afc2f941b7, type: 2}
+  - {fileID: 11400000, guid: a09964b17f0a924478df6a35ddc02a15, type: 2}
+  - {fileID: 11400000, guid: f584769745d4fef4fa6885b5822b8c67, type: 2}

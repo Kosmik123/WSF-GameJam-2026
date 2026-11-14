@@ -230,6 +230,7 @@ GameObject:
   - component: {fileID: 787734873039949564}
   - component: {fileID: 6533435082975580851}
   - component: {fileID: 1649363728376636610}
+  - component: {fileID: 3706781641484667940}
   m_Layer: 0
   m_Name: Runner
   m_TagString: Untagged
@@ -267,6 +268,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusObject
   world: {fileID: 0}
   groundOffset: 0.6
+  bodyRadius: 0.5
   heightSharpness: 25
   startAngles:
     thetaRadians: 0
@@ -413,6 +415,24 @@ MonoBehaviour:
   hitSquash: 0.85
   hitPunch: 0.15
   recoverSharpness: 12
+  flappingParts: []
+  flapDegrees: 35
+  flapHz: 6
+  windupFlapDegrees: 0
+--- !u!114 &3706781641484667940
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5986803344503594668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a436dd21f11c4bb38bca3527660c6ebd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Audio.EnemySfx
+  windup: {fileID: 11400000, guid: 0e1baf5624cb15546941b9f67c321f5e, type: 2}
+  attack: {fileID: 11400000, guid: 972dc269ea1fe064c8f4fcb32a0496d0, type: 2}
 --- !u!1 &7488321073578754174
 GameObject:
   m_ObjectHideFlags: 0

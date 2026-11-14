@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5293e65792f7437995d49c604d631d98, type: 3}
+  m_Name: Charge
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Warrior.ChargeSkill
+  displayName: Charge
+  icon: {fileID: 0}
+  tiers:
+  - tierName: Base
+    description: Dash 6 m forward through enemies, 20 damage. Invulnerable on the
+      way.
+    cooldown: 4
+    damage: 20
+    range: 6
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade I
+    description: Dash 8 m.
+    cooldown: 4
+    damage: 20
+    range: 8
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade II
+    description: 28 damage.
+    cooldown: 4
+    damage: 28
+    range: 8
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: 'Evolution: Fire Charge'
+    description: Leaves a trail of fire for 3 s (8 damage per second).
+    cooldown: 4
+    damage: 28
+    range: 8
+    duration: 3
+    knockback: 0
+    stun: 0
+  chargeTime: 0.2
+  hitRadius: 0.7
+  fireSpacing: 1
+  fireRadius: 0.8
+  fireDamagePerSecond: 8
+  color: {r: 1, g: 0.5, b: 0.15, a: 1}
+  evolvedColor: {r: 1, g: 0.2, b: 0.1, a: 1}

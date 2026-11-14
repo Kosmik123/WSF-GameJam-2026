@@ -67,7 +67,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: e364e61daff0ba649bb7c4e38286b695, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 5150274445971863401, guid: 3a66a30da87c6e946ac1bb20b61ec2d9, type: 3}
+      objectReference: {fileID: 2100000, guid: 0dacb2cedd11323459eac687ed36ee9f, type: 2}
     - target: {fileID: 919132149155446097, guid: e364e61daff0ba649bb7c4e38286b695, type: 3}
       propertyPath: m_Name
       value: SnakeHeadModel

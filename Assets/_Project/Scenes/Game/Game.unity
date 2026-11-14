@@ -433,6 +433,84 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2997175284573061814, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
   m_PrefabInstance: {fileID: 1183390416463733785}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &774506018
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 774506021}
+  - component: {fileID: 774506020}
+  - component: {fileID: 774506019}
+  m_Layer: 0
+  m_Name: Audio
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &774506019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 774506018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 396841b80ce9460b8e95053d8e373a6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Audio.SfxHooks
+  playerCombat: {fileID: 1703670344}
+  rangedAttack: {fileID: 1703670347}
+  skillUser: {fileID: 1703670348}
+  playerHealth: {fileID: 1703670343}
+  roundController: {fileID: 1300097183}
+  swordSwing: {fileID: 11400000, guid: d41b2cb03ed552a4fb07f448d0c8d59f, type: 2}
+  dodge: {fileID: 11400000, guid: 48de8229a402cf44189c595153a9df1c, type: 2}
+  rangedShot: {fileID: 11400000, guid: b152a1de0e3688b4180f9f9fc7779dc4, type: 2}
+  skillCast: {fileID: 11400000, guid: 415a130148890dc46a2bdac78df30655, type: 2}
+  playerHurt: {fileID: 11400000, guid: 7f577a6501f1c724c9af79c5de7ee041, type: 2}
+  playerDeath: {fileID: 11400000, guid: 8389355809600d14e8f9393cdb2eb7a3, type: 2}
+  enemyHit: {fileID: 11400000, guid: 8534d5a7ea6e0f5448011d163f926a07, type: 2}
+  enemyDie: {fileID: 11400000, guid: 506a318fcb72f7349a85d776fce2ae3b, type: 2}
+  roundCompleted: {fileID: 11400000, guid: ce999e1342faba24898a7b1143771017, type: 2}
+  newRecord: {fileID: 11400000, guid: 9177bd47829e2ca45b8d0a07757dc5f8, type: 2}
+--- !u!114 &774506020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 774506018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edafdc7aed7a4675beddfcba97372add, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Audio.SfxPlayer
+  masterVolume: 0.6
+  reverbMix: 0.2
+  drive: 1.8
+  poolSize: 10
+  minDistance: 4
+  maxDistance: 40
+--- !u!4 &774506021
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 774506018}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -474,6 +552,64 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 832575517}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1105680257
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1105680259}
+  - component: {fileID: 1105680258}
+  m_Layer: 0
+  m_Name: Combat Vfx
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1105680258
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105680257}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 500799b68de04764ae203077d6b150e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Vfx.CombatVfx
+  playerCombat: {fileID: 1703670344}
+  fallbackEnemyColor: {r: 0.4, g: 0.9, b: 0.3, a: 1}
+  hitCubes: 10
+  deathCubes: 18
+  playerHurtColor: {r: 1, g: 0.15, b: 0.12, a: 1}
+  playerChestHeight: 0.9
+  swordRadius: 2.2
+  swordArcDegrees: 140
+  comboLength: 3
+  swingDuration: 0.18
+  swordColor: {r: 1, g: 0.8, b: 0.45, a: 1}
+  finisherColor: {r: 1, g: 0.45, b: 0.15, a: 1}
+  dodgeColor: {r: 0.7, g: 0.85, b: 1, a: 1}
+  dodgeTrailTime: 0.25
+--- !u!4 &1105680259
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1105680257}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -642,6 +778,10 @@ MonoBehaviour:
   shadowTarget: {fileID: 1703670341}
   nearShadowRangeDegrees: 30
   receiveShadows: 0
+  toppleDistance: 70
+  toppleMinHeight: 2
+  toppleAngle: 82
+  toppleSpreadDegrees: 35
 --- !u!1 &1167247099
 GameObject:
   m_ObjectHideFlags: 0
@@ -969,9 +1109,21 @@ MonoBehaviour:
     weight: 1
     minDifficulty: 0.15
     groupSize: {x: 1, y: 2}
+  - prefab: {fileID: 3633330442212825838, guid: ef2cf46b88980d84eb64ed78f2ff8d9d, type: 3}
+    weight: 1
+    minDifficulty: 0.35
+    groupSize: {x: 1, y: 1}
+  - prefab: {fileID: 2905972460806551282, guid: 72e91d65df3a901469629cb117abe858, type: 3}
+    weight: 1.5
+    minDifficulty: 0.1
+    groupSize: {x: 4, y: 6}
+  - prefab: {fileID: 398109119449110154, guid: f32c59d2347886d40a2f660be8547626, type: 3}
+    weight: 0.8
+    minDifficulty: 0.25
+    groupSize: {x: 1, y: 1}
   spawnInterval: 4
   firstSpawnDelay: 2
-  maxAlive: 8
+  maxAlive: 14
   runDirection: 1
   spawnAheadDistance: {x: 20, y: 30}
   phiSpreadDegrees: 50
@@ -1086,6 +1238,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea4888d88a382e64db0b9d2a33ff7897, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.PlayerCombat
+--- !u!114 &1703670347 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6835593639658991740, guid: 7c98492b493e7bc46b6d7b158a144fac, type: 3}
+  m_PrefabInstance: {fileID: 224383402}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 200d958e2bbc465c9dc9c7f37808f214, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.RangedAttack
+--- !u!114 &1703670348 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7973304972791439743, guid: 7c98492b493e7bc46b6d7b158a144fac, type: 3}
+  m_PrefabInstance: {fileID: 224383402}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 602ba658eb974b67b6616621b60aa234, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.SkillUser
 --- !u!1001 &683096745765323621
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1243,10 +1417,6 @@ PrefabInstance:
       propertyPath: neckSliceDepthDegrees
       value: 4.5
       objectReference: {fileID: 0}
-    - target: {fileID: 5024990559671578796, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 5150274445971863401, guid: 4f8bbd446ab63ee4a9d6c89a6695caff, type: 3}
     - target: {fileID: 5245275856973429819, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 60
@@ -1254,6 +1424,18 @@ PrefabInstance:
     - target: {fileID: 5909833533535330128, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_LocalScale.z
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6194550203131202499, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6194550203131202499, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 6.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6194550203131202499, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 6194550203131202499, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -1301,6 +1483,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7192330709001201187, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7400403218344836304, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7400403218344836304, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7400403218344836304, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7400403218344836304, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7400403218344836304, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7400403218344836304, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8178953370820337609, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
@@ -1456,3 +1662,5 @@ SceneRoots:
   - {fileID: 1300097186}
   - {fileID: 683096745765323621}
   - {fileID: 595407835}
+  - {fileID: 774506021}
+  - {fileID: 1105680259}
