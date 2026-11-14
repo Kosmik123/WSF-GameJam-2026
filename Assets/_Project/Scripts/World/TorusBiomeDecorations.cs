@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using WSFGameJam2026.Player;
 
 namespace WSFGameJam2026.World
 {
@@ -28,8 +29,18 @@ namespace WSFGameJam2026.World
         private string terrainPrefix = "Teren_";
 
         [Header("Rendering")]
+        [Tooltip("Shadow mode of the assets near the shadow target. All the other assets cast no shadows.")]
         [SerializeField]
         private ShadowCastingMode shadowCasting = ShadowCastingMode.On;
+
+        [Tooltip("Only assets within the range below around this object (along the body) cast shadows. Empty = all assets use the shadow mode above.")]
+        [SerializeField]
+        private TorusObject shadowTarget;
+
+        [Tooltip("Range of theta around the shadow target in which assets cast shadows, in degrees (plus and minus).")]
+        [SerializeField]
+        [Range(1f, 180f)]
+        private float shadowRangeDegrees = 30f;
 
         [SerializeField]
         private bool receiveShadows = true;
@@ -56,10 +67,10 @@ namespace WSFGameJam2026.World
             public readonly List<Slot> Slots = new List<Slot>();
         }
 
-        private readonly struct Slot
+        private class Slot
         {
             public readonly Batch Batch;
-            public readonly int Index;
+            public int Index;
 
             public Slot(Batch batch, int index)
             {
@@ -74,12 +85,18 @@ namespace WSFGameJam2026.World
             public int SubMesh;
             public Material Material;
             public readonly List<Matrix4x4> LocalMatrices = new List<Matrix4x4>();
+            public readonly List<Placement> Owners = new List<Placement>();
+            public float[] Thetas;
             public Matrix4x4[] WorldMatrices;
         }
 
         private void Reset()
         {
             world = FindAnyObjectByType<TorusWorld>();
+
+            var player = FindAnyObjectByType<TorusPlayerMovement>();
+            if (player)
+                shadowTarget = player.GetComponent<TorusObject>();
         }
 
         private void OnEnable()
@@ -128,7 +145,43 @@ namespace WSFGameJam2026.World
                     AddBiome(surface, segment, model, batchLookup);
             }
 
+            foreach (var batch in batches)
+                SortByTheta(batch);
+
             UpdateWorldMatrices();
+        }
+
+        /// <summary>
+        /// Sorts the instances of a batch by theta, so the ones near the shadow target form one continuous range
+        /// (two when it wraps around the torus) and can be drawn with one call with shadows and the rest without.
+        /// </summary>
+        private static void SortByTheta(Batch batch)
+        {
+            int count = batch.LocalMatrices.Count;
+            var order = new int[count];
+            for (int i = 0; i < count; i++)
+                order[i] = i;
+
+            System.Array.Sort(order, (first, second) => batch.Owners[first].Theta.CompareTo(batch.Owners[second].Theta));
+
+            var matrices = new List<Matrix4x4>(count);
+            var owners = new List<Placement>(count);
+            batch.Thetas = new float[count];
+            for (int i = 0; i < count; i++)
+            {
+                var owner = batch.Owners[order[i]];
+                matrices.Add(batch.LocalMatrices[order[i]]);
+                owners.Add(owner);
+                batch.Thetas[i] = owner.Theta;
+                foreach (var slot in owner.Slots)
+                    if (slot.Batch == batch)
+                        slot.Index = i;
+            }
+
+            batch.LocalMatrices.Clear();
+            batch.LocalMatrices.AddRange(matrices);
+            batch.Owners.Clear();
+            batch.Owners.AddRange(owners);
         }
 
         private void AddBiome(TorusSurface surface, int segment, GameObject model, Dictionary<(Mesh, int, Material), Batch> batchLookup)
@@ -174,7 +227,7 @@ namespace WSFGameJam2026.World
 
             var up = surface.GetBaseNormal(theta, phi);
             float height = local.y * heightScale + heightOffset;
-            placement.Theta = theta;
+            placement.Theta = Mathf.Repeat(theta, TorusGeometry.TwoPi);
             placement.Phi = phi;
             placement.Height = height;
             placement.Up = up;
@@ -206,6 +259,7 @@ namespace WSFGameJam2026.World
                 }
 
                 batch.LocalMatrices.Add(placement.BaseMatrix);
+                batch.Owners.Add(placement);
                 placement.Slots.Add(new Slot(batch, batch.LocalMatrices.Count - 1));
             }
         }
@@ -266,22 +320,82 @@ namespace WSFGameJam2026.World
             float radius = (world.MajorRadius + world.MinorRadius) * 2f + 50f;
             var bounds = new Bounds(world.transform.position, Vector3.one * radius * Mathf.Max(1f, world.transform.lossyScale.x));
             foreach (var batch in batches)
-            {
-                var renderParams = new RenderParams(batch.Material)
-                {
-                    camera = camera,
-                    layer = gameObject.layer,
-                    shadowCastingMode = shadowCasting,
-                    receiveShadows = receiveShadows,
-                    worldBounds = bounds,
-                };
+                DrawBatch(batch, camera, bounds);
+        }
 
-                for (int start = 0; start < batch.WorldMatrices.Length; start += MaxInstancesPerDraw)
-                {
-                    int count = Mathf.Min(MaxInstancesPerDraw, batch.WorldMatrices.Length - start);
-                    Graphics.RenderMeshInstanced(renderParams, batch.Mesh, batch.SubMesh, batch.WorldMatrices, count, start);
-                }
+        // Instances near the shadow target cast shadows, all the others do not: two groups of draws per batch.
+        private void DrawBatch(Batch batch, Camera camera, Bounds bounds)
+        {
+            int count = batch.WorldMatrices.Length;
+            var shadowParams = CreateRenderParams(batch, camera, bounds, shadowCasting);
+            if (shadowTarget == null || shadowCasting == ShadowCastingMode.Off || shadowRangeDegrees >= 180f)
+            {
+                DrawRange(shadowParams, batch, 0, count);
+                return;
             }
+
+            var noShadowParams = CreateRenderParams(batch, camera, bounds, ShadowCastingMode.Off);
+            float range = shadowRangeDegrees * Mathf.Deg2Rad;
+            float start = Mathf.Repeat(shadowTarget.Angles.Theta - range, TorusGeometry.TwoPi);
+            float end = start + range * 2f;
+            int first = FindFirstIndex(batch.Thetas, start, false);
+
+            if (end <= TorusGeometry.TwoPi)
+            {
+                int last = FindFirstIndex(batch.Thetas, end, true);
+                DrawRange(shadowParams, batch, first, last);
+                DrawRange(noShadowParams, batch, 0, first);
+                DrawRange(noShadowParams, batch, last, count);
+                return;
+            }
+
+            // The range wraps around theta = 0: [first, count) and [0, last) are near.
+            int wrappedLast = FindFirstIndex(batch.Thetas, end - TorusGeometry.TwoPi, true);
+            DrawRange(shadowParams, batch, first, count);
+            DrawRange(shadowParams, batch, 0, wrappedLast);
+            DrawRange(noShadowParams, batch, wrappedLast, first);
+        }
+
+        private RenderParams CreateRenderParams(Batch batch, Camera camera, Bounds bounds, ShadowCastingMode shadowMode)
+        {
+            return new RenderParams(batch.Material)
+            {
+                camera = camera,
+                layer = gameObject.layer,
+                shadowCastingMode = shadowMode,
+                receiveShadows = receiveShadows,
+                worldBounds = bounds,
+            };
+        }
+
+        private static void DrawRange(RenderParams renderParams, Batch batch, int from, int to)
+        {
+            for (int start = from; start < to; start += MaxInstancesPerDraw)
+            {
+                int count = Mathf.Min(MaxInstancesPerDraw, to - start);
+                Graphics.RenderMeshInstanced(renderParams, batch.Mesh, batch.SubMesh, batch.WorldMatrices, count, start);
+            }
+        }
+
+        /// <summary>First index of the sorted array whose value is greater than the given one (or not smaller, when strict is false).</summary>
+        private static int FindFirstIndex(float[] sorted, float value, bool strictlyGreater)
+        {
+            int low = 0;
+            int high = sorted.Length;
+            while (low < high)
+            {
+                int middle = (low + high) / 2;
+                bool isBefore = strictlyGreater ? sorted[middle] <= value : sorted[middle] < value;
+                if (isBefore)
+                {
+                    low = middle + 1;
+                    continue;
+                }
+
+                high = middle;
+            }
+
+            return low;
         }
 
         /// <summary>
