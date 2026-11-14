@@ -1,0 +1,16 @@
+schema_version = "1.0.0"
+
+id = "psg_scatter"
+version = "0.1.0"
+name = "PSG Path Scatter"
+tagline = "Annotation-driven instanced scatter with vertex-color ground paint"
+maintainer = "WSF GameJam 2026"
+type = "add-on"
+tags = ["Object", "Mesh"]
+
+blender_version_min = "4.2.0"
+
+license = ["SPDX:GPL-3.0-or-later"]
+
+[permissions]
+files = "Export FBX for Unity"
