@@ -112,10 +112,25 @@ namespace WSFGameJam2026.Combat
             if (IsDead)
                 return false;
 
-            var lostHealth = currentHealth;
-            currentHealth = 0;
+            LoseHealth(currentHealth);
+            return true;
+        }
+
+        /// <summary>
+        /// Takes hit points directly, ignoring i-frames and teams, with no knockback and no <see cref="OnDamaged"/>
+        /// (so it does not grant i-frames or flash). For damage over time, like the jaw. Returns false when already dead.
+        /// </summary>
+        public bool LoseHealth(int amount)
+        {
+            if (IsDead || amount <= 0)
+                return false;
+
+            var lostHealth = Mathf.Min(amount, currentHealth);
+            currentHealth -= lostHealth;
             OnHealthChanged?.Invoke(-lostHealth);
-            OnDied?.Invoke(this);
+            if (currentHealth <= 0)
+                OnDied?.Invoke(this);
+
             return true;
         }
 
