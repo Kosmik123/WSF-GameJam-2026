@@ -66,12 +66,8 @@ MonoBehaviour:
   world: {fileID: 0}
   headBlendLengthDegrees: 50
   neckSliceDepthDegrees: 4.5
-  headFrontOffsetDegrees: -27
-  neckHeightOffset: 2
-  rollReference: {fileID: 0}
-  useHeadHeightMap: 1
-  headMapCellSize: 0.25
-  headMapColumns: 128
+  headFrontOffsetDegrees: -30
+  neckHeightOffset: 0
   tailTaperLengthDegrees: 60
   tailTaperCurve:
     serializedVersion: 2
