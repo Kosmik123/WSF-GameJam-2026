@@ -63,7 +63,8 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 
 ## Etap 3: czytelność i interfejs (SHOULD)
 
-- [ ] **HUD:** pasek HP, numer rundy. `P`
+- [ ] **HUD:** numer rundy. `P`
+  - [x] Pasek HP gracza z opóźnionym „śladem” obrażeń: `HealthBar`, menu *WSF GameJam/Setup/Create HUD* (nie testowane w Unity). `C`
 - [ ] **Wskaźnik paszczy:** kierunek i odległość, pasek postępu okrążenia. `P`
 - [ ] **Ekrany:** start, zwycięstwo rundy, śmierć, pauza. `G` (grafika), `P` (logika)
 - [ ] **Efekty paszczy w świecie:** poświata, drgania kamery, zmiana kolorów przy zbliżaniu się. `C`
