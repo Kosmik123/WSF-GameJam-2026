@@ -19,19 +19,16 @@ namespace WSFGameJam2026.Head
 
         [Header("Neck")]
         [Tooltip("Length of the transition from the head outline to the normal terrain behind the neck, in degrees along the snake body.")]
-        [FormerlySerializedAs("blendLengthDegrees")]
         [SerializeField]
         [Min(0f)]
         private float headBlendLengthDegrees = 25f;
 
         [Tooltip("Thickness of the slice of the head, measured from its rear end, whose widest points make the outline, in degrees along the snake body.")]
-        [FormerlySerializedAs("neckSliceDepth")]
         [SerializeField]
         [Min(0.01f)]
         private float neckSliceDepthDegrees = 3f;
 
         [Tooltip("Added to the measured length of the head, in degrees along the snake body. Negative moves the front end (white gizmo) back, so the terrain stops blending earlier.")]
-        [FormerlySerializedAs("headFrontOffset")]
         [SerializeField]
         private float headFrontOffsetDegrees;
 
