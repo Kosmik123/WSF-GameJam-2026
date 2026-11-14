@@ -16,6 +16,8 @@ namespace WSFGameJam2026.World
 
         private float[] neckHeights;
         private float blendStrength = 1f;
+        private float colorStrength = 1f;
+        private Color[] neckColors;
         private AnimationCurve tailCurve;
 
         /// <summary>Changes every time anything affecting the terrain changes. Used to skip needless mesh updates.</summary>
@@ -25,6 +27,12 @@ namespace WSFGameJam2026.World
 
         /// <summary>How strongly the terrain takes the shape of the head's neck outline (0-1). 0 = not at all. The thinning tail does not depend on it.</summary>
         public float BlendStrength => blendStrength;
+
+        /// <summary>How strongly the terrain takes the color of the neck of the head (0-1). 0 = it keeps its own color.</summary>
+        public float ColorStrength => colorStrength;
+
+        /// <summary>True when the head has vertex colors that the terrain can take over.</summary>
+        public bool HasColors => IsActive && neckColors != null && colorStrength > 0f;
 
         /// <summary>Theta of the head's pivot, in radians.</summary>
         public float Theta { get; private set; }
@@ -54,6 +62,42 @@ namespace WSFGameJam2026.World
             Version++;
         }
 
+        /// <summary>Sets the colors of the neck outline, evenly spaced around phi like the heights. Null = the head has no vertex colors.</summary>
+        public void ConfigureColors(Color[] colors)
+        {
+            neckColors = colors != null && colors.Length > 0 ? (Color[])colors.Clone() : null;
+            Version++;
+        }
+
+        public void SetColorStrength(float strength)
+        {
+            strength = Mathf.Clamp01(strength);
+            if (Mathf.Approximately(strength, colorStrength))
+                return;
+
+            colorStrength = strength;
+            Version++;
+        }
+
+        /// <summary>Color of the neck outline at phi (radians), interpolated around the tube.</summary>
+        public Color GetNeckColor(float phi)
+        {
+            if (neckColors == null)
+                return Color.white;
+
+            int count = neckColors.Length;
+            float position = Mathf.Repeat(phi, TwoPi) / TwoPi * count;
+            int first = Mathf.FloorToInt(position) % count;
+            int second = (first + 1) % count;
+            return Color.Lerp(neckColors[first], neckColors[second], position - Mathf.Floor(position));
+        }
+
+        /// <summary>Weight (0-1) with which the terrain takes the neck color at theta: the shape weight of the head times the color strength.</summary>
+        public float GetColorWeight(float theta)
+        {
+            return HasColors ? GetWeight(theta) * colorStrength : 0f;
+        }
+
         public void SetBlendStrength(float strength)
         {
             strength = Mathf.Clamp01(strength);
@@ -70,6 +114,7 @@ namespace WSFGameJam2026.World
                 return;
 
             neckHeights = null;
+            neckColors = null;
             Version++;
         }
 

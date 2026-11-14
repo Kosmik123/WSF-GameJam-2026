@@ -21,6 +21,9 @@ namespace WSFGameJam2026.World
 
             public Vector3[] OriginalVertices;
             public Vector3[] OriginalNormals;
+            public Color[] OriginalColors;
+            public List<Color> Colors = new List<Color>();
+            public bool HasModifiedColors;
             public Vector3[] BaseNormals;
             public float[] Heights;
 
@@ -92,6 +95,7 @@ namespace WSFGameJam2026.World
                 StartTheta = segmentIndex * surface.SegmentAngle,
                 OriginalVertices = mesh.vertices,
                 OriginalNormals = mesh.normals,
+                OriginalColors = mesh.colors,
             };
 
             data.Rows = data.OriginalVertices.Length / data.Columns;
@@ -166,6 +170,7 @@ namespace WSFGameJam2026.World
             }
 
             data.Mesh.SetVertices(data.Vertices);
+            ApplyColors(data);
             data.Mesh.RecalculateNormals();
             data.Mesh.RecalculateBounds();
             data.Mesh.GetNormals(data.Normals);
@@ -185,6 +190,37 @@ namespace WSFGameJam2026.World
             data.IsNormalsDirty = true;
         }
 
+        // Near the head the vertex colors of the terrain turn into the colors of the head's neck, with the weight of the head blend.
+        // Without vertex colors on the terrain or on the head the colors are left alone.
+        private void ApplyColors(SegmentData data)
+        {
+            bool canColor = terrain.HasColors && data.OriginalColors.Length == data.OriginalVertices.Length;
+            if (canColor == false)
+            {
+                if (data.HasModifiedColors)
+                {
+                    data.Mesh.SetColors(data.OriginalColors);
+                    data.HasModifiedColors = false;
+                }
+
+                return;
+            }
+
+            data.Colors.Clear();
+            for (int row = 0; row < data.Rows; row++)
+            {
+                float weight = terrain.GetColorWeight(GetRowTheta(data, row));
+                for (int column = 0; column < data.Columns; column++)
+                {
+                    var original = data.OriginalColors[row * data.Columns + column];
+                    data.Colors.Add(weight <= 0f ? original : Color.Lerp(original, terrain.GetNeckColor(GetColumnPhi(column)), weight));
+                }
+            }
+
+            data.Mesh.SetColors(data.Colors);
+            data.HasModifiedColors = true;
+        }
+
         private void Restore(SegmentData data)
         {
             if (data.HasDeformedVertices)
@@ -192,6 +228,12 @@ namespace WSFGameJam2026.World
                 data.Mesh.SetVertices(data.OriginalVertices);
                 data.Mesh.RecalculateBounds();
                 data.HasDeformedVertices = false;
+            }
+
+            if (data.HasModifiedColors)
+            {
+                data.Mesh.SetColors(data.OriginalColors);
+                data.HasModifiedColors = false;
             }
 
             if (data.HasModifiedNormals == false)

@@ -37,6 +37,11 @@ namespace WSFGameJam2026.Head
         [Range(0f, 1f)]
         private float blendStrength = 1f;
 
+        [Tooltip("How strongly the terrain takes the vertex color of the head's neck near the head: 1 = fully, 0 = it keeps its own color. Works only when the head meshes have vertex colors.")]
+        [SerializeField]
+        [Range(0f, 1f)]
+        private float colorBlendStrength = 1f;
+
         [Tooltip("Added to the measured height of the outline. Positive lifts the terrain at the neck.")]
         [SerializeField]
         private float neckHeightOffset;
@@ -86,6 +91,7 @@ namespace WSFGameJam2026.Head
             if (isMeasured)
             {
                 world.HeadTerrain.SetBlendStrength(blendStrength);
+                world.HeadTerrain.SetColorStrength(colorBlendStrength);
                 world.HeadTerrain.SetTheta(movement.Theta);
             }
         }
@@ -193,13 +199,26 @@ namespace WSFGameJam2026.Head
             return Mathf.Max(0f, measuredLength + headFrontOffsetDegrees * Mathf.Deg2Rad);
         }
 
+        private static bool HasAnyColor(Renderer[] renderers)
+        {
+            foreach (var renderer in renderers)
+            {
+                var mesh = renderer is SkinnedMeshRenderer skinned ? skinned.sharedMesh : renderer.TryGetComponent<MeshFilter>(out var filter) ? filter.sharedMesh : null;
+                if (mesh && mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.Color))
+                    return true;
+            }
+
+            return false;
+        }
+
         private bool Measure()
         {
             movement.Refresh();
 
             var heights = new float[OutlineResolution];
+            var colors = new Color[OutlineResolution];
             var renderers = GetComponentsInChildren<Renderer>();
-            if (HeadNeckProfiler.TryMeasure(world, movement.Theta, renderers, GetSliceDepth(world), heights, out float neckOffset, out float headLength) == false)
+            if (HeadNeckProfiler.TryMeasure(world, movement.Theta, renderers, GetSliceDepth(world), heights, colors, out float neckOffset, out float headLength) == false)
             {
                 Debug.LogWarning("Head has no mesh to measure the neck outline from.", this);
                 enabled = false;
@@ -211,6 +230,7 @@ namespace WSFGameJam2026.Head
 
             headLength = GetAdjustedHeadLength(headLength);
             world.HeadTerrain.Configure(neckOffset, headLength, headBlendLengthDegrees * Mathf.Deg2Rad, heights);
+            world.HeadTerrain.ConfigureColors(HasAnyColor(renderers) ? colors : null);
             world.HeadTerrain.ConfigureTail(tailTaperLengthDegrees * Mathf.Deg2Rad, tailTaperCurve);
             world.HeadTerrain.SetTheta(movement.Theta);
             return true;
