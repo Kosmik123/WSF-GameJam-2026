@@ -5,7 +5,7 @@ namespace WSFGameJam2026.World
 {
     public static class TorusSegmentMeshBuilder
     {
-        private const float TwoPi = Mathf.PI * 2f;
+        private const float TwoPi = TorusGeometry.TwoPi;
 
         /// <summary>
         /// Builds the segment on the base tube, without terrain: it is added later by <see cref="TorusSegmentProfile.Deform"/>.
