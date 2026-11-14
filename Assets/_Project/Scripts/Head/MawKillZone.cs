@@ -33,6 +33,10 @@ namespace WSFGameJam2026.Head
         [SerializeField]
         private AnimationCurve backReachDegrees = CreateDefaultCurve(8f, 2f);
 
+        [Tooltip("Turns the direction in which the shape follows the rotation of this object. Use it when the shape turns the other way than the object (for example when the object itself is turned around in its parent).")]
+        [SerializeField]
+        private bool flipRotation;
+
         [Header("Editor")]
         [SerializeField]
         private bool drawGizmos = true;
@@ -79,16 +83,33 @@ namespace WSFGameJam2026.Head
         /// </summary>
         public float GetShapeRotationDegrees()
         {
-            // The head's right points to phi 0 and its up to phi 90, so the roll is the angle of the right axis in that plane.
+            // This is the roll around the head's forward axis. The head's right points to the inner side of the torus
+            // (phi 180) and its up to phi 90, so growing phi turns against the roll: see GetShapePosition.
             var relative = Quaternion.Inverse(head.transform.rotation) * transform.rotation;
             var right = relative * Vector3.right;
-            return Mathf.Atan2(right.y, right.x) * Mathf.Rad2Deg;
+            var roll = Mathf.Atan2(right.y, right.x) * Mathf.Rad2Deg;
+            return flipRotation ? -roll : roll;
+        }
+
+        /// <summary>
+        /// Theta of the centre of the zone in radians: the head's theta moved by the offset of this object
+        /// from the head along the body (towards the front of the head = growing theta). On the head itself it is the head's theta.
+        /// </summary>
+        public float GetCenterTheta()
+        {
+            var world = head.World;
+            if (world == null)
+                return head.Theta;
+
+            var localOffset = world.transform.InverseTransformVector(transform.position - head.transform.position);
+            var alongBody = Vector3.Dot(localOffset, TorusGeometry.GetThetaDirection(head.Theta));
+            return head.Theta + alongBody / world.MajorRadius;
         }
 
         // Position on the shape curves (0-1) for a real phi in degrees: the shape is turned by the rotation of the zone.
         private float GetShapePosition(float phiDegrees)
         {
-            return Mathf.Repeat(phiDegrees - GetShapeRotationDegrees(), 360f) / 360f;
+            return Mathf.Repeat(phiDegrees + GetShapeRotationDegrees(), 360f) / 360f;
         }
 
         /// <summary>True when the object stands in the zone at its own phi.</summary>
@@ -98,7 +119,7 @@ namespace WSFGameJam2026.Head
             var phiNormalized = GetShapePosition(angles.PhiDegrees);
 
             // Positive = the target is in front of the head.
-            var deltaTheta = Mathf.DeltaAngle(head.Theta * Mathf.Rad2Deg, angles.ThetaDegrees);
+            var deltaTheta = Mathf.DeltaAngle(GetCenterTheta() * Mathf.Rad2Deg, angles.ThetaDegrees);
             return deltaTheta <= frontReachDegrees.Evaluate(phiNormalized)
                 && -deltaTheta <= backReachDegrees.Evaluate(phiNormalized);
         }
@@ -117,14 +138,15 @@ namespace WSFGameJam2026.Head
             for (var i = 0; victims != null && i < victims.Length; i++)
                 isAnyoneInside |= victims[i] != null && victims[i].IsDead == false && IsInside(victims[i]);
 
+            var centerTheta = GetCenterTheta();
             var front = new Vector3[Steps + 1];
             var back = new Vector3[Steps + 1];
             for (var i = 0; i <= Steps; i++)
             {
                 var phi = (float)i / Steps * Mathf.PI * 2f;
                 var phiNormalized = GetShapePosition((float)i / Steps * 360f);
-                var frontTheta = head.Theta + frontReachDegrees.Evaluate(phiNormalized) * Mathf.Deg2Rad;
-                var backTheta = head.Theta - backReachDegrees.Evaluate(phiNormalized) * Mathf.Deg2Rad;
+                var frontTheta = centerTheta + frontReachDegrees.Evaluate(phiNormalized) * Mathf.Deg2Rad;
+                var backTheta = centerTheta - backReachDegrees.Evaluate(phiNormalized) * Mathf.Deg2Rad;
                 front[i] = worldTransform.TransformPoint(GetLiftedPoint(surface, frontTheta, phi));
                 back[i] = worldTransform.TransformPoint(GetLiftedPoint(surface, backTheta, phi));
             }
