@@ -56,6 +56,9 @@ namespace WSFGameJam2026.World
         private TorusSurface surface;
         private TorusHeadMeshBlender headMeshBlender;
 
+        /// <summary>Called after the segments were built again (shape, profiles or terrain changed).</summary>
+        public event System.Action Rebuilt;
+
         /// <summary>Terrain shaped by the snake's head. It belongs to the world, so it survives rebuilds.</summary>
         public TorusHeadTerrain HeadTerrain { get; } = new TorusHeadTerrain();
 
@@ -93,6 +96,7 @@ namespace WSFGameJam2026.World
 
             headMeshBlender = new TorusHeadMeshBlender(surface, meshes, sidesResolution, HeadTerrain);
             headMeshBlender.Update();
+            Rebuilt?.Invoke();
         }
 
         private void LateUpdate()
