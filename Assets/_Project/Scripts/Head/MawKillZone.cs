@@ -1,5 +1,6 @@
 using UnityEngine;
 using WSFGameJam2026.Combat;
+using WSFGameJam2026.World;
 
 namespace WSFGameJam2026.Head
 {
@@ -26,6 +27,10 @@ namespace WSFGameJam2026.Head
         [Tooltip("Reach behind the head (towards falling theta), in degrees of theta. X = phi around the tube (0-1 = 0-360°), Y = reach.")]
         [SerializeField]
         private AnimationCurve backReachDegrees = CreateDefaultCurve(8f, 2f);
+
+        [Header("Editor")]
+        [SerializeField]
+        private bool drawGizmos = true;
 
         private void Reset()
         {
@@ -59,6 +64,51 @@ namespace WSFGameJam2026.Head
             return deltaTheta <= frontReachDegrees.Evaluate(phiNormalized)
                 && -deltaTheta <= backReachDegrees.Evaluate(phiNormalized);
         }
+
+#if UNITY_EDITOR
+        // Not optimised on purpose: the outline of the zone is rebuilt every frame in the editor.
+        private void OnDrawGizmos()
+        {
+            if (drawGizmos == false || head == null || head.World == null)
+                return;
+
+            const int Steps = 72;
+            var surface = head.World.Surface;
+            var worldTransform = head.World.transform;
+            var isAnyoneInside = false;
+            for (var i = 0; victims != null && i < victims.Length; i++)
+                isAnyoneInside |= victims[i] != null && victims[i].IsDead == false && IsInside(victims[i]);
+
+            var front = new Vector3[Steps + 1];
+            var back = new Vector3[Steps + 1];
+            for (var i = 0; i <= Steps; i++)
+            {
+                var phi = (float)i / Steps * Mathf.PI * 2f;
+                var phiNormalized = (float)i / Steps;
+                var frontTheta = head.Theta + frontReachDegrees.Evaluate(phiNormalized) * Mathf.Deg2Rad;
+                var backTheta = head.Theta - backReachDegrees.Evaluate(phiNormalized) * Mathf.Deg2Rad;
+                front[i] = worldTransform.TransformPoint(GetLiftedPoint(surface, frontTheta, phi));
+                back[i] = worldTransform.TransformPoint(GetLiftedPoint(surface, backTheta, phi));
+            }
+
+            Gizmos.color = isAnyoneInside ? Color.red : new Color(1f, 0.5f, 0f);
+            for (var i = 0; i < Steps; i++)
+            {
+                Gizmos.DrawLine(front[i], front[i + 1]);
+                Gizmos.DrawLine(back[i], back[i + 1]);
+            }
+
+            // Ribs between the front and the back edge show the width of the zone.
+            Gizmos.color = new Color(Gizmos.color.r, Gizmos.color.g, Gizmos.color.b, 0.5f);
+            for (var i = 0; i < Steps; i += 3)
+                Gizmos.DrawLine(front[i], back[i]);
+        }
+
+        private static Vector3 GetLiftedPoint(TorusSurface surface, float theta, float phi)
+        {
+            return surface.GetPoint(theta, phi) + surface.GetBaseNormal(theta, phi) * 0.2f;
+        }
+#endif
 
         // Jaws are at the top and the bottom of the tube (phi 90° and 270°), cheeks at the sides (0° and 180°).
         private static AnimationCurve CreateDefaultCurve(float cheeks, float jaws)
