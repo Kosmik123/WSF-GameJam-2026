@@ -420,7 +420,7 @@ Transform:
   m_GameObject: {fileID: 595407832}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: 0, y: 0, z: 349.57675}
+  m_LocalPosition: {x: 0, y: 0, z: 351}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -707,6 +707,7 @@ MonoBehaviour:
   head: {fileID: 66875074}
   spawner: {fileID: 1581976040}
   playerCombat: {fileID: 1703670344}
+  playerSkills: {fileID: 0}
   startGapDegrees: 25
   startPhiDegrees: 90
   jawSpeedPerRound: 0.2
