@@ -11,7 +11,7 @@ Termin jamu: **30 godzin** od startu. Tempo oceniamy na bieżąco i przesuwamy p
 |---------|-----|
 | 0-6 | Etap 1: ruch, kamera, paszcza, cel, pętla rund (grywalny prototyp) |
 | 6-13 | Etap 2: walka, zdrowie, dwa pierwsze typy wrogów, spawner |
-| 13-19 | Etap 3 i wrogowie 3-4: HUD, wskaźniki, ekrany |
+| 13-19 | Progresja (XP, poziomy, ekwipunek), wrogowie 3-4, HUD, wskaźniki, ekrany |
 | 19-26 | Etap 4 i 5: zawartość, shadery, efekty, dźwięk |
 | 26-30 | Zamrożenie funkcji około godziny 26, potem tylko balans, build i prezentacja |
 
@@ -47,6 +47,14 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [ ] **Spawner wrogów** w współrzędnych `(θ, φ)` przed graczem, skalowanie ze trudnością rundy. `P`
 - [ ] **Modele i animacje wrogów 1 i 2.** `G`
 
+## Etap 2b: progresja (MUST)
+
+- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku). `C`
+- [ ] **Skalowanie trudności** wrogów po segmencie i rundzie, tak by samo bieganie nie wystarczało. `P`
+- [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
+- [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`
+- [ ] **Ikony i modele przedmiotów** (broń, pancerz, dodatki). `G`
+
 ## Etap 3: czytelność i interfejs (SHOULD)
 
 - [ ] **HUD:** pasek HP, numer rundy. `P`
@@ -59,7 +67,6 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [ ] **Wróg 3 (pancerny) i wróg 4 (rój)**. `P`, modele: `G`
 - [ ] **Mini-boss na czubku głowy** (COULD).
 - [ ] **Różne profile terenu** dla segmentów (pagórki, kratery, grzbiety) jako nowe podklasy `TorusSegmentProfile`. `C`
-- [ ] **Ulepszenia / perki** (COULD, jeśli zostanie czas).
 
 ## Etap 5: prezentacja i polish (SHOULD, rezerwujemy ostatnie godziny)
 
@@ -76,4 +83,5 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] Typy wrogów: biegacz, strzelec, pancerny, rój.
 - [x] Audio: mieszanka CC0, pracy ręcznej i syntezatorów.
 - [ ] Dokładne zachowania i statystyki wrogów.
+- [ ] Szczegóły progresji: krzywa XP, sloty i typy przedmiotów, źródła, zachowanie poziomu i sprzętu po śmierci i między rundami.
 - [ ] Paleta kolorów i referencje wizualne.

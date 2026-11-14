@@ -18,7 +18,8 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 1. **Prezentacja przede wszystkim.** Jam jest oceniany głównie na podstawie prezentacji, więc gra ma wyglądać i brzmieć mocno nawet kosztem głębi systemów.
 2. **Presja ucieczki.** Paszcza jest zawsze za plecami. Każda decyzja (walczyć czy biec) to wymiana czasu na bezpieczeństwo.
 3. **Zręcznościowa walka.** Umiejętność gracza (unik, timing) ma znaczenie, a nie tylko statystyki.
-4. **Jedna czytelna pętla.** Uciekaj, walcz, przetrwaj, okrąż świat, powtórz szybciej.
+4. **Jedna czytelna pętla.** Uciekaj, walcz, zdobywaj poziomy i sprzęt, okrąż świat, powtórz szybciej.
+5. **Walka się opłaca.** Samo bieganie nie wystarcza: trudność rośnie, więc trzeba levelować wcześniej, żeby przetrwać później.
 
 ## 4. Świat
 
@@ -63,8 +64,15 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 
 ## 9. Progresja
 
-- Brak rozbudowanych systemów. Jedyna progresja to **narastająca trudność** w kolejnych rundach.
-- Ulepszenia (perki, waluta, meta) są poza zakresem, jeśli zabraknie czasu. **[DO USTALENIA]** czy dodamy je, jeśli zostanie czas.
+Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, więc **trudność rośnie szybciej, niż da się ją przeskoczyć samym biegiem**: gracz musi walczyć wcześnie (na łatwiejszych odcinkach), żeby zdobyć poziomy i sprzęt, a potem poradzić sobie z trudniejszymi.
+
+- **Poziomy gracza:** wrogowie dają doświadczenie (XP), po zebraniu progu gracz awansuje. Każdy poziom zwiększa statystyki (HP, obrażenia, szybkość ataku).
+- **Ekwipunek:** wrogowie (i skrzynie) zostawiają przedmioty: broń, pancerz, dodatki. Ekwipunek zmienia statystyki i może dawać prostą zdolność. **[DO USTALENIA]** liczba slotów i typów przedmiotów.
+- **Trudność rośnie wraz z postępem:** wrogowie w dalszych segmentach i w kolejnych rundach są mocniejsi i liczniejsi, a paszcza szybsza. Początek okrążenia jest łatwy (dobre miejsce na zdobywanie XP), dalsza część wymaga poziomów i sprzętu.
+- **Dylemat:** walka daje siłę, ale kosztuje czas, a paszcza goni. Pominięcie walk na początku oznacza słabszego gracza później.
+- **Kolejne rundy:** **[DO USTALENIA]** czy poziom i ekwipunek zostają między rundami. Propozycja: tak, a trudność kolejnej rundy rośnie szybciej niż samo wzmocnienie gracza.
+- **Po śmierci:** restart bieżącej rundy (patrz sekcja 6). **[DO USTALENIA]** czy gracz zachowuje poziom i sprzęt z tej próby.
+- Rozbudowana meta-progresja (waluta, drzewko ulepszeń poza rundą) jest poza zakresem.
 
 ## 10. Czytelność i interfejs
 
@@ -95,5 +103,5 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 ## 14. Otwarte pytania
 
 - Dokładne zachowania i statystyki wrogów.
-- Czy gra ma dodatkowe ulepszenia, jeśli zostanie czas.
+- Progresja: krzywa XP, co daje poziom, liczba slotów i typów przedmiotów, źródła przedmiotów, czy poziom i sprzęt zostają po śmierci i między rundami.
 - Paleta kolorów i referencje wizualne.
