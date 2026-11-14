@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Wybrzeze_Palma_v0__Teren_Wybrzeze_Drzewa_0257
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: 2298768294549554117, guid: 8a8b7178233adf547b5a1fdcce5516ee, type: 3}
-  blockRadius: 1.5904567
+  blockRadius: 0.5
   visibleRangeDegrees: 180

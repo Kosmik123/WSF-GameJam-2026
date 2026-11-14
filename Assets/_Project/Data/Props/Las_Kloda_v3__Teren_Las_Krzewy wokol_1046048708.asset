@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: 2828941963956916332, guid: b10ea4a96465cc049be4f3c8ab4e2a5c, type: 3}
   blockRadius: 0
-  visibleRangeDegrees: 25
+  visibleRangeDegrees: 0

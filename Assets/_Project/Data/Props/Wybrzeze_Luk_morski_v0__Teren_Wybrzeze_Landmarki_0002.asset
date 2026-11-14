@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Wybrzeze_Luk_morski_v0__Teren_Wybrzeze_Landmarki_0002
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -945940266359935498, guid: 8a8b7178233adf547b5a1fdcce5516ee, type: 3}
-  blockRadius: 2.5157197
-  visibleRangeDegrees: 180
+  blockRadius: 0
+  visibleRangeDegrees: 0

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Wulkan_Obsydian_v2__Teren_Wulkan_Obsydian_1016528824
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -4093960928822676681, guid: ebeefd2fe8a55b7438a9687f110866ce, type: 3}
-  blockRadius: 0.3263432
+  blockRadius: 0.49
   visibleRangeDegrees: 180

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Pustynia_Kaktus_kulisty_v1__Teren_Pustynia_Drobne wokol_1026368301
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: 6656599492398881430, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
-  blockRadius: 0
+  blockRadius: 0.5
   visibleRangeDegrees: 25

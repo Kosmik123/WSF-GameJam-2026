@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Pustynia_Opuncja_v1__Teren_Pustynia_Krzewy wokol_1067555231
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: 603444649622550831, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
-  blockRadius: 0.5095806
+  blockRadius: 0.34
   visibleRangeDegrees: 180

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Pustynia_Luk_skalny_v0__Teren_Pustynia_Landmarki_0000
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -6881820150143209643, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
-  blockRadius: 3
-  visibleRangeDegrees: 180
+  blockRadius: 0
+  visibleRangeDegrees: 0

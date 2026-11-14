@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Las_Trawa_v3__Teren_Las_Drobne wokol_1016912122
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -5433815385233699726, guid: b10ea4a96465cc049be4f3c8ab4e2a5c, type: 3}
-  blockRadius: 0.25528684
+  blockRadius: 0
   visibleRangeDegrees: 180

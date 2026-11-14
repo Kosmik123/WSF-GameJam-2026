@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Wulkan_Komin_v1__Teren_Wulkan_Kominy_0010
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -3233971162081121009, guid: ebeefd2fe8a55b7438a9687f110866ce, type: 3}
-  blockRadius: 0
+  blockRadius: 0.67
   visibleRangeDegrees: 25

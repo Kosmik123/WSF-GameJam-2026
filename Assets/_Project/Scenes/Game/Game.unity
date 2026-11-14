@@ -778,6 +778,7 @@ MonoBehaviour:
   shadowTarget: {fileID: 1703670341}
   nearShadowRangeDegrees: 30
   receiveShadows: 0
+  propCatalog: {fileID: 11400000, guid: 42521b79594348847b0c04cc89e339a9, type: 2}
   toppleDistance: 70
   toppleMinHeight: 2
   toppleAngle: 82

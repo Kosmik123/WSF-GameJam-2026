@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Bagno_Trzciny_v2__Teren_Bagno_Trawa wokol drzew_1003111115
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -4636250498581880930, guid: a5344fb83d788b14c87215e32f4aaaa9, type: 3}
-  blockRadius: 0.4524738
+  blockRadius: 0
   visibleRangeDegrees: 180

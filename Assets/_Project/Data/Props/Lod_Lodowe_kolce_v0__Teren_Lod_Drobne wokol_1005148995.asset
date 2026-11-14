@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Lod_Lodowe_kolce_v0__Teren_Lod_Drobne wokol_1005148995
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: 3207273273419404449, guid: e0a5c0726d3e2e54f996b50e9e4128a9, type: 3}
-  blockRadius: 0.2558881
-  visibleRangeDegrees: 180
+  blockRadius: 0.31
+  visibleRangeDegrees: 0

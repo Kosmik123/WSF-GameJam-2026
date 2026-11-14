@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Lod_Osniezona_sosna_v0__Teren_Lod_Drzewa_0128
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -8300103318658536603, guid: e0a5c0726d3e2e54f996b50e9e4128a9, type: 3}
-  blockRadius: 1.507651
+  blockRadius: 1.68
   visibleRangeDegrees: 180

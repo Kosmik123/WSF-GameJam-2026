@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Wybrzeze_Wodorosty_v0__Teren_Wybrzeze_Drobne wokol_1016562887
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -3124549402381982572, guid: 8a8b7178233adf547b5a1fdcce5516ee, type: 3}
-  blockRadius: 0.128764
+  blockRadius: 0.25
   visibleRangeDegrees: 180

@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Las_Wielkie_drzewo_v1__Teren_Las_Landmarki_0000
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -2753425654653699359, guid: b10ea4a96465cc049be4f3c8ab4e2a5c, type: 3}
-  blockRadius: 2.7124937
+  blockRadius: 1.11
   visibleRangeDegrees: 180

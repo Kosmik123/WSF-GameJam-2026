@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Lod_Krysztaly_lodu_v1__Teren_Lod_Krzewy wokol_1016528824
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: 8683823503864947823, guid: e0a5c0726d3e2e54f996b50e9e4128a9, type: 3}
-  blockRadius: 0.34739685
+  blockRadius: 0.55
   visibleRangeDegrees: 180

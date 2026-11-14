@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Pustynia_Palma_v0__Teren_Pustynia_Drzewa_0512
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
   mesh: {fileID: -356970930147929281, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
-  blockRadius: 1.5494889
+  blockRadius: 0.5
   visibleRangeDegrees: 180
