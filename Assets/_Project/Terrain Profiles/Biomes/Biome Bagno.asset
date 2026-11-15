@@ -31,6 +31,15 @@ MonoBehaviour:
     basinDepth: 3
     hasWater: 1
     surfaceOffset: 0.25
+<<<<<<< Updated upstream
+=======
+    pondSize: 5
+    pondCoverage: 0.35
+    wetDarken: 0.35
+    wetWidth: 0.12
+    shallowWaterColor: {r: 0.2, g: 0.3, b: 0.12, a: 0.35}
+    deepWaterColor: {r: 0.05, g: 0.09, b: 0.03, a: 0.85}
+>>>>>>> Stashed changes
     isPainted: 1
     brightnessSpread: {x: 0.05, y: 0.12}
     cliffDark: {r: 0.16, g: 0.13, b: 0.09, a: 1}
