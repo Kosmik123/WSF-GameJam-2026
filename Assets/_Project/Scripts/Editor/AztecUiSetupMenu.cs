@@ -66,8 +66,10 @@ namespace WSFGameJam2026.Editor
             var hudGroup = hudCanvas.TryGetComponent<CanvasGroup>(out var existingGroup) ? existingGroup : hudCanvas.gameObject.AddComponent<CanvasGroup>();
             var roundBanner = AztecHudBuilder.Build(hudCanvas.transform, healthBar, roundState, controller, lapTracker, playerLevel);
 
-            var cameraIntro = SetUpCameraIntro();
-            var menus = BuildMenus(controller, roundState, lapTracker, playerLevel, runStats, roundBanner, hudGroup, cameraIntro);
+            // With the Cinemachine intro of Create Main Menu, that menu starts the game and this one only gives it its screen.
+            var introMenu = Object.FindAnyObjectByType<Menu.MainMenu>(FindObjectsInactive.Include);
+            var cameraIntro = introMenu ? null : SetUpCameraIntro();
+            var menus = BuildMenus(controller, roundState, lapTracker, playerLevel, runStats, roundBanner, introMenu ? null : hudGroup, cameraIntro, introMenu);
             AztecUiData.Set(roundBanner, "pause", menus.GetComponent<GamePause>());
 
             EditorSceneManager.MarkSceneDirty(hudCanvas.gameObject.scene);
@@ -75,7 +77,7 @@ namespace WSFGameJam2026.Editor
             Debug.Log("Aztec UI setup done: main menu, HUD, level up, round won, death, pause, settings and controls.");
         }
 
-        private static GameObject BuildMenus(RoundController controller, RoundState roundState, LapTracker lapTracker, Progression.PlayerLevel playerLevel, RunStats runStats, RoundBanner roundBanner, CanvasGroup hud, CameraIntro cameraIntro)
+        private static GameObject BuildMenus(RoundController controller, RoundState roundState, LapTracker lapTracker, Progression.PlayerLevel playerLevel, RunStats runStats, RoundBanner roundBanner, CanvasGroup hud, CameraIntro cameraIntro, Menu.MainMenu introMenu)
         {
             var old = GameObject.Find("Menus");
             if (old)
@@ -106,16 +108,44 @@ namespace WSFGameJam2026.Editor
             var settings = AztecMenuBuilder.BuildSettings(root.transform, cancel);
             var controls = AztecMenuBuilder.BuildControls(root.transform, cancel);
 
-            AztecMenuBuilder.BuildMainMenu(root.transform, pause, controller, roundBanner, hud, cameraIntro, settings);
+            var mainMenu = AztecMenuBuilder.BuildMainMenu(root.transform, pause, controller, roundBanner, hud, cameraIntro, settings);
+            if (introMenu)
+                UseAsIntroMenuScreen(introMenu, mainMenu);
+
             AztecScreenBuilder.BuildRoundWon(root.transform, controller, runStats);
             AztecScreenBuilder.BuildRunEnd(root.transform, controller, runStats, playerLevel);
             AztecScreenBuilder.BuildLevelUp(root.transform, pause, playerLevel);
             AztecMenuBuilder.BuildPauseMenu(root.transform, pause, roundState, lapTracker, playerLevel, settings, controls);
+            AztecUiData.Set(root.GetComponent<PauseMenu>(), "mainMenu", mainMenu);
 
             // Settings and controls open over the main menu and the pause menu.
             root.transform.Find("SettingsScreen").SetAsLastSibling();
             root.transform.Find("ControlsScreen").SetAsLastSibling();
             return root;
+        }
+
+        // The intro menu keeps its cameras, the parked player and its Play logic; it shows and hides this screen and
+        // its Play button is the GRAJ button of this screen. Its own placeholder screen is switched off (not removed).
+        private static void UseAsIntroMenuScreen(Menu.MainMenu introMenu, MainMenu mainMenu)
+        {
+            var ownMenu = new SerializedObject(mainMenu);
+            ownMenu.FindProperty("controlsGameStart").boolValue = false;
+            ownMenu.ApplyModifiedProperties();
+            var playButton = ownMenu.FindProperty("playButton").objectReferenceValue;
+            var screen = ((CanvasGroup)ownMenu.FindProperty("menuScreen").objectReferenceValue).gameObject;
+
+            Undo.RegisterFullObjectHierarchyUndo(introMenu.gameObject, "Create Aztec UI");
+            var introSerialized = new SerializedObject(introMenu);
+            var oldScreen = introSerialized.FindProperty("menuScreen").objectReferenceValue as GameObject;
+            if (oldScreen && oldScreen != screen && oldScreen.transform.IsChildOf(mainMenu.transform) == false)
+            {
+                Undo.RecordObject(oldScreen, "Create Aztec UI");
+                oldScreen.SetActive(false);
+            }
+
+            introSerialized.FindProperty("playButton").objectReferenceValue = playButton;
+            introSerialized.FindProperty("menuScreen").objectReferenceValue = screen;
+            introSerialized.ApplyModifiedProperties();
         }
 
         private static void EnsureEventSystem()

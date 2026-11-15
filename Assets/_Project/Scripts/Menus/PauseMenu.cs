@@ -18,6 +18,10 @@ namespace WSFGameJam2026.Menus
         [SerializeField]
         private GamePause pause;
 
+        [Tooltip("Optional. The pause menu does not open while the main menu is on the screen.")]
+        [SerializeField]
+        private MainMenu mainMenu;
+
         [Tooltip("Opens and closes the menu (UI/Cancel). Its action map is enabled by its owner, not here.")]
         [SerializeField]
         private InputActionReference toggleAction;
@@ -76,6 +80,7 @@ namespace WSFGameJam2026.Menus
         private void Reset()
         {
             pause = FindAnyObjectByType<GamePause>();
+            mainMenu = FindAnyObjectByType<MainMenu>();
             roundState = FindAnyObjectByType<RoundState>();
             lapTracker = FindAnyObjectByType<LapTracker>();
         }
@@ -104,7 +109,7 @@ namespace WSFGameJam2026.Menus
         /// <summary>Pauses the game and shows the menu.</summary>
         public void Open()
         {
-            if (isOpen || pause.IsPaused)
+            if (isOpen || pause.IsPaused || (mainMenu && mainMenu.IsOpen))
                 return;
 
             isOpen = true;

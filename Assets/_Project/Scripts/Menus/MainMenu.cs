@@ -109,10 +109,16 @@ namespace WSFGameJam2026.Menus
         [Min(0f)]
         private float fadeSeconds = 0.5f;
 
-        private bool isStarting;
+        [Tooltip("Off: another menu starts the game (the intro of WSFGameJam2026.Menu.MainMenu with its cameras) and hides this screen. "
+            + "This one then only shows the loading, the class choice, the settings, quit and the record: no pause, no camera, no Play.")]
+        [SerializeField]
+        private bool controlsGameStart = true;
 
-        /// <summary>True from the start of the scene until the camera reached the player.</summary>
-        public bool IsOpen { get; private set; }
+        private bool isStarting;
+        private bool isOpen;
+
+        /// <summary>True while the menu is on the screen: until the camera reached the player, or while the screen is shown by the other menu.</summary>
+        public bool IsOpen => controlsGameStart ? isOpen : menuScreen && menuScreen.gameObject.activeInHierarchy;
 
         private void Reset()
         {
@@ -125,7 +131,7 @@ namespace WSFGameJam2026.Menus
 
         private void OnEnable()
         {
-            if (playButton)
+            if (playButton && controlsGameStart)
                 playButton.onClick.AddListener(StartGame);
 
             if (quitButton)
@@ -140,13 +146,8 @@ namespace WSFGameJam2026.Menus
 
         private void Start()
         {
-            IsOpen = true;
-            pause.Request(this);
-            if (cameraIntro)
-                cameraIntro.ShowOverview();
-
-            if (hud)
-                hud.alpha = 0f;
+            if (controlsGameStart)
+                TakeOverGame();
 
             if (recordLabel && roundController)
                 recordLabel.text = string.Format(recordFormat, roundController.BestRounds);
@@ -158,11 +159,23 @@ namespace WSFGameJam2026.Menus
         /// <summary>Hides the menu and flies the camera to the player. The game runs when the camera arrives.</summary>
         public void StartGame()
         {
-            if (isStarting || IsOpen == false)
+            if (isStarting || IsOpen == false || controlsGameStart == false)
                 return;
 
             isStarting = true;
             StartCoroutine(GameStartCo());
+        }
+
+        // The game waits under the menu: paused, the camera above the torus, the HUD hidden.
+        private void TakeOverGame()
+        {
+            isOpen = true;
+            pause.Request(this);
+            if (cameraIntro)
+                cameraIntro.ShowOverview();
+
+            if (hud)
+                hud.alpha = 0f;
         }
 
         /// <summary>Chooses the class of the player. Called by the class buttons.</summary>
@@ -233,7 +246,7 @@ namespace WSFGameJam2026.Menus
             if (menuScreen)
                 menuScreen.gameObject.SetActive(false);
 
-            IsOpen = false;
+            isOpen = false;
             pause.Release(this);
             if (roundBanner)
                 roundBanner.ShowCurrentRound();
