@@ -80,8 +80,8 @@ MonoBehaviour:
   nearShadowRangeDegrees: 30
   receiveShadows: 0
   propCatalog: {fileID: 11400000, guid: 42521b79594348847b0c04cc89e339a9, type: 2}
-  toppleDistanceDegrees: 20
-  toppleFullDistanceDegrees: 15
+  toppleDistanceDegrees: 30
+  toppleFullDistanceDegrees: 25
   toppleMinHeight: 2
   toppleAngle: 85
-  toppleSpreadDegrees: 35
+  toppleSpreadDegrees: 10

@@ -252,11 +252,11 @@ Transform:
   m_GameObject: {fileID: 7521113780053118256}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.1, z: 0}
+  m_LocalPosition: {x: 0, y: -0.05, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 6843070392308142665}
+  - {fileID: 6025673674312276416}
   m_Father: {fileID: 8746362065382489076}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8140076951552329003
@@ -279,7 +279,6 @@ GameObject:
   - component: {fileID: 6835593639658991740}
   - component: {fileID: 4089445602523853413}
   - component: {fileID: 8603619379056315757}
-  - component: {fileID: 5260053260099049934}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -340,11 +339,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.TorusPlayerMovement
   moveAction: {fileID: -1680190386980627800, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  isUsingTankControls: 0
   moveSpeed: 8
   inputResponse: 8
   turnSpeedDegrees: 180
-  aimTurnSpeedDegrees: 1080
 --- !u!114 &978546507072093901
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -504,32 +501,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.PlayerAnimator
   controller: {fileID: 9100000, guid: a786334e8aa6e2e4ead6103fd9104fbf, type: 2}
   animator: {fileID: 0}
---- !u!114 &5260053260099049934
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8140076951552329003}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ce40837861844237a5850d775dbb656f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.PlayerAim
-  pointerAction: {fileID: 1080079008695367055, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  stickAction: {fileID: -5630151704836100654, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  viewCamera: {fileID: 0}
-  maxRayDistance: 250
-  maxRayStep: 1.5
-  deadRadius: 0.6
-  pointerMoveThreshold: 1
-  stickDeadZone: 0.35
-  isUsingStick: 0
-  hasCursorPoint: 0
-  cursorAngles:
-    thetaRadians: 0
-    phiRadians: 0
---- !u!1001 &3082656047226723966
+--- !u!1001 &2859730081962776055
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -622,8 +594,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d1da45512dbcad34e83f4496532a08cb, type: 3}
---- !u!4 &6843070392308142665 stripped
+--- !u!4 &6025673674312276416 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8372388604171619383, guid: d1da45512dbcad34e83f4496532a08cb, type: 3}
-  m_PrefabInstance: {fileID: 3082656047226723966}
+  m_PrefabInstance: {fileID: 2859730081962776055}
   m_PrefabAsset: {fileID: 0}
