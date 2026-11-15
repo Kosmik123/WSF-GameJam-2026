@@ -103,10 +103,15 @@ namespace WSFGameJam2026.Editor
         {
             var material = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
             if (material)
+            {
+                HeroShaderAutoSetup.Apply(material);
                 return material;
+            }
 
             EnsureFolder(Path.GetDirectoryName(MaterialPath).Replace('\\', '/'));
-            var shader = Shader.Find("WSF/Vertex Color Lit");
+            var shader = Shader.Find(HeroShaderAutoSetup.ShaderName);
+            if (shader == null)
+                shader = Shader.Find("WSF/Vertex Color Lit");
             if (shader == null)
                 shader = Shader.Find("Universal Render Pipeline/Lit");
 
