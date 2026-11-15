@@ -154,6 +154,10 @@ PrefabInstance:
       propertyPath: startThetaDegrees
       value: 15
       objectReference: {fileID: 0}
+    - target: {fileID: 1929964610123949250, guid: 7c98492b493e7bc46b6d7b158a144fac, type: 3}
+      propertyPath: isBlockedByHeadBarrier
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8140076951552329003, guid: 7c98492b493e7bc46b6d7b158a144fac, type: 3}
       propertyPath: m_Name
       value: Player
@@ -358,6 +362,8 @@ GameObject:
   - component: {fileID: 595407835}
   - component: {fileID: 595407834}
   - component: {fileID: 595407833}
+  - component: {fileID: 595407837}
+  - component: {fileID: 595407836}
   m_Layer: 0
   m_Name: Weak Point
   m_TagString: Untagged
@@ -378,18 +384,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Head.WeakPoint
   head: {fileID: 66875074}
-  lapTracker: {fileID: 1300097184}
-  player: {fileID: 1703670341}
+  behindHeadDegrees: 20
   phiDegrees: 30
   visual: {fileID: 1421511903}
+  minScale: 0.4
+  scaleSpeed: 3
   animator: {fileID: 0}
-  struckTrigger: Struck
-  playerAnimator: {fileID: 0}
-  playerAttackTrigger: AttackWeakPoint
-  strikeDuration: 0.5
-  pulseScale: 1.6
-  hitStopSeconds: 0.08
-  playerTurnSpeedDegrees: 720
+  damagedTrigger: Damaged
+  destroyedTrigger: Destroyed
+  damageHitStopSeconds: 0.04
+  destroyHitStopSeconds: 0.12
+  destroyDuration: 0.5
 --- !u!114 &595407834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -405,6 +410,7 @@ MonoBehaviour:
   world: {fileID: 1142851114}
   groundOffset: 1
   bodyRadius: 0.5
+  isBlockedByHeadBarrier: 0
   heightSharpness: 25
   startAngles:
     thetaRadians: 0
@@ -428,6 +434,38 @@ Transform:
   - {fileID: 1421511903}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &595407836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 595407832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3cbebdbaf5292647a2b29d5d484960c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Combat.BodyFlash
+  health: {fileID: 595407837}
+  damageFlashDuration: 0.15
+  damageFlashColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!114 &595407837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 595407832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aff09658c010e3448afc52978ca44f77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Combat.Health
+  team: 1
+  maxHealth: 60
+  mawDamageMode: 2
+  bodyRadius: 1.5
+  currentHealth: 0
 --- !u!4 &752554859 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2997175284573061814, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
@@ -725,19 +763,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusWorld
   majorRadius: 300
   minorRadius: 50
-  segmentCount: 8
+  segmentCount: 7
   sidesResolution: 180
   segmentProfiles:
-  - {fileID: 11400000, guid: edf6c2a1a9e188f48b605eb7205e6981, type: 2}
   - {fileID: 11400000, guid: d99350bfb174d184ab9171b8b347aca0, type: 2}
-  - {fileID: 11400000, guid: c05c8366fe884ad49bc1129c050fdb26, type: 2}
   - {fileID: 11400000, guid: 2c4991ca5f6ff7f4187919b5f6e3c3b7, type: 2}
-  - {fileID: 11400000, guid: fda19e253147a3b42bb49c111c412dd6, type: 2}
   - {fileID: 11400000, guid: 92b4a6fd6f3df0447958e58146bf2f1a, type: 2}
+  - {fileID: 11400000, guid: c05c8366fe884ad49bc1129c050fdb26, type: 2}
+  - {fileID: 11400000, guid: d99350bfb174d184ab9171b8b347aca0, type: 2}
+  - {fileID: 11400000, guid: edf6c2a1a9e188f48b605eb7205e6981, type: 2}
+  - {fileID: 11400000, guid: fda19e253147a3b42bb49c111c412dd6, type: 2}
   blendWidth: 0.3
   defaultMaterial: {fileID: 0}
   generateColliders: 1
-  shouldRebuildOnValidate: 0
+  shouldRebuildOnValidate: 1
 --- !u!4 &1142851115
 Transform:
   m_ObjectHideFlags: 0
@@ -766,13 +805,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusBiomeDecorations
   world: {fileID: 1142851114}
-  biomeModels:
-  - {fileID: 919132149155446097, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
-  - {fileID: 919132149155446097, guid: b10ea4a96465cc049be4f3c8ab4e2a5c, type: 3}
-  - {fileID: 919132149155446097, guid: a5344fb83d788b14c87215e32f4aaaa9, type: 3}
-  - {fileID: 919132149155446097, guid: 8a8b7178233adf547b5a1fdcce5516ee, type: 3}
-  - {fileID: 919132149155446097, guid: ebeefd2fe8a55b7438a9687f110866ce, type: 3}
-  - {fileID: 919132149155446097, guid: e0a5c0726d3e2e54f996b50e9e4128a9, type: 3}
   terrainPrefix: Teren_
   shadowCasting: 1
   shadowTarget: {fileID: 1703670341}
@@ -847,7 +879,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Rounds.RoundController
   roundState: {fileID: 1300097185}
-  lapTracker: {fileID: 1300097184}
+  weakPoint: {fileID: 595407833}
   head: {fileID: 66875074}
   spawner: {fileID: 1581976040}
   playerCombat: {fileID: 1703670344}
@@ -1201,6 +1233,59 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1673532841
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1673532843}
+  - component: {fileID: 1673532842}
+  m_Layer: 0
+  m_Name: Damage Numbers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1673532842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1673532841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 659546ddb06f4b1aae9095620d6375d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Vfx.DamageNumbers
+  enemyColor: {r: 1, g: 0.92, b: 0.35, a: 1}
+  playerColor: {r: 1, g: 0.25, b: 0.2, a: 1}
+  baseFontSize: 4
+  referenceDamage: 10
+  maxSizeMultiplier: 2
+  heightOffset: 1.4
+  lifetime: 0.9
+  riseSpeed: 2.2
+  sideSpeed: 1
+--- !u!4 &1673532843
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1673532841}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1703670339 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8746362065382489076, guid: 7c98492b493e7bc46b6d7b158a144fac, type: 3}
@@ -1398,6 +1483,18 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2997175284573061814, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 2997175284573061814, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 2997175284573061814, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.75
+      objectReference: {fileID: 0}
     - target: {fileID: 3418072956140283771, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: world
       value: 
@@ -1405,6 +1502,10 @@ PrefabInstance:
     - target: {fileID: 3418072956140283771, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_Enabled
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3418072956140283771, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: blendStrength
+      value: 0.36
       objectReference: {fileID: 0}
     - target: {fileID: 3418072956140283771, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: rollReference
@@ -1417,6 +1518,10 @@ PrefabInstance:
     - target: {fileID: 3418072956140283771, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: neckSliceDepthDegrees
       value: 4.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3418072956140283771, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: headFrontOffsetDegrees
+      value: -38.7
       objectReference: {fileID: 0}
     - target: {fileID: 5245275856973429819, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
@@ -1442,6 +1547,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 60
       objectReference: {fileID: 0}
+    - target: {fileID: 6735853253166605575, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: world
+      value: 
+      objectReference: {fileID: 1142851114}
     - target: {fileID: 6826513905008103801, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_Name
       value: 'Head '
@@ -1665,3 +1774,4 @@ SceneRoots:
   - {fileID: 595407835}
   - {fileID: 774506021}
   - {fileID: 1105680259}
+  - {fileID: 1673532843}
