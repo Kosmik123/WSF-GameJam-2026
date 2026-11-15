@@ -225,8 +225,8 @@ namespace WSFGameJam2026.Editor
             var applier = player.GetComponent<PlayerClassApplier>();
             var serializedApplier = new SerializedObject(applier);
             serializedApplier.FindProperty("modelRoot").objectReferenceValue = modelRoot;
-            serializedApplier.FindProperty("placeholderRenderer").objectReferenceValue = player.GetComponent<MeshRenderer>();
             serializedApplier.ApplyModifiedPropertiesWithoutUndo();
+            HeroSetupMenu.SetPlaceholders(player);
 
             if (player.TryGetComponent<PlayerAnimator>(out var playerAnimator) == false)
                 playerAnimator = player.AddComponent<PlayerAnimator>();

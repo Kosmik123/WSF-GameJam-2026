@@ -24,9 +24,9 @@ namespace WSFGameJam2026.Player
         [SerializeField]
         private Transform modelRoot;
 
-        [Tooltip("Renderer shown when the class has no model (the capsule).")]
+        [Tooltip("Objects shown only when the class has no model (the placeholder capsule and its nose).")]
         [SerializeField]
-        private Renderer placeholderRenderer;
+        private GameObject[] placeholders = new GameObject[0];
 
         private GameObject model;
 
@@ -36,7 +36,10 @@ namespace WSFGameJam2026.Player
         private void Reset()
         {
             modelRoot = transform.Find("Model");
-            TryGetComponent(out placeholderRenderer);
+            var capsule = transform.Find("Capsule");
+            var nose = transform.Find("Cube");
+            if (capsule && nose)
+                placeholders = new[] { capsule.gameObject, nose.gameObject };
         }
 
         private void Awake()
@@ -94,8 +97,9 @@ namespace WSFGameJam2026.Player
                 ModelAnimator = model.GetComponentInChildren<Animator>();
             }
 
-            if (placeholderRenderer)
-                placeholderRenderer.enabled = model == null;
+            for (int i = 0; i < placeholders.Length; i++)
+                if (placeholders[i])
+                    placeholders[i].SetActive(model == null);
 
             if (TryGetComponent<BodyFlash>(out var bodyFlash))
                 bodyFlash.RefreshRenderers();

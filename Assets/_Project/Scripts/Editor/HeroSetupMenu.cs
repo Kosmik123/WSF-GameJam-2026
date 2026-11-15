@@ -24,6 +24,9 @@ namespace WSFGameJam2026.Editor
         private const string ClassesFolder = "Assets/_Project/Data/Classes";
         private const string PlayerPrefabPath = "Assets/_Project/Prefabs/Player.prefab";
 
+        // Children of the player made by Create Player And Camera / Create Combat And Enemies as its placeholder body.
+        private static readonly string[] PlaceholderNames = { "Capsule", "Cube", "Body", "Nose" };
+
         private static readonly string[] MageHidden =
         {
             "Body05", "Head01_Male", "Eye01", "Mouth01",
@@ -171,7 +174,18 @@ namespace WSFGameJam2026.Editor
                 return false;
 
             var modelRoot = player.transform.Find("Model");
-            return modelRoot && modelRoot.childCount == 0;
+            if (modelRoot && modelRoot.childCount == 0)
+                return true;
+
+            // A placeholder still visible hides the hero standing inside it.
+            foreach (string name in PlaceholderNames)
+            {
+                var part = player.transform.Find(name);
+                if (part && part.gameObject.activeSelf)
+                    return true;
+            }
+
+            return false;
         }
 
         // The hero placed in the player prefab, so it is visible without Play. PlayerClassApplier replaces it with the model
@@ -186,15 +200,43 @@ namespace WSFGameJam2026.Editor
             if (modelRoot)
             {
                 PlacePreview(modelRoot, prefab);
-
-                // The capsule of the player stays hidden when there is a hero.
-                if (root.TryGetComponent<MeshRenderer>(out var capsule))
-                    capsule.enabled = false;
-
+                SetPlaceholders(root);
                 PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefabPath);
             }
 
             PrefabUtility.UnloadPrefabContents(root);
+        }
+
+        /// <summary>
+        /// Gives the class applier the placeholder parts of the player (the capsule and its nose, children of the player)
+        /// and hides them, because the hero stands inside the bigger capsule and would not be seen.
+        /// </summary>
+        internal static void SetPlaceholders(GameObject player)
+        {
+            var applier = player.GetComponent<PlayerClassApplier>();
+            if (applier == null)
+                return;
+
+            var placeholders = new System.Collections.Generic.List<GameObject>();
+            foreach (string name in PlaceholderNames)
+            {
+                var part = player.transform.Find(name);
+                if (part)
+                    placeholders.Add(part.gameObject);
+            }
+
+            var serialized = new SerializedObject(applier);
+            var array = serialized.FindProperty("placeholders");
+            array.arraySize = placeholders.Count;
+            for (int i = 0; i < placeholders.Count; i++)
+                array.GetArrayElementAtIndex(i).objectReferenceValue = placeholders[i];
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            for (int i = 0; i < placeholders.Count; i++)
+                placeholders[i].SetActive(false);
+
+            if (player.TryGetComponent<MeshRenderer>(out var rootRenderer))
+                rootRenderer.enabled = false;
         }
 
         private static void PlacePreview(Transform modelRoot, GameObject prefab)
