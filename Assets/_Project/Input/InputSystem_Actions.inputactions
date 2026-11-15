@@ -121,6 +121,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "AimPoint",
+                    "type": "PassThrough",
+                    "id": "60301746-4069-4119-ad0f-7d1490a3b88f",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -594,6 +603,17 @@
                     "processors": "",
                     "groups": "Gamepad",
                     "action": "Skill4",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "71be1a34-8ecf-414e-b221-69a31caa08a9",
+                    "path": "<Pointer>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse;Touch",
+                    "action": "AimPoint",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
