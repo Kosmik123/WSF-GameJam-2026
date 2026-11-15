@@ -1,9 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using WSFGameJam2026.Menus;
+using WSFGameJam2026.Rounds;
 
 namespace WSFGameJam2026.Leaderboard
 {
@@ -11,7 +14,8 @@ namespace WSFGameJam2026.Leaderboard
     /// The leaderboard window: the top places downloaded from the server (or the cached ones when it can not be reached,
     /// or nothing), and, when the <see cref="ScoreCollector"/> holds a score that was not sent yet, a field for the name
     /// of the player with a confirm button that sends the score.
-    /// Opened by the menu button, or from code with <see cref="Open"/> (for example by the death screen).
+    /// Opened by the menu button, or from code with <see cref="Open"/>. After a death it opens by itself over the death screen;
+    /// closing it then returns to the main menu (the scene is loaded again), so a new run never starts without the menu.
     /// </summary>
     public class LeaderboardScreen : MonoBehaviour
     {
@@ -39,6 +43,17 @@ namespace WSFGameJam2026.Leaderboard
         [Tooltip("Optional. When set, the open button is visible only while this menu is on the screen. Connect it in the scene.")]
         [SerializeField]
         private MainMenu mainMenu;
+
+        [Header("Death")]
+        [Tooltip("Optional. When set, the window opens after a death and closing it returns to the main menu. Connect it in the scene; "
+            + "the round loop must not restart the run by itself (Restart Automatically off).")]
+        [SerializeField]
+        private RoundController roundController;
+
+        [Tooltip("Time after the death before the window opens, so the death screen is seen first.")]
+        [SerializeField]
+        [Min(0f)]
+        private float openAfterDeathSeconds = 1.5f;
 
         [Header("Window")]
         [SerializeField]
@@ -95,6 +110,16 @@ namespace WSFGameJam2026.Leaderboard
 
         private bool isRefreshing;
         private bool isSubmitting;
+        private bool returnsToMenu;
+
+        private void Reset()
+        {
+            service = GetComponentInChildren<LeaderboardService>();
+            scoreCollector = GetComponentInChildren<ScoreCollector>();
+            subScreen = GetComponentInChildren<SubScreen>();
+            roundController = FindAnyObjectByType<RoundController>();
+            mainMenu = FindAnyObjectByType<MainMenu>();
+        }
 
         private void OnEnable()
         {
@@ -112,6 +137,12 @@ namespace WSFGameJam2026.Leaderboard
 
             if (scoreCollector)
                 scoreCollector.OnScoreChanged += ScoreCollector_OnScoreChanged;
+
+            if (subScreen)
+                subScreen.OnClosed += SubScreen_OnClosed;
+
+            if (roundController)
+                roundController.OnRunEnded += RoundController_OnRunEnded;
         }
 
         private void Update()
@@ -225,6 +256,27 @@ namespace WSFGameJam2026.Leaderboard
             openButtonGroup.blocksRaycasts = isVisible;
         }
 
+        private IEnumerator DeathOpeningCo()
+        {
+            yield return new WaitForSecondsRealtime(openAfterDeathSeconds);
+            returnsToMenu = true;
+            Open();
+        }
+
+        private void RoundController_OnRunEnded(int completedRounds, int bestRounds, bool isNewBest)
+        {
+            StartCoroutine(DeathOpeningCo());
+        }
+
+        private void SubScreen_OnClosed()
+        {
+            if (returnsToMenu == false)
+                return;
+
+            returnsToMenu = false;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
         private void OpenButton_OnClick()
         {
             Open();
@@ -251,6 +303,12 @@ namespace WSFGameJam2026.Leaderboard
 
             if (scoreCollector)
                 scoreCollector.OnScoreChanged -= ScoreCollector_OnScoreChanged;
+
+            if (subScreen)
+                subScreen.OnClosed -= SubScreen_OnClosed;
+
+            if (roundController)
+                roundController.OnRunEnded -= RoundController_OnRunEnded;
         }
 
         /// <summary>One line of the table.</summary>
