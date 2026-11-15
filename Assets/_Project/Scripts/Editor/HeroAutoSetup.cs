@@ -12,7 +12,7 @@ namespace WSFGameJam2026.Editor
     [InitializeOnLoad]
     public static class HeroAutoSetup
     {
-        private const string SessionKey = "WSFGameJam2026.HeroAutoSetup.Done";
+        private const string SessionKey = "WSFGameJam2026.HeroAutoSetup.Done.v2";
         private const string MageClassPath = "Assets/_Project/Data/Classes/Mage.asset";
         private const string OldHeroFolder = "Assets/RPG Tiny Hero Duo/";
 
