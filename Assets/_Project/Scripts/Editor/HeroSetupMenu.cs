@@ -22,6 +22,7 @@ namespace WSFGameJam2026.Editor
         private const string ReferenceHeroPath = "Assets/RPG Tiny Hero Duo/Prefab/FemaleCharacterPolyart.prefab";
         private const string FallbackAvatarPath = "Assets/RPG Tiny Hero Duo/Animation/SwordAndShield/Idle_Battle_SwordAndShiled.fbx";
         private const string ClassesFolder = "Assets/_Project/Data/Classes";
+        private const string PlayerPrefabPath = "Assets/_Project/Prefabs/Player.prefab";
 
         private static readonly string[] MageHidden =
         {
@@ -58,6 +59,7 @@ namespace WSFGameJam2026.Editor
             var prefab = CreatePrefab();
             SetClass("Mage", prefab, MageHidden);
             SetClass("Warrior", prefab, WarriorHidden);
+            AddPreviewToPlayer(prefab);
             AssetDatabase.SaveAssets();
             Debug.Log("Hero setup done: the quetzal priest is the model of the Mage and the Warrior.");
             return true;
@@ -159,6 +161,52 @@ namespace WSFGameJam2026.Editor
             var prefab = PrefabUtility.SaveAsPrefabAsset(instance, PrefabPath);
             Object.DestroyImmediate(instance);
             return prefab;
+        }
+
+        /// <summary>True when the player prefab has no hero model to look at in the editor.</summary>
+        internal static bool NeedsPreview()
+        {
+            var player = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath);
+            if (player == null || AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath) == null)
+                return false;
+
+            var modelRoot = player.transform.Find("Model");
+            return modelRoot && modelRoot.childCount == 0;
+        }
+
+        // The hero placed in the player prefab, so it is visible without Play. PlayerClassApplier replaces it with the model
+        // of the chosen class when the game starts. The preview shows the Mage, the class the player starts with.
+        private static void AddPreviewToPlayer(GameObject prefab)
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath) == null)
+                return;
+
+            var root = PrefabUtility.LoadPrefabContents(PlayerPrefabPath);
+            var modelRoot = root.transform.Find("Model");
+            if (modelRoot)
+            {
+                PlacePreview(modelRoot, prefab);
+
+                // The capsule of the player stays hidden when there is a hero.
+                if (root.TryGetComponent<MeshRenderer>(out var capsule))
+                    capsule.enabled = false;
+
+                PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefabPath);
+            }
+
+            PrefabUtility.UnloadPrefabContents(root);
+        }
+
+        private static void PlacePreview(Transform modelRoot, GameObject prefab)
+        {
+            for (int i = modelRoot.childCount - 1; i >= 0; i--)
+                Object.DestroyImmediate(modelRoot.GetChild(i).gameObject);
+
+            var preview = (GameObject)PrefabUtility.InstantiatePrefab(prefab, modelRoot);
+            preview.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            foreach (var part in preview.GetComponentsInChildren<Transform>(true))
+                if (System.Array.IndexOf(MageHidden, part.name) >= 0)
+                    part.gameObject.SetActive(false);
         }
 
         private static void SetClass(string className, GameObject prefab, string[] hidden)

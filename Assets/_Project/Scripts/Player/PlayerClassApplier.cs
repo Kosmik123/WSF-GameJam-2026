@@ -68,6 +68,18 @@ namespace WSFGameJam2026.Player
 
         private void ApplyModel(PlayerClass newClass)
         {
+            // Also removes the preview model placed under the model root in the editor (the hero is visible without Play).
+            if (modelRoot)
+            {
+                // Hidden at once, because Destroy waits for the end of the frame and the flash would still find its renderers.
+                for (int i = modelRoot.childCount - 1; i >= 0; i--)
+                {
+                    var child = modelRoot.GetChild(i).gameObject;
+                    child.SetActive(false);
+                    Destroy(child);
+                }
+            }
+
             if (model)
                 Destroy(model);
 

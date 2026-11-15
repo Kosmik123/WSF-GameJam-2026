@@ -6,7 +6,8 @@ namespace WSFGameJam2026.Editor
 {
     /// <summary>
     /// Runs <see cref="HeroSetupMenu"/> once, by itself, after the scripts are compiled: when the priest FBX exists and the Mage
-    /// class still uses the old RPG Tiny Hero Duo model (or none). A model chosen by hand is never replaced.
+    /// class still uses the old RPG Tiny Hero Duo model (or none), or the player prefab has no hero to show in the editor.
+    /// A model chosen by hand is never replaced.
     /// </summary>
     [InitializeOnLoad]
     public static class HeroAutoSetup
@@ -39,10 +40,11 @@ namespace WSFGameJam2026.Editor
             SessionState.SetBool(SessionKey, true);
             var model = mage.ModelPrefab;
             bool usesOldHero = model == null || AssetDatabase.GetAssetPath(model).StartsWith(OldHeroFolder);
-            if (usesOldHero == false)
+            bool usesPriest = HeroSetupMenu.IsPriestPrefab(model);
+            if (usesOldHero == false && (usesPriest == false || HeroSetupMenu.NeedsPreview() == false))
                 return;
 
-            Debug.Log("Hero auto setup: replacing the RPG Tiny Hero Duo model with the quetzal priest.");
+            Debug.Log("Hero auto setup: setting the quetzal priest as the hero and placing it in the player prefab.");
             HeroSetupMenu.ApplyPriest();
         }
     }
