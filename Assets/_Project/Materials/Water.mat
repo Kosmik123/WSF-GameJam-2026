@@ -31,11 +31,11 @@ Material:
     - _Glossiness: 120
     - _RippleScale: 1.2
     - _RippleSpeed: 0.8
-    - _RippleStrength: 0.25
+    - _RippleStrength: 0.1
     - _SpecularStrength: 0.6
     m_Colors:
     - _DeepColor: {r: 0.02, g: 0.12, b: 0.16, a: 0.75}
     - _FoamColor: {r: 0.85, g: 0.92, b: 0.88, a: 0.7}
-    - _ShallowColor: {r: 0.12, g: 0.42, b: 0.44, a: 0.25}
+    - _ShallowColor: {r: 0.14, g: 0.38, b: 0.32, a: 0.25}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

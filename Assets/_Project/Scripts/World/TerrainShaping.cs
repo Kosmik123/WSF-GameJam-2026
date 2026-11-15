@@ -16,6 +16,7 @@ namespace WSFGameJam2026.World
     {
         private const int NoiseOctaves = 4;
         private const int MaxTiers = 4;
+        private const float CausewayHeight = 0.3f;
 
         [Header("Cliffs")]
         [Tooltip("Height of one plateau tier, in meters. 0 = no plateaus.")]
@@ -156,6 +157,13 @@ namespace WSFGameJam2026.World
             if (tierHeight > 0f)
                 shaped += tierHeight * EvaluateTiers(height, around, basePoint, out _, out _);
 
+            // A causeway: the path crosses the water just above its surface.
+            if (HasWater && pathHalfWidth > 0f)
+            {
+                float onPath = 1f - GetPathClearance(around, basePoint);
+                shaped = Mathf.Lerp(shaped, Mathf.Max(shaped, WaterSurfaceHeight + CausewayHeight), onPath);
+            }
+
             return shaped;
         }
 
@@ -186,6 +194,9 @@ namespace WSFGameJam2026.World
                 color = Color.Lerp(color, GetCliffColor(tiers, cliffPosition, basePoint), cliff);
 
             float sink = GetSink(height);
+            if (HasWater && pathHalfWidth > 0f)
+                sink *= GetPathClearance(around, basePoint);
+
             if (sink > 0f)
                 color = Color.Lerp(color, basinColor, basinColor.a * sink);
 

@@ -156,11 +156,8 @@ namespace WSFGameJam2026.Editor
                 Object.DestroyImmediate(sheets[biome]);
             }
 
+            // Only the profiles are saved: saving the scene in batch mode breaks the layout of its UI.
             AssetDatabase.SaveAssets();
-            if (head != null)
-                head.gameObject.SetActive(true);
-
-            EditorSceneManager.SaveScene(world.gameObject.scene);
             Debug.Log($"Biome shaping: applied and saved, previews in {output}");
         }
 
