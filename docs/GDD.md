@@ -97,7 +97,9 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 
 - Wskaźniki na ekranie: **kierunek i odległość do paszczy** oraz **pasek postępu okrążenia i życie wrażliwego punktu** (gdzie jest cel).
 - Efekty w świecie: poświata, dźwięk i drgania kamery przy zbliżaniu się paszczy.
-- UI: HP gracza, numer rundy, ekran startowy, ekran zwycięstwa rundy, ekran śmierci.
+- UI: HP gracza, numer rundy, ekran startowy, ekran zwycięstwa rundy, ekran śmierci, pauza.
+- **Ekran startowy:** krótkie ładowanie, potem menu (wybór klasy, rekord, Graj) nad torusem widzianym z góry. Po „Graj” kamera zjeżdża za plecy bohatera i dopiero wtedy gra rusza.
+- **Styl UI:** lekka inspiracja kulturą aztecką, bez przesady: obsydian, turkus, złoto i czerwień paszczy, schodkowe narożniki paneli, pas schodkowego meandra, schodkowa spirala (xicalcoliuhqui), kamień słońca w tle ekranów, numer rundy cyfrą i kropkami, pasek HP jako turkusowa mozaika, pierścień okrążenia z 20 znacznikami (20 znaków dni). Projekt: canvas „Uroboros — propozycja UI” (https://claude.ai/artifact/VR4j8GK12A2xV2qYbzkG7V).
 
 ## 11. Styl wizualny i dźwięk
 

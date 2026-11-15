@@ -79,7 +79,7 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [x] **Skille Wojownika z LD57** (obrażenia ×4): wir, szarża (z nietykalnością), uderzenie w ziemię, rzut toporem (wraca), okrzyk bojowy (odrzut i ogłuszenie). Wojownik zaczyna z 4, okrzyk w puli. `Skills/Warrior/`. Nie testowane w Unity. `C`
 - [ ] **Shader cząsteczek w buildzie:** `VfxMaterials` szuka `Universal Render Pipeline/Particles/Unlit` przez `Shader.Find`; przed buildem dodać go do *Always Included Shaders* albo podpiąć materiał w scenie. `?`
 - [ ] **Ikony skilli** (`SkillDefinition.Icon`), animacja rzucania czaru dla maga (teraz cios mieczem `Attack04`), ładniejsze efekty według uznania. Zdarzenia: `SkillUser.OnSkillExecuted`, `RangedAttack.OnShot`. `G`
-- [ ] **Wybór klasy** na ekranie startowym (`PlayerClassApplier.Apply`). `?`
+- [x] **Wybór klasy** na ekranie startowym: przyciski Mag i Wojownik w `MainMenu` wołają `PlayerClassApplier.Apply`. Nie testowane w Unity. `C`
 
 ## Etap 2b: progresja (MUST)
 
@@ -94,8 +94,10 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [ ] **HUD:** pasek HP i numer rundy (reszta HUD-u: wskaźnik paszczy, ekrany poniżej). `P`
   - [x] Numer rundy: `RoundState` (numer rundy, `StartNextRound`, `ResetRounds`) i `RoundLabel`, ten sam menu *Create HUD*. `RoundState` czeka na podpięcie pod pętlę rund. `C`
   - [x] Pasek HP gracza z opóźnionym „śladem” obrażeń: `HealthBar`, menu *WSF GameJam/Setup/Create HUD* (nie testowane w Unity). `C`
-- [ ] **Wskaźnik paszczy:** kierunek i odległość, pasek postępu okrążenia. `P`
+- [x] **Wskaźnik paszczy:** pierścień okrążenia z odległością do paszczy (`LapRing`) i czerwona, pulsująca winieta z ostrzeżeniem, gdy paszcza jest blisko (`MawWarning`). Menu *WSF GameJam/Setup/Create Aztec UI*. Nie testowane w Unity. `C`
 - [ ] **Ekrany:** start, zwycięstwo rundy, śmierć, pauza. `G` (grafika), `P` (logika)
+  - [x] UI w stylu azteckim (projekt: [canvas „Uroboros — propozycja UI”](https://claude.ai/artifact/VR4j8GK12A2xV2qYbzkG7V)): menu startowe z ładowaniem (kręcący się uroboros, `UiSpinner`), wyborem klasy i rekordem, kamera z góry torusa zjeżdża za plecy bohatera (`MainMenu`, `CameraIntro`), pauza pod Escape (`PauseMenu`; `GamePause` jest jedynym właścicielem pauzy), baner „Runda N” (`RoundBanner`), kropki rundy (`RoundDots`), restyling HUD-u i ekranów rund. Sprite’y rysowane w kodzie (`AztecUiSprites`, zapis do `Assets/_Project/Ui/Sprites`). Menu *WSF GameJam/Setup/Create Aztec UI* (po *Create HUD*, *Create Round Loop*, *Create Round Screens*). Skompilowane poza Unity, nie testowane w Unity. `C`
+  - [ ] Font nagłówków (teraz domyślny TMP, w projekcie był Cinzel), ikony skilli, pasek XP i ekran awansu po systemie poziomów. `G`, `C`
 - [ ] **Efekty paszczy w świecie:** poświata, drgania kamery, zmiana kolorów przy zbliżaniu się. `C`
 
 ## Etap 4: więcej zawartości (SHOULD / COULD)
@@ -109,6 +111,7 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [x] **PSG (addon Blendera):** scatter assetów na płaszczyźnie (klastry drzew, trawa i krzaki wokół, warstwy) i wzdłuż linii adnotacji, na instancjach (linked duplicates) + malowanie podłoża vertex colorem, eksport FBX do Unity. Opis: [PSG.md](PSG.md). `C`
 - [ ] **Shadery i efekty:** łuski, mgła, post-processing (URP Volume), efekty cząsteczkowe walki. `G`
 - [ ] **Muzyka i dźwięki:** napięcie przy zbliżaniu się paszczy, walka, UI. `?`
+  - [x] Dźwięk głowy węża: pętla `Assets/SFX/SnakeHead_Loop.wav` (rumble + ogień, fade in 2,5 s na starcie runu) i `SnakeHead_Death.wav` (ostatnie 2 s, gra przy śmierci gracza). Steruje `HeadAudio` na prefabie `Snake Head`. Licencje źródeł (Pixabay/Freesound) do potwierdzenia.
 - [ ] **Balans:** prędkość paszczy, siła wrogów, tempo rund.
 - [ ] **Build i test** na docelowej platformie jamu.
 - [ ] **Prezentacja:** nagranie / trailer, opis gry, zrzuty ekranu. `?`
