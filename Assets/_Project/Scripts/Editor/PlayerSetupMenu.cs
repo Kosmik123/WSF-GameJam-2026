@@ -37,7 +37,6 @@ namespace WSFGameJam2026.Editor
             SetReference(torusObject, "world", world);
             SetReference(movement, "moveAction", moveReference);
             SetReference(enabler, "actions", actionsAsset);
-            PlayerAimAutoSetup.AddAndWire(player);
 
             var camera = Camera.main;
             if (camera == null)

@@ -52,18 +52,6 @@ namespace WSFGameJam2026.World
             return new Vector3(-sinPhi * Mathf.Sin(theta), Mathf.Cos(phi), -sinPhi * Mathf.Cos(theta));
         }
 
-        /// <summary>
-        /// Inverse of <see cref="GetPoint"/>: angles of any point (also above or below the surface) and its distance
-        /// from the centre line of the tube. x = theta, y = phi (both radians, not wrapped), z = distance.
-        /// </summary>
-        public static Vector3 GetTubeCoordinates(float majorRadius, Vector3 point)
-        {
-            float theta = Mathf.Atan2(point.x, point.z);
-            float radial = Mathf.Sqrt(point.x * point.x + point.z * point.z) - majorRadius;
-            float phi = Mathf.Atan2(point.y, radial);
-            return new Vector3(theta, phi, Mathf.Sqrt(radial * radial + point.y * point.y));
-        }
-
         /// <summary>Outward normal of a surface from its tangents in the directions of growing theta and phi (not necessarily unit).</summary>
         public static Vector3 GetNormalFromTangents(Vector3 alongTheta, Vector3 alongPhi)
         {

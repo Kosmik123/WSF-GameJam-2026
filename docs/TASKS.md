@@ -81,7 +81,6 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [ ] **Shader cząsteczek w buildzie:** `VfxMaterials` szuka `Universal Render Pipeline/Particles/Unlit` przez `Shader.Find`; przed buildem dodać go do *Always Included Shaders* albo podpiąć materiał w scenie. `?`
 - [ ] **Ikony skilli** (`SkillDefinition.Icon`), animacja rzucania czaru dla maga (teraz cios mieczem `Attack04`), ładniejsze efekty według uznania. Zdarzenia: `SkillUser.OnSkillExecuted`, `RangedAttack.OnShot`. `G`
 - [x] **Wybór klasy** na ekranie startowym: przyciski Mag i Wojownik w `MainMenu` wołają `PlayerClassApplier.Apply`. Nie testowane w Unity. `C`
-- [x] **Celowanie myszą:** bohater zawsze patrzy na punkt na torusie pod kursorem (`PlayerAim`, promień z kamery liczony analitycznie po wysokościach `TorusSurface` w `World/TorusRaycast`, bez colliderów), więc cios, strzał maga i skille lecą w stronę kursora. WSAD względem ekranu (W = w górę ekranu), kamera patrzy wzdłuż ciała węża zamiast za plecami. Unik i teleport idą w kierunku ruchu (stojąc: przed siebie). Prawa gałka pada celuje, gdy mysz się nie rusza. Stare sterowanie czołgowe: `TorusPlayerMovement.isUsingTankControls` + `TorusFollowCamera.isFollowingFacing`. Akcja `Player/AimPoint` (`<Pointer>/position`), komponent dodaje i podpina `PlayerAimAutoSetup` (Player.prefab). Nie testowane w Unity. `C`
 
 ## Etap 2b: progresja (MUST)
 
