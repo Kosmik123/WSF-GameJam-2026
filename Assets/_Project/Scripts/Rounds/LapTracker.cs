@@ -22,6 +22,10 @@ namespace WSFGameJam2026.Rounds
         [SerializeField]
         private TorusObject player;
 
+        [Tooltip("Optional. The lap is measured from the start of every round and stops when the run ends. Without it, call Begin and Stop yourself.")]
+        [SerializeField]
+        private RoundController roundController;
+
         [Tooltip("The lap is won when the player is this far behind the head (degrees of theta). More than the reach of the kill zone behind the head.")]
         [SerializeField]
         [Min(0f)]
@@ -35,12 +39,40 @@ namespace WSFGameJam2026.Rounds
         /// <summary>Lap progress: 0 at the start, 1 at the goal behind the head. Negative when the head passed the player.</summary>
         public float Progress => Mathf.Min(1f, travelledDegrees / GoalDegrees);
 
+        /// <summary>True between <see cref="Begin"/> and the end of the lap (won or stopped).</summary>
+        public bool IsRunning => isRunning;
+
+        /// <summary>
+        /// How far the player is in front of the jaw, in metres along the centre line of the torus.
+        /// The lead the player has over the jaw; negative when the jaw passed the player.
+        /// </summary>
+        public float MetersAheadOfHead
+        {
+            get
+            {
+                if (head == null || head.World == null)
+                    return 0f;
+
+                return travelledDegrees * Mathf.Deg2Rad * head.World.MajorRadius;
+            }
+        }
+
         private float GoalDegrees => Mathf.Max(1f, 360f - goalBehindHeadDegrees);
 
         private void Reset()
         {
             head = FindAnyObjectByType<HeadMovement>();
             player = FindAnyObjectByType<TorusObject>();
+            roundController = FindAnyObjectByType<RoundController>();
+        }
+
+        private void OnEnable()
+        {
+            if (roundController == null)
+                return;
+
+            roundController.OnRoundStarted += RoundController_OnRoundStarted;
+            roundController.OnRunEnded += RoundController_OnRunEnded;
         }
 
         /// <summary>Starts measuring from the current positions of the player and the head.</summary>
@@ -79,6 +111,25 @@ namespace WSFGameJam2026.Rounds
             var playerDegrees = player.Angles.ThetaDegrees;
             var headDegrees = head.Theta * Mathf.Rad2Deg;
             return Mathf.Repeat(playerDegrees - headDegrees, 360f);
+        }
+
+        private void RoundController_OnRoundStarted(int round)
+        {
+            Begin();
+        }
+
+        private void RoundController_OnRunEnded(int completedRounds, int bestRounds, bool isNewBest)
+        {
+            Stop();
+        }
+
+        private void OnDisable()
+        {
+            if (roundController == null)
+                return;
+
+            roundController.OnRoundStarted -= RoundController_OnRoundStarted;
+            roundController.OnRunEnded -= RoundController_OnRunEnded;
         }
     }
 }
