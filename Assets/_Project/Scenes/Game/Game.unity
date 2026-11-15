@@ -4211,6 +4211,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Menu Canvas
       objectReference: {fileID: 0}
+    - target: {fileID: 8766521898875308904, guid: b303fa59f283580428422dac1bb187a3, type: 3}
+      propertyPath: m_fontSize
+      value: 130
+      objectReference: {fileID: 0}
+    - target: {fileID: 8766521898875308904, guid: b303fa59f283580428422dac1bb187a3, type: 3}
+      propertyPath: m_fontSizeMax
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8766521898875308904, guid: b303fa59f283580428422dac1bb187a3, type: 3}
+      propertyPath: m_fontSizeMin
+      value: 36
+      objectReference: {fileID: 0}
+    - target: {fileID: 8766521898875308904, guid: b303fa59f283580428422dac1bb187a3, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 130
+      objectReference: {fileID: 0}
+    - target: {fileID: 8766521898875308904, guid: b303fa59f283580428422dac1bb187a3, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8786644663175200910, guid: b303fa59f283580428422dac1bb187a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0
