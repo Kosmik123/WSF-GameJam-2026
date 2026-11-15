@@ -130,6 +130,13 @@ namespace WSFGameJam2026.World
             return HeadTerrain == null ? height : HeadTerrain.Apply(height, wrapped, phi, MinorRadius);
         }
 
+        /// <summary>Multiplier of the walking speed at the given place from the effect of its biome (water...). 1 = no effect.</summary>
+        public float GetSpeedMultiplier(TorusAngles angles)
+        {
+            var effect = GetProfile(GetSegmentIndex(angles)).Effect;
+            return effect ? effect.GetSpeedMultiplier(GetHeight(angles)) : 1f;
+        }
+
         private TorusSegmentProfile GetAssignedProfile(IReadOnlyList<TorusSegmentProfile> segmentProfiles, int segmentIndex)
         {
             if (segmentProfiles == null || segmentProfiles.Count == 0)

@@ -20,6 +20,11 @@ namespace WSFGameJam2026.World
         private Material materialOverride;
         public Material MaterialOverride => materialOverride;
 
+        [Tooltip("Special effect of this biome (water that slows down...). Empty = none.")]
+        [SerializeField]
+        private BiomeEffect effect;
+        public BiomeEffect Effect => effect;
+
         /// <summary>
         /// Terrain height above the base tube at the given undisplaced point of the torus.
         /// </summary>

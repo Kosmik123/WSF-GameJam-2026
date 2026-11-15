@@ -28,6 +28,10 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private bool isBlockedByHeadBarrier;
 
+        [Tooltip("The effect of the biome (water) slows the object down. Turn off for flying things. The movement scripts read GroundSpeedMultiplier.")]
+        [SerializeField]
+        private bool isSlowedByTerrain = true;
+
         [Tooltip("How fast the object follows the terrain height. Higher = tighter.")]
         [SerializeField]
         [Min(0f)]
@@ -55,6 +59,9 @@ namespace WSFGameJam2026.World
 
         /// <summary>Current position on the surface of the torus.</summary>
         public TorusAngles Angles => angles;
+
+        /// <summary>Multiplier of the walking speed from the biome the object stands in (water...). 1 = none. Walking scripts apply it, knockback and dashes do not.</summary>
+        public float GroundSpeedMultiplier { get; private set; } = 1f;
 
         /// <summary>Up of the object: the minor radius direction of the torus, in world space.</summary>
         public Vector3 Up { get; private set; } = Vector3.up;
@@ -208,6 +215,7 @@ namespace WSFGameJam2026.World
             shouldSnap = false;
             smoothedHeight = Mathf.Lerp(smoothedHeight, surface.GetHeight(angles), heightBlend);
 
+            GroundSpeedMultiplier = isSlowedByTerrain ? surface.GetSpeedMultiplier(angles) : 1f;
             localUp = surface.GetBaseNormal(angles);
             localRunDirection = TorusGeometry.GetThetaDirection(angles.Theta);
             localPosition = surface.GetBasePoint(angles) + localUp * smoothedHeight;

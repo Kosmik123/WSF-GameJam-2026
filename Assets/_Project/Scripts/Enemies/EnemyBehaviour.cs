@@ -87,13 +87,13 @@ namespace WSFGameJam2026.Enemies
 
             // Slower while still turning, so enemies do not run in circles around the target.
             float alignment = Mathf.Clamp01(Vector3.Dot(TorusObject.Facing, worldDirection.normalized));
-            TorusObject.Move(moveSpeed * speedMultiplier * StatusSpeedMultiplier * alignment * Time.deltaTime);
+            TorusObject.Move(moveSpeed * speedMultiplier * StatusSpeedMultiplier * TorusObject.GroundSpeedMultiplier * alignment * Time.deltaTime);
         }
 
         /// <summary>Moves along a direction without turning (strafe, retreat).</summary>
         protected void Slide(Vector3 worldDirection, float speedMultiplier = 1f)
         {
-            TorusObject.MoveInDirection(worldDirection, moveSpeed * speedMultiplier * StatusSpeedMultiplier * Time.deltaTime);
+            TorusObject.MoveInDirection(worldDirection, moveSpeed * speedMultiplier * StatusSpeedMultiplier * TorusObject.GroundSpeedMultiplier * Time.deltaTime);
         }
 
         protected void Face(Vector3 worldDirection, float turnMultiplier = 1f)

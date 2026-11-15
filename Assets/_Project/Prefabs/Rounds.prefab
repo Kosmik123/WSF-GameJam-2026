@@ -82,10 +82,12 @@ MonoBehaviour:
   playerCombat: {fileID: 0}
   playerSkills: {fileID: 0}
   startAutomatically: 0
-  startGapDegrees: 25
+  startGapDegrees: 50
   startPhiDegrees: 90
   jawSpeedPerRound: 0.2
   enemiesPerRound: 0.25
   roundBreakSeconds: 2.5
   healOnRoundCompleted: 0.5
   deathDelaySeconds: 3
+  restartAutomatically: 1
+  breakTimeLeft: 0

@@ -85,7 +85,9 @@ namespace WSFGameJam2026.Player
                 torusObject.TurnTowards(aimDirection, turnSpeedDegrees * TurnMultiplier * Mathf.Deg2Rad * Time.deltaTime);
 
             if (MoveDirection != Vector3.zero)
-                torusObject.MoveInDirection(MoveDirection, smoothedInput.magnitude * moveSpeed * SpeedMultiplier * Time.deltaTime);
+                torusObject.MoveInDirection(MoveDirection, smoothedInput.magnitude * moveSpeed * SpeedMultiplier * torusObject.GroundSpeedMultiplier * Time.deltaTime);
+
+            torusObject.Refresh();  
         }
 
         private void UpdateOrbiting()

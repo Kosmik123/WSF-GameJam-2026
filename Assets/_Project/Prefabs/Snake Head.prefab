@@ -119,11 +119,11 @@ MonoBehaviour:
   head: {fileID: 2207168790804239818}
   emitters:
   - Particles: {fileID: 3472993663972434818}
-    AheadDistance: 4
+    AheadDistance: 50
     RadiusOffset: 1
     TerrainTint: 0.65
   - Particles: {fileID: 7919163560253998611}
-    AheadDistance: 2
+    AheadDistance: 50
     RadiusOffset: 0.5
     TerrainTint: 0.4
   - Particles: {fileID: 8358125355938372392}
@@ -11130,12 +11130,12 @@ ParticleSystem:
   ShapeModule:
     serializedVersion: 6
     enabled: 1
-    type: 10
+    type: 17
     angle: 25
     length: 5
     boxThickness: {x: 0, y: 0, z: 0}
-    radiusThickness: 0
-    donutRadius: 0.2
+    radiusThickness: 1
+    donutRadius: 3
     m_Position: {x: 0, y: 0, z: 0}
     m_Rotation: {x: 0, y: 0, z: 0}
     m_Scale: {x: 1, y: 1, z: 1}
@@ -11217,7 +11217,7 @@ ParticleSystem:
     sphericalDirectionAmount: 0
     randomPositionAmount: 0
     radius:
-      value: 50
+      value: 30
       mode: 0
       spread: 0
       speed:
@@ -11389,7 +11389,7 @@ ParticleSystem:
     rateOverDistance:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0
+      scalar: 100
       minScalar: 0
       maxCurve:
         serializedVersion: 2
