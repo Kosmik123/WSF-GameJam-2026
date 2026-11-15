@@ -90,8 +90,24 @@ namespace WSFGameJam2026.Rounds
         [Min(0f)]
         private float deathDelaySeconds = 3f;
 
+        [Tooltip("Off: after a death the run waits for RestartRun, so the death screen can offer its buttons. The delay above still runs first.")]
+        [SerializeField]
+        private bool restartAutomatically = true;
+
         private Health playerHealth;
         private TorusObject playerObject;
+        private bool isBreakSkipped;
+        private bool isRestartRequested;
+
+        [Header("States")]
+        [SerializeField]
+        private float breakTimeLeft;
+
+        /// <summary>Time left until the next round starts, during the break after a won round. 0 otherwise.</summary>
+        public float BreakTimeLeft => breakTimeLeft;
+
+        /// <summary>True after a death while the run waits for <see cref="RestartRun"/>.</summary>
+        public bool IsWaitingForRestart { get; private set; }
 
         /// <summary>Best number of completed rounds, saved between sessions.</summary>
         public int BestRounds => PlayerPrefs.GetInt(BestRoundsKey, 0);
@@ -128,6 +144,30 @@ namespace WSFGameJam2026.Rounds
         public void StartRun()
         {
             BeginRound();
+        }
+
+        /// <summary>Speed of the jaw in the given round, as a multiplier of its base speed.</summary>
+        public float GetJawSpeedMultiplier(int round)
+        {
+            return 1f + jawSpeedPerRound * Mathf.Max(0, round - 1);
+        }
+
+        /// <summary>Multiplier of the number and level of enemies in the given round.</summary>
+        public float GetEnemyMultiplier(int round)
+        {
+            return 1f + enemiesPerRound * Mathf.Max(0, round - 1);
+        }
+
+        /// <summary>Ends the break after a won round at once and starts the next round.</summary>
+        public void ContinueNow()
+        {
+            isBreakSkipped = true;
+        }
+
+        /// <summary>Starts a new run after a death (when the run does not restart by itself).</summary>
+        public void RestartRun()
+        {
+            isRestartRequested = true;
         }
 
         /// <summary>Puts the player the start gap in front of the jaw where it is now. The menu keeps the parked player there while the jaw moves.</summary>
@@ -167,8 +207,15 @@ namespace WSFGameJam2026.Rounds
             playerHealth.MakeInvulnerable(roundBreakSeconds);
             playerHealth.Heal(Mathf.CeilToInt(playerHealth.MaxHealth * healOnRoundCompleted));
 
-            yield return new WaitForSeconds(roundBreakSeconds);
+            isBreakSkipped = false;
+            breakTimeLeft = roundBreakSeconds;
+            while (breakTimeLeft > 0f && isBreakSkipped == false)
+            {
+                breakTimeLeft -= Time.deltaTime;
+                yield return null;
+            }
 
+            breakTimeLeft = 0f;
             roundState.StartNextRound();
             BeginRound();
         }
@@ -189,8 +236,14 @@ namespace WSFGameJam2026.Rounds
 
             OnRunEnded?.Invoke(completed, best, isNewBest);
 
+            isRestartRequested = false;
             yield return new WaitForSeconds(deathDelaySeconds);
 
+            IsWaitingForRestart = restartAutomatically == false;
+            while (IsWaitingForRestart && isRestartRequested == false)
+                yield return null;
+
+            IsWaitingForRestart = false;
             roundState.ResetRounds();
             playerCombat.Revive();
             if (playerSkills)
@@ -202,12 +255,10 @@ namespace WSFGameJam2026.Rounds
         // The jaw never goes back: it keeps going round and round. The player is put the start gap in front of it. Clears the enemies and sets the difficulty of the current round.
         private void BeginRound()
         {
-            var roundsPlayed = roundState.Round - 1;
-
-            head.SpeedMultiplier = 1f + jawSpeedPerRound * roundsPlayed;
+            head.SpeedMultiplier = GetJawSpeedMultiplier(roundState.Round);
             head.IsMoving = true;
 
-            spawner.RoundMultiplier = 1f + enemiesPerRound * roundsPlayed;
+            spawner.RoundMultiplier = GetEnemyMultiplier(roundState.Round);
             spawner.Clear();
             PlacePlayerAheadOfHead();
 
