@@ -323,7 +323,7 @@ MonoBehaviour:
   groundOffset: 0.1
   bodyRadius: 0.5
   isBlockedByHeadBarrier: 0
-  maxClimbAngle: 50
+  maxClimbAngle: 40
   heightSharpness: 25
   startAngles:
     thetaRadians: 0.17453292
@@ -530,14 +530,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2473020258844218015, guid: b1c708fd2e1bb7b479d1e33029d31477, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2473020258844218015, guid: b1c708fd2e1bb7b479d1e33029d31477, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2473020258844218015, guid: b1c708fd2e1bb7b479d1e33029d31477, type: 3}
-      propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2473020258844218015, guid: b1c708fd2e1bb7b479d1e33029d31477, type: 3}
