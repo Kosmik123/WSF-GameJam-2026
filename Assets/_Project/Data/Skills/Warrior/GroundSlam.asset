@@ -12,35 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060f0df5904c482b87f592270d550702, type: 3}
   m_Name: GroundSlam
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Warrior.GroundSlamSkill
-  displayName: Ground Slam
+  displayName: "Uderzenie w ziemi\u0119"
   icon: {fileID: 0}
+  accentColor: {r: 0.7882353, g: 0.63529414, b: 0.2901961, a: 1}
   tiers:
-  - tierName: Base
-    description: 'Slam the ground: 16 damage within 3 m, knockback 3 m.'
+  - tierName: Baza
+    description: "16 obra\u017Ce\u0144 w promieniu 3 m i odrzut o 3 m."
     cooldown: 6
     damage: 16
     range: 3
     duration: 0.5
     knockback: 3
     stun: 0
-  - tierName: Upgrade I
-    description: Radius 4 m.
+  - tierName: Ulepszenie I
+    description: "Promie\u0144 4 m."
     cooldown: 6
     damage: 16
     range: 4
     duration: 0.5
     knockback: 3
     stun: 0
-  - tierName: Upgrade II
-    description: 24 damage.
+  - tierName: Ulepszenie II
+    description: "24 obra\u017Cenia."
     cooldown: 6
     damage: 24
     range: 4
     duration: 0.5
     knockback: 3
     stun: 0
-  - tierName: 'Evolution: Fissure'
-    description: Also stuns enemies for 1 s.
+  - tierName: 'Ewolucja: Rozpadlina'
+    description: "Dodatkowo og\u0142usza wrog\xF3w na 1 s."
     cooldown: 6
     damage: 24
     range: 4

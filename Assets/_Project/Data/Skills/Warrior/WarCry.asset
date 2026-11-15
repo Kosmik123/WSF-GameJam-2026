@@ -12,35 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ef42516c08e4fd98dd38ebfa7d9f31d, type: 3}
   m_Name: WarCry
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Warrior.WarCrySkill
-  displayName: War Cry
+  displayName: Okrzyk bojowy
   icon: {fileID: 0}
+  accentColor: {r: 0.8784314, g: 0.28235295, b: 0.23529412, a: 1}
   tiers:
-  - tierName: Base
-    description: Pushes enemies within 4 m away by 4 m and stuns them for 1 s.
+  - tierName: Baza
+    description: "Odpycha wrog\xF3w w promieniu 4 m o 4 m i og\u0142usza ich na 1
+      s."
     cooldown: 8
     damage: 0
     range: 4
     duration: 1
     knockback: 4
     stun: 1
-  - tierName: Upgrade I
-    description: Radius 5 m.
+  - tierName: Ulepszenie I
+    description: "Promie\u0144 5 m."
     cooldown: 8
     damage: 0
     range: 5
     duration: 1
     knockback: 4
     stun: 1
-  - tierName: Upgrade II
-    description: Stun 1.5 s.
+  - tierName: Ulepszenie II
+    description: "Og\u0142uszenie 1,5 s."
     cooldown: 8
     damage: 0
     range: 5
     duration: 1
     knockback: 4
     stun: 1.5
-  - tierName: 'Evolution: Roar'
-    description: Radius 6 m and 12 damage.
+  - tierName: 'Ewolucja: Ryk'
+    description: "Promie\u0144 6 m i 12 obra\u017Ce\u0144."
     cooldown: 8
     damage: 12
     range: 6

@@ -12,36 +12,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4041b0e015a4a49919f1004d7705463, type: 3}
   m_Name: Fireball
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Mage.FireballSkill
-  displayName: Fireball
+  displayName: Kula ognia
   icon: {fileID: 0}
+  accentColor: {r: 0.8901961, g: 0.63529414, b: 0.23137255, a: 1}
   tiers:
-  - tierName: Base
-    description: 'Flies straight and explodes: 24 damage within 2 m.'
+  - tierName: Baza
+    description: "Leci prosto i wybucha: 24 obra\u017Ce\u0144 w promieniu 2 m."
     cooldown: 4
     damage: 24
     range: 2
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: Upgrade I
-    description: The explosion deals 32 damage.
+  - tierName: Ulepszenie I
+    description: "Wybuch zadaje 32 obra\u017Ce\u0144."
     cooldown: 4
     damage: 32
     range: 2
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: Upgrade II
-    description: The explosion deals 40 damage.
+  - tierName: Ulepszenie II
+    description: "Wybuch zadaje 40 obra\u017Ce\u0144."
     cooldown: 4
     damage: 40
     range: 2
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: 'Evolution: Blaze'
-    description: The ground keeps burning for 1.5 s and hurts enemies there three
-      times.
+  - tierName: "Ewolucja: Po\u017Coga"
+    description: "Ziemia po wybuchu p\u0142onie 1,5 s i trzy razy rani wrog\xF3w."
     cooldown: 4
     damage: 40
     range: 2
@@ -53,3 +53,4 @@ MonoBehaviour:
   flightRange: 20
   burnTickInterval: 0.5
   color: {r: 1, g: 0.35, b: 0.1, a: 1}
+  emberColor: {r: 1, g: 0.75, b: 0.3, a: 1}

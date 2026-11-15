@@ -12,16 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f624d09b50d47be8046f50a2cb3e6bf, type: 3}
   m_Name: Warrior
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Player.PlayerClass
-  displayName: Warrior
-  description: 'Melee combo and dodge, 100 HP. Skills: spin, charge, ground slam,
-    axe throw, war cry.'
+  displayName: Wojownik
+  description: "Miecz, tarcza i unik, 100 HP. Wir, szar\u017Ca, uderzenie w ziemi\u0119,
+    rzut toporem."
   isRanged: 0
   rangedDamage: 8
   rangedCooldown: 0.35
   maxHealth: 100
-  modelPrefab: {fileID: 5352958571798197664, guid: c564c8c0d0cdc45429417f315e9f3e41, type: 3}
+  modelPrefab: {fileID: 9186045537942361741, guid: d1da45512dbcad34e83f4496532a08cb, type: 3}
   modelMaterial: {fileID: 0}
-  hiddenParts: []
+  hiddenParts:
+  - Body10
+  - Head02_Female
+  - Eye02
+  - Mouth02
+  - Priest_Plume
+  - Priest_Cape
+  - Priest_Staff
   skillPool:
   - {fileID: 11400000, guid: 3c0f59b8f62923145a7bf0e077ba55b8, type: 2}
   - {fileID: 11400000, guid: 335e97ee41629604f95548afc2f941b7, type: 2}

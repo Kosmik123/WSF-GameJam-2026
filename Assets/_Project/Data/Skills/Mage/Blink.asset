@@ -12,36 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 201337d0a4174fba834fba34585f8382, type: 3}
   m_Name: Blink
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Mage.BlinkSkill
-  displayName: Blink
+  displayName: Teleport
   icon: {fileID: 0}
+  accentColor: {r: 0.92941177, g: 0.9019608, b: 0.8392157, a: 1}
   tiers:
-  - tierName: Base
-    description: Teleport 5 m in the direction of movement, 0.3 s of invulnerability,
-      a blast at the end (12 damage).
+  - tierName: Baza
+    description: "Skok o 5 m w kierunku ruchu, 0,3 s nietykalno\u015Bci i wybuch
+      na ko\u0144cu (12 obra\u017Ce\u0144)."
     cooldown: 4
     damage: 12
     range: 5
     duration: 0.3
     knockback: 0
     stun: 0
-  - tierName: Upgrade I
-    description: Teleport 6 m.
+  - tierName: Ulepszenie I
+    description: Skok o 6 m.
     cooldown: 4
     damage: 12
     range: 6
     duration: 0.3
     knockback: 0
     stun: 0
-  - tierName: Upgrade II
-    description: Teleport 7 m.
+  - tierName: Ulepszenie II
+    description: Skok o 7 m.
     cooldown: 4
     damage: 12
     range: 7
     duration: 0.3
     knockback: 0
     stun: 0
-  - tierName: 'Evolution: Rift'
-    description: A blast also at the start.
+  - tierName: 'Ewolucja: Szczelina'
+    description: "Wybuch tak\u017Ce w miejscu startu."
     cooldown: 4
     damage: 12
     range: 7
