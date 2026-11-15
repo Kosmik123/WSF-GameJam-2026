@@ -19,7 +19,7 @@ MonoBehaviour:
   rangedDamage: 8
   rangedCooldown: 0.35
   maxHealth: 80
-  modelPrefab: {fileID: 2961748416783271973, guid: b1c708fd2e1bb7b479d1e33029d31477, type: 3}
+  modelPrefab: {fileID: 919132149155446097, guid: 2b9a955ccc9a4390a3b82865c41de9a5, type: 3}
   modelMaterial: {fileID: 0}
   hiddenParts: []
   skillPool:
