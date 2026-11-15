@@ -57,11 +57,11 @@ namespace WSFGameJam2026.Skills
             return baseDamage > 0 ? Mathf.Max(1, Mathf.RoundToInt(baseDamage * DamageMultiplier)) : 0;
         }
 
-        /// <summary>Direction of the player's movement (tank controls: back when holding back, otherwise the facing).</summary>
+        /// <summary>Direction of the player's movement (where he steers, without input the facing).</summary>
         public Vector3 GetMoveDirection()
         {
-            bool isHoldingBack = movement && movement.SmoothedInput.y < -0.1f;
-            return isHoldingBack ? -TorusObject.Facing : TorusObject.Facing;
+            var steered = movement ? movement.MoveDirection : Vector3.zero;
+            return steered != Vector3.zero ? steered : TorusObject.Facing;
         }
 
         /// <summary>Short name of the key bound to the slot, for the HUD. Empty when the slot has no action.</summary>

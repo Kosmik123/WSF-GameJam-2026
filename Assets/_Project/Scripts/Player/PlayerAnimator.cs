@@ -127,8 +127,8 @@ namespace WSFGameJam2026.Player
                 return;
 
             var input = movement.IsLocked ? Vector2.zero : movement.SmoothedInput;
-            animator.SetFloat(SpeedId, input.y * movement.SpeedMultiplier);
-            animator.SetFloat(TurnId, input.x);
+            animator.SetFloat(SpeedId, input.magnitude * movement.SpeedMultiplier);
+            animator.SetFloat(TurnId, 0f);
             animator.SetBool(DeadId, health.IsDead);
             if (combat.IsDodging == false)
                 animator.SetBool(DodgeId, false);
