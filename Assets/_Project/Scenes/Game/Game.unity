@@ -775,8 +775,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fda19e253147a3b42bb49c111c412dd6, type: 2}
   blendWidth: 0.3
   defaultMaterial: {fileID: 0}
-  generateColliders: 1
-  shouldRebuildOnValidate: 1
+  generateColliders: 0
+  shouldRebuildOnValidate: 0
 --- !u!4 &1142851115
 Transform:
   m_ObjectHideFlags: 0
@@ -811,9 +811,10 @@ MonoBehaviour:
   nearShadowRangeDegrees: 30
   receiveShadows: 0
   propCatalog: {fileID: 11400000, guid: 42521b79594348847b0c04cc89e339a9, type: 2}
-  toppleDistance: 70
+  toppleDistanceDegrees: 20
+  toppleFullDistanceDegrees: 10
   toppleMinHeight: 2
-  toppleAngle: 82
+  toppleAngle: 85
   toppleSpreadDegrees: 35
 --- !u!1 &1167247099
 GameObject:
@@ -1523,6 +1524,22 @@ PrefabInstance:
       propertyPath: headFrontOffsetDegrees
       value: -38.7
       objectReference: {fileID: 0}
+    - target: {fileID: 3472993663972434818, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: InitialModule.startSizeY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3472993663972434818, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: InitialModule.startSizeZ.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3472993663972434818, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: InitialModule.startRotationX.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3472993663972434818, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: InitialModule.startRotationY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 5245275856973429819, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 60
@@ -1678,6 +1695,26 @@ PrefabInstance:
     - target: {fileID: 8178953370820337609, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: backReachDegrees.m_Curve.Array.data[1].tangentMode
       value: 34
+      objectReference: {fileID: 0}
+    - target: {fileID: 8358125355938372392, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: prewarm
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8358125355938372392, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: InitialModule.startSizeY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8358125355938372392, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: InitialModule.startSizeZ.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8358125355938372392, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: InitialModule.startRotationX.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8358125355938372392, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: InitialModule.startRotationY.minMaxState
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
