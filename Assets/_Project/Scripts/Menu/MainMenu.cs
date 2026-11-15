@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Cinemachine;
@@ -34,6 +35,17 @@ namespace WSFGameJam2026.Menu
         [SerializeField]
         private int activePriority = 20;
 
+        [Header("Fog")]
+        [Tooltip("Density of the fog (Exponential Squared) in the game. There is no fog in the menu.")]
+        [SerializeField]
+        [Min(0f)]
+        private float gameFogDensity = 0.08f;
+
+        [Tooltip("Time in which the fog grows linearly from nothing to the density of the game after Play.")]
+        [SerializeField]
+        [Min(0f)]
+        private float fogTransitionSeconds = 2f;
+
         [Header("Game")]
         [SerializeField]
         private RoundController controller;
@@ -65,6 +77,7 @@ namespace WSFGameJam2026.Menu
         {
             SetGameplay(false);
             SetCameraPriorities(true);
+            SetFog(0f);
             head.SpeedMultiplier = menuHeadSpeedMultiplier;
             head.IsMoving = true;
             if (menuScreen)
@@ -86,10 +99,31 @@ namespace WSFGameJam2026.Menu
                 menuScreen.SetActive(false);
 
             SetGameplay(true);
+            gameCamera.gameObject.SetActive(true);
+            gameCamera.enabled = true;
             SetCameraPriorities(false);
+            StartCoroutine(FogCo());
 
             // Puts the player and the head at the start of the first round (also resets the speed of the head).
             controller.StartRun();
+        }
+
+        private IEnumerator FogCo()
+        {
+            for (float time = 0f; time < fogTransitionSeconds; time += Time.deltaTime)
+            {
+                SetFog(gameFogDensity * time / fogTransitionSeconds);
+                yield return null;
+            }
+
+            SetFog(gameFogDensity);
+        }
+
+        private static void SetFog(float density)
+        {
+            RenderSettings.fog = density > 0f;
+            RenderSettings.fogMode = FogMode.ExponentialSquared;
+            RenderSettings.fogDensity = density;
         }
 
         private void SetGameplay(bool isOn)
