@@ -119,6 +119,23 @@ namespace WSFGameJam2026.Enemies
         [Min(0.05f)]
         private float minSpawnInterval = 0.4f;
 
+        [Header("States")]
+        [Tooltip("Shown for balancing, set every frame (do not edit): the difficulty now (1 = after 'Seconds Per Difficulty', no upper limit).")]
+        [SerializeField]
+        private float currentDifficulty;
+
+        [Tooltip("Shown for balancing (do not edit): seconds of the current run with the jaw moving.")]
+        [SerializeField]
+        private float playTimeSeconds;
+
+        [Tooltip("Shown for balancing (do not edit): the level an enemy would get if it spawned now.")]
+        [SerializeField]
+        private int currentEnemyLevel;
+
+        [Tooltip("Shown for balancing (do not edit): the most enemies that may be alive at once now.")]
+        [SerializeField]
+        private int currentMaxAlive;
+
         private readonly List<Enemy> alive = new List<Enemy>();
         public IReadOnlyList<Enemy> Alive => alive;
 
@@ -149,6 +166,15 @@ namespace WSFGameJam2026.Enemies
         public float GetDifficulty()
         {
             return Mathf.Pow(PlayTime / secondsPerDifficulty, difficultyExponent);
+        }
+
+        // The state fields only mirror the values for the inspector.
+        private void ShowState()
+        {
+            currentDifficulty = GetDifficulty();
+            playTimeSeconds = PlayTime;
+            currentEnemyLevel = GetLevel(currentDifficulty);
+            currentMaxAlive = Mathf.Min(maxAliveLimit, Mathf.RoundToInt(maxAlive * RoundMultiplier * Intensity));
         }
 
         /// <summary>Starts counting the play time from zero (a new run).</summary>
@@ -187,6 +213,8 @@ namespace WSFGameJam2026.Enemies
 
             if (head == null || head.IsMoving)
                 PlayTime += Time.deltaTime;
+
+            ShowState();
 
             alive.RemoveAll(enemy => enemy == null);
             DespawnFarBehind();
