@@ -48,6 +48,10 @@ namespace WSFGameJam2026.Rounds
         [SerializeField]
         private SkillSlots playerSkills;
 
+        [Tooltip("The first round starts when the scene starts. Turn it off when something else (the main menu) calls StartRun.")]
+        [SerializeField]
+        private bool startAutomatically = true;
+
         [Header("Start of a round")]
         [Tooltip("The player starts this far in front of the head, in degrees of theta.")]
         [SerializeField]
@@ -115,6 +119,13 @@ namespace WSFGameJam2026.Rounds
         }
 
         private void Start()
+        {
+            if (startAutomatically)
+                BeginRound();
+        }
+
+        /// <summary>Starts the first round: puts the jaw and the player at the start. For the main menu, when "Start Automatically" is off.</summary>
+        public void StartRun()
         {
             BeginRound();
         }
