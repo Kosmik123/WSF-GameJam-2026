@@ -55,7 +55,8 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
   - [x] Ekran zwycięstwa rundy i ekran śmierci z wynikiem i rekordem: `RoundScreens` (zdarzenia `OnRoundCompleted`, `OnRunEnded`), menu *WSF GameJam/Setup/Create Round Screens*, nie testowane w Unity. `C`
   - [ ] Ładna grafika tych ekranów (teraz placeholder: przyciemnienie i tekst). `G`
 - [ ] **Model paszczy** (siatka, animacja otwierania i zamykania). `G`
-- [ ] **Model gracza** (low poly, animacje: bieg, atak, unik, obrażenia, śmierć). Teraz jest postać z paczki RPG Tiny Hero Duo (z LD57), własny model opcjonalny. `G`
+- [x] **Model gracza: Kapłan Pierzastego Węża** (koncept 02, motyw Q'uq'umatza). Low poly, budowany skryptem Blendera `Tools/Hero/build_quqmatz_priest.py` na szkielecie RPG Tiny Hero Duo, więc wszystkie animacje działają (humanoid). Ciało przekolorowane z tekstury na kolory wierzchołków w palecie kapłana, części przypięte do kości: hełm-paszcza węża z kłami, pióropusz kwezala, kołnierz-żuchwa, peleryna z piór, laska z głową węża (Mag), włócznia, tarcza z piór i osłony policzków (Wojownik). Jeden plik `Models/Hero/QuqumatzPriest.fbx`, klasa ukrywa części drugiej klasy (`PlayerClass.hiddenParts`). Materiał z shaderem `WSF/Vertex Color Lit`. Menu *WSF GameJam/Setup/Apply Quetzal Priest Hero*, uruchamia się samo raz (`HeroAutoSetup`). Sprawdzone w renderze Blendera w pozach Idle, Attack i Move, nie testowane w Unity. `C`
+- [ ] **Szlif modelu kapłana:** detale hełmu i twarzy, własna animacja rzucania czaru, ewentualnie ruch peleryny. `G`
 - [ ] **Materiał i wygląd ciała węża** (łuski, kolory, różne warianty segmentów). `G`
 
 ## Etap 2: walka i wrogowie (MUST)
