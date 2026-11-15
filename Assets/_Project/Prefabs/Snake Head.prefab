@@ -52,6 +52,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   world: {fileID: 0}
   angularMoveSpeedDegrees: 0.15
+  maxSpeedDegrees: 9
+  maxSpeedThetaDegrees: 13
+  speedupStartThetaDegrees: 21
+  player: {fileID: 0}
   startThetaDegrees: 0
   theta: 0
 --- !u!114 &3418072956140283771
