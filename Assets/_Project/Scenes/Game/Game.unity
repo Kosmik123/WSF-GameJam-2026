@@ -1122,6 +1122,8 @@ MonoBehaviour:
   menuCamera: {fileID: 1141028322}
   gameCamera: {fileID: 1527296987}
   activePriority: 20
+  gameFogDensity: 0.008
+  fogTransitionSeconds: 2
   controller: {fileID: 1300097183}
   head: {fileID: 66875074}
   menuHeadSpeedMultiplier: 10
@@ -1294,6 +1296,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Rounds.LapTracker
   head: {fileID: 66875074}
   player: {fileID: 1703670341}
+  roundController: {fileID: 1300097183}
   goalBehindHeadDegrees: 17.3
 --- !u!114 &1300097185
 MonoBehaviour:
@@ -1476,7 +1479,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
+  m_Transition: 2
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -1486,10 +1489,10 @@ MonoBehaviour:
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
-    m_HighlightedSprite: {fileID: 0}
-    m_PressedSprite: {fileID: 0}
-    m_SelectedSprite: {fileID: 0}
-    m_DisabledSprite: {fileID: 0}
+    m_HighlightedSprite: {fileID: 21300000, guid: ca6a85dbacce4d6abf5cf13e73cc778b, type: 3}
+    m_PressedSprite: {fileID: 21300000, guid: ebdefa00217d4bad8fc3b4281cb3bee9, type: 3}
+    m_SelectedSprite: {fileID: 21300000, guid: ca6a85dbacce4d6abf5cf13e73cc778b, type: 3}
+    m_DisabledSprite: {fileID: 21300000, guid: 2a64ac53f91e44f7896988bfb30b3a7d, type: 3}
   m_AnimationTriggers:
     m_NormalTrigger: Normal
     m_HighlightedTrigger: Highlighted
@@ -1514,15 +1517,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.1, g: 0.1, b: 0.1, a: 0.85}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.85}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 464081650d244357a5a151c0d2e326ac, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -2050,10 +2053,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 6034715529018467321, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
-      propertyPath: roundController
-      value: 
-      objectReference: {fileID: 1300097183}
     - target: {fileID: 551722874855448837, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_Name
       value: Snake Head
@@ -2142,6 +2141,10 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6034715529018467321, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: roundController
+      value: 
+      objectReference: {fileID: 1300097183}
     - target: {fileID: 6194550203131202499, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0

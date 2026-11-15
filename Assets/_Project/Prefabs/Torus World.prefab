@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2834413952015307176
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4045820479563073623}
+  - component: {fileID: 6117059929987692413}
+  - component: {fileID: 5846759002389348118}
+  m_Layer: 0
+  m_Name: Torus World
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4045820479563073623
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2834413952015307176}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6117059929987692413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2834413952015307176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26a0c54f79b33c042988e76d35fdd0b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusWorld
+  majorRadius: 300
+  minorRadius: 50
+  segmentCount: 7
+  sidesResolution: 180
+  segmentProfiles:
+  - {fileID: 11400000, guid: d99350bfb174d184ab9171b8b347aca0, type: 2}
+  - {fileID: 11400000, guid: 2c4991ca5f6ff7f4187919b5f6e3c3b7, type: 2}
+  - {fileID: 11400000, guid: 92b4a6fd6f3df0447958e58146bf2f1a, type: 2}
+  - {fileID: 11400000, guid: c05c8366fe884ad49bc1129c050fdb26, type: 2}
+  - {fileID: 11400000, guid: d99350bfb174d184ab9171b8b347aca0, type: 2}
+  - {fileID: 11400000, guid: edf6c2a1a9e188f48b605eb7205e6981, type: 2}
+  - {fileID: 11400000, guid: fda19e253147a3b42bb49c111c412dd6, type: 2}
+  blendWidth: 0.3
+  defaultMaterial: {fileID: 0}
+  generateColliders: 0
+  shouldRebuildOnValidate: 0
+--- !u!114 &5846759002389348118
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2834413952015307176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9d96759530040498c532bef2b52259b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusBiomeDecorations
+  world: {fileID: 6117059929987692413}
+  terrainPrefix: Teren_
+  shadowCasting: 1
+  shadowTarget: {fileID: 0}
+  nearShadowRangeDegrees: 30
+  receiveShadows: 0
+  propCatalog: {fileID: 11400000, guid: 42521b79594348847b0c04cc89e339a9, type: 2}
+  toppleDistanceDegrees: 20
+  toppleFullDistanceDegrees: 15
+  toppleMinHeight: 2
+  toppleAngle: 85
+  toppleSpreadDegrees: 35

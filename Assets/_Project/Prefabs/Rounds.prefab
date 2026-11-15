@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8853515086768377747
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7767665296191361127}
+  - component: {fileID: 1387624106861087145}
+  - component: {fileID: 8840551339202468608}
+  - component: {fileID: 1350606828365620798}
+  m_Layer: 0
+  m_Name: Rounds
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7767665296191361127
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8853515086768377747}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.00013349656, y: 0.001927413, z: -0.00089275505, w: 0.99999774}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: -0.015, y: 0.221, z: -0.102}
+--- !u!114 &1387624106861087145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8853515086768377747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5e8a2f4b7d14396a0b3d9e6f1c72a84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Rounds.RoundState
+  firstRound: 1
+--- !u!114 &8840551339202468608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8853515086768377747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c6e9a3f7b1d4580a9d2e4b6c0f83a17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Rounds.LapTracker
+  head: {fileID: 0}
+  player: {fileID: 0}
+  roundController: {fileID: 1350606828365620798}
+  goalBehindHeadDegrees: 17.3
+--- !u!114 &1350606828365620798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8853515086768377747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f1b4d6a2e9c4375b0a7c3d5e8f21a96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Rounds.RoundController
+  roundState: {fileID: 1387624106861087145}
+  weakPoint: {fileID: 0}
+  head: {fileID: 0}
+  spawner: {fileID: 0}
+  playerCombat: {fileID: 0}
+  playerSkills: {fileID: 0}
+  startAutomatically: 0
+  startGapDegrees: 25
+  startPhiDegrees: 90
+  jawSpeedPerRound: 0.2
+  enemiesPerRound: 0.25
+  roundBreakSeconds: 2.5
+  healOnRoundCompleted: 0.5
+  deathDelaySeconds: 3
