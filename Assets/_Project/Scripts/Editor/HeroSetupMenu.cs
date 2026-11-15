@@ -251,6 +251,58 @@ namespace WSFGameJam2026.Editor
                     part.gameObject.SetActive(false);
         }
 
+        /// <summary>
+        /// The main menu (Create Main Menu) hides the children of the player while it is open and turns them on again when
+        /// the game starts, the placeholder capsule too, which then covers the hero. This takes the placeholders out of that
+        /// list and puts the hero's model root in. Returns true when the scene was changed.
+        /// </summary>
+        internal static bool FixMainMenuHiddenObjects()
+        {
+            var menu = Object.FindAnyObjectByType<Menu.MainMenu>(FindObjectsInactive.Include);
+            var applier = Object.FindAnyObjectByType<PlayerClassApplier>();
+            if (menu == null || applier == null)
+                return false;
+
+            var serializedApplier = new SerializedObject(applier);
+            var modelRoot = serializedApplier.FindProperty("modelRoot").objectReferenceValue as Transform;
+            var serialized = new SerializedObject(menu);
+            var hidden = serialized.FindProperty("hiddenInMenu");
+            if (hidden == null)
+                return false;
+
+            bool changed = false;
+            bool hasModel = false;
+            for (int i = hidden.arraySize - 1; i >= 0; i--)
+            {
+                var entry = hidden.GetArrayElementAtIndex(i).objectReferenceValue as GameObject;
+                if (entry && modelRoot && entry == modelRoot.gameObject)
+                    hasModel = true;
+
+                bool isPlaceholder = entry && entry.transform.parent == applier.transform && System.Array.IndexOf(PlaceholderNames, entry.name) >= 0;
+                if (isPlaceholder)
+                {
+                    hidden.DeleteArrayElementAtIndex(i);
+                    changed = true;
+                }
+            }
+
+            if (modelRoot && hasModel == false)
+            {
+                hidden.arraySize++;
+                hidden.GetArrayElementAtIndex(hidden.arraySize - 1).objectReferenceValue = modelRoot.gameObject;
+                changed = true;
+            }
+
+            if (changed == false)
+                return false;
+
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorSceneManager.MarkSceneDirty(menu.gameObject.scene);
+            EditorSceneManager.SaveScene(menu.gameObject.scene);
+            Debug.Log("Hero setup: the main menu no longer turns the placeholder capsule on when the game starts; it hides and shows the hero instead.");
+            return true;
+        }
+
         private static void SetClass(string className, GameObject prefab, string[] hidden)
         {
             var playerClass = AssetDatabase.LoadAssetAtPath<PlayerClass>($"{ClassesFolder}/{className}.asset");
