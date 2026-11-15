@@ -14,6 +14,8 @@ namespace WSFGameJam2026.Leaderboard
     /// The leaderboard window: the top places downloaded from the server (or the cached ones when it can not be reached,
     /// or nothing), and, when the <see cref="ScoreCollector"/> holds a score that was not sent yet, a field for the name
     /// of the player with a confirm button that sends the score.
+    /// The first confirmed name becomes the account of the player: it is remembered, the field is replaced by "playing as" and every
+    /// next score goes to the same account. The reset button signs the player out and forgets the name, so the next score starts a new account.
     /// Opened by the menu button, or from code with <see cref="Open"/>. After a death it opens by itself over the death screen;
     /// closing it then returns to the main menu (the scene is loaded again), so a new run never starts without the menu.
     /// </summary>
@@ -86,6 +88,22 @@ namespace WSFGameJam2026.Leaderboard
         [SerializeField]
         private Button submitButton;
 
+        [Header("Account")]
+        [Tooltip("Shown only when the player already has an account (a name was confirmed before).")]
+        [SerializeField]
+        private GameObject accountRow;
+
+        [SerializeField]
+        private TMP_Text accountLabel;
+
+        [Tooltip("{0} is replaced with the name of the account.")]
+        [SerializeField]
+        private string accountFormat = "Grasz jako: {0}";
+
+        [Tooltip("Signs out and forgets the name.")]
+        [SerializeField]
+        private Button resetButton;
+
         [Header("Texts")]
         [SerializeField]
         private string loadingText = "Ładowanie…";
@@ -106,11 +124,18 @@ namespace WSFGameJam2026.Leaderboard
         private string sendFailedText = "Nie udało się wysłać wyniku. Spróbuj ponownie.";
 
         [SerializeField]
+        private string resetFailedText = "Nie udało się zresetować konta.";
+
+        [SerializeField]
         private string nameTooShortText = "Imię musi mieć co najmniej 3 znaki.";
 
         private bool isRefreshing;
         private bool isSubmitting;
         private bool returnsToMenu;
+
+        private string SavedName => PlayerPrefs.GetString(NameKey, string.Empty);
+
+        private bool HasAccount => string.IsNullOrEmpty(SavedName) == false;
 
         private void Reset()
         {
@@ -129,11 +154,11 @@ namespace WSFGameJam2026.Leaderboard
             if (submitButton)
                 submitButton.onClick.AddListener(SubmitButton_OnClick);
 
+            if (resetButton)
+                resetButton.onClick.AddListener(ResetButton_OnClick);
+
             if (nameInput)
-            {
                 nameInput.characterLimit = MaxNameLength;
-                nameInput.text = PlayerPrefs.GetString(NameKey, string.Empty);
-            }
 
             if (scoreCollector)
                 scoreCollector.OnScoreChanged += ScoreCollector_OnScoreChanged;
@@ -190,7 +215,7 @@ namespace WSFGameJam2026.Leaderboard
             if (isSubmitting || scoreCollector == null || scoreCollector.CanSubmit == false)
                 return;
 
-            var playerName = LeaderboardService.CleanName(nameInput.text, MaxNameLength);
+            var playerName = HasAccount ? SavedName : LeaderboardService.CleanName(nameInput.text, MaxNameLength);
             if (LeaderboardService.IsNameValid(playerName) == false)
             {
                 SetStatus(nameTooShortText);
@@ -200,7 +225,6 @@ namespace WSFGameJam2026.Leaderboard
             isSubmitting = true;
             submitButton.interactable = false;
             SetStatus(sendingText);
-            PlayerPrefs.SetString(NameKey, playerName);
 
             bool isSent = await service.SubmitScoreAsync(playerName, scoreCollector.Score);
             isSubmitting = false;
@@ -214,13 +238,43 @@ namespace WSFGameJam2026.Leaderboard
                 return;
             }
 
+            PlayerPrefs.SetString(NameKey, playerName);
             scoreCollector.MarkSubmitted();
+            ShowEntry();
+            RefreshAsync();
+        }
+
+        private async void ResetAccountAsync()
+        {
+            bool isReset = await service.ResetAccountAsync();
+            if (this == null)
+                return;
+
+            if (isReset == false)
+            {
+                SetStatus(resetFailedText);
+                return;
+            }
+
+            PlayerPrefs.DeleteKey(NameKey);
+            if (nameInput)
+                nameInput.text = string.Empty;
+
             ShowEntry();
             RefreshAsync();
         }
 
         private void ShowEntry()
         {
+            if (accountRow)
+                accountRow.SetActive(HasAccount);
+
+            if (HasAccount && accountLabel)
+                accountLabel.text = string.Format(accountFormat, SavedName);
+
+            if (nameInput)
+                nameInput.gameObject.SetActive(HasAccount == false);
+
             bool canSubmit = scoreCollector && scoreCollector.CanSubmit;
             if (entryPanel)
                 entryPanel.SetActive(canSubmit);
@@ -282,6 +336,11 @@ namespace WSFGameJam2026.Leaderboard
             Open();
         }
 
+        private void ResetButton_OnClick()
+        {
+            ResetAccountAsync();
+        }
+
         private void SubmitButton_OnClick()
         {
             SubmitAsync();
@@ -300,6 +359,9 @@ namespace WSFGameJam2026.Leaderboard
 
             if (submitButton)
                 submitButton.onClick.RemoveListener(SubmitButton_OnClick);
+
+            if (resetButton)
+                resetButton.onClick.RemoveListener(ResetButton_OnClick);
 
             if (scoreCollector)
                 scoreCollector.OnScoreChanged -= ScoreCollector_OnScoreChanged;

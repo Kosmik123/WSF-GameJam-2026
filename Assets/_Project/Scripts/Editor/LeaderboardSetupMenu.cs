@@ -83,6 +83,12 @@ namespace WSFGameJam2026.Editor
             var status = Label(panel, "Status", string.Empty, 13f, Muted);
             Size(status.rectTransform, 396f, 18f);
 
+            var account = Row(panel, "Account", 10f, TextAnchor.MiddleLeft);
+            var accountLabel = Label(account, "Label", "Grasz jako:", 15f, Ivory);
+            Size(accountLabel.rectTransform, 284f, 32f);
+            var reset = TextButton(account, "Reset", "RESET", 12f, WithAlpha(Obsidian, 0.6f), DangerSoft, WithAlpha(MawRed, 0.6f), true, 0.1f, 102f, 32f);
+            account.gameObject.SetActive(false);
+
             var entry = Column(panel, "Entry", 8f, TextAnchor.UpperLeft);
             var score = Label(entry, "Score", "Twój wynik: 0", 15f, Gold, bold: true);
             Size(score.rectTransform, 396f, 20f);
@@ -110,6 +116,9 @@ namespace WSFGameJam2026.Editor
             AztecUiData.Set(leaderboardScreen, "scoreLabel", score);
             AztecUiData.Set(leaderboardScreen, "nameInput", nameInput);
             AztecUiData.Set(leaderboardScreen, "submitButton", submit);
+            AztecUiData.Set(leaderboardScreen, "accountRow", account.gameObject);
+            AztecUiData.Set(leaderboardScreen, "accountLabel", accountLabel);
+            AztecUiData.Set(leaderboardScreen, "resetButton", reset);
             SetRows(leaderboardScreen, rowViews);
 
             var serialized = new SerializedObject(leaderboardScreen);

@@ -88,6 +88,32 @@ namespace WSFGameJam2026.Leaderboard
             }
         }
 
+        /// <summary>
+        /// Signs the player out and forgets the account: the next score is sent from a new anonymous account.
+        /// The top list shown by the cache is kept. Returns false when it did not work.
+        /// </summary>
+        public async Task<bool> ResetAccountAsync()
+        {
+            try
+            {
+                if (UnityServices.State == ServicesInitializationState.Uninitialized)
+                    await UnityServices.InitializeAsync();
+
+                if (AuthenticationService.Instance.IsSignedIn)
+                    AuthenticationService.Instance.SignOut(true);
+                else
+                    AuthenticationService.Instance.ClearSessionToken();
+
+                signInTask = null;
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"Leaderboard: the account could not be reset ({exception.Message}).");
+                return false;
+            }
+        }
+
         private Task EnsureSignedInAsync()
         {
             signInTask ??= SignInAsync();
