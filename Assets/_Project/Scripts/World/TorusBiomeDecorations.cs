@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using WSFGameJam2026.Head;
 using WSFGameJam2026.Player;
 
 namespace WSFGameJam2026.World
@@ -46,10 +47,10 @@ namespace WSFGameJam2026.World
         private TorusPropCatalog propCatalog;
 
         [Header("Toppling Before The Head")]
-        [Tooltip("Tall assets (trees, columns) fall over when the head comes this close to them, in meters along the body ahead of the head's front.")]
+        [Tooltip("Tall assets (trees, columns) fall over when the head comes this close to them, in degrees of theta ahead of the head's front.")]
         [SerializeField]
         [Min(0f)]
-        private float toppleDistance = 70f;
+        private float toppleDistanceDegrees = 13f;
 
         [Tooltip("An asset topples when it is taller than this, in meters.")]
         [SerializeField]
@@ -563,7 +564,7 @@ namespace WSFGameJam2026.World
             appliedHeadVersion = headTerrain.Version;
             headTerrain.GetAffectedRange(out float rangeStart, out float rangeLength);
             float minorRadius = world.MinorRadius;
-            float toppleReach = toppleDistance / Mathf.Max(world.MajorRadius, 1f);
+            float toppleReach = toppleDistanceDegrees * Mathf.Deg2Rad;
             float headFront = headTerrain.NeckTheta + headTerrain.HeadLength;
             rangeLength = Mathf.Max(rangeLength, headFront + toppleReach - rangeStart);
 
@@ -637,6 +638,51 @@ namespace WSFGameJam2026.World
 
             matrix.SetColumn(3, new Vector4(position.x, position.y, position.z, 1f));
             return matrix;
+        }
+
+        // Rings around the tube: cyan where the assets start to lean (ahead of the head), white at the front of the head.
+        private void OnDrawGizmosSelected()
+        {
+            var gizmoWorld = world ? world : FindAnyObjectByType<TorusWorld>();
+            if (gizmoWorld == null)
+                return;
+
+            float frontTheta;
+            var headTerrain = gizmoWorld.HeadTerrain;
+            if (headTerrain != null && headTerrain.IsActive)
+            {
+                frontTheta = headTerrain.NeckTheta + headTerrain.HeadLength;
+            }
+            else
+            {
+                // No head terrain (edit mode): the pivot of the head, read from where it stands (theta 0 is on +Z, growing towards +X).
+                var head = FindAnyObjectByType<HeadMovement>();
+                if (head == null)
+                    return;
+
+                var localPosition = gizmoWorld.transform.InverseTransformPoint(head.transform.position);
+                frontTheta = Mathf.Atan2(localPosition.x, localPosition.z);
+            }
+
+            var previousMatrix = Gizmos.matrix;
+            Gizmos.matrix = gizmoWorld.transform.localToWorldMatrix;
+            Gizmos.color = Color.white;
+            DrawRing(gizmoWorld, frontTheta);
+            Gizmos.color = Color.cyan;
+            DrawRing(gizmoWorld, frontTheta + toppleDistanceDegrees * Mathf.Deg2Rad);
+            Gizmos.matrix = previousMatrix;
+        }
+
+        private static void DrawRing(TorusWorld targetWorld, float ringTheta)
+        {
+            const int segments = 48;
+            var previous = TorusGeometry.GetPoint(targetWorld.MajorRadius, targetWorld.MinorRadius, ringTheta, (segments - 1) * TorusGeometry.TwoPi / segments);
+            for (int i = 0; i < segments; i++)
+            {
+                var current = TorusGeometry.GetPoint(targetWorld.MajorRadius, targetWorld.MinorRadius, ringTheta, i * TorusGeometry.TwoPi / segments);
+                Gizmos.DrawLine(previous, current);
+                previous = current;
+            }
         }
 
         private void Clear()
