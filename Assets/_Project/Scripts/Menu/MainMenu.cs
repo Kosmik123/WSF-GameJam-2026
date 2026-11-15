@@ -69,6 +69,10 @@ namespace WSFGameJam2026.Menu
         private Behaviour[] pausedInMenu;
 
         private bool isInMenu;
+
+        /// <summary>True from the start until Play is pressed.</summary>
+        public bool IsInMenu => isInMenu;
+
         private readonly List<Canvas> hiddenCanvases = new List<Canvas>();
 
         private void Reset()
@@ -129,7 +133,7 @@ namespace WSFGameJam2026.Menu
             var menuCanvas = menuScreen ? menuScreen.GetComponentInParent<Canvas>() : null;
             foreach (var canvas in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
             {
-                if (canvas.enabled && canvas != menuCanvas && canvas.isRootCanvas)
+                if (canvas.enabled && canvas != menuCanvas && canvas.isRootCanvas && canvas.TryGetComponent<KeepVisibleInMenu>(out _) == false)
                 {
                     canvas.enabled = false;
                     hiddenCanvases.Add(canvas);

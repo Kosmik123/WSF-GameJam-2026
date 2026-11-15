@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using WSFGameJam2026.Editor.AztecUi;
 using WSFGameJam2026.Leaderboard;
-using WSFGameJam2026.Menus;
+using WSFGameJam2026.Menu;
 using static WSFGameJam2026.Editor.AztecUi.UiKit;
 
 namespace WSFGameJam2026.Editor
@@ -98,17 +98,15 @@ namespace WSFGameJam2026.Editor
 
             var back = TextButton(panel, "Back", "WRÓĆ", 15f, WithAlpha(Obsidian, 0.6f), Ivory, Line, true, 0.14f, 396f, 48f);
 
-            var subScreen = root.AddComponent<SubScreen>();
-            AztecUiData.Set(subScreen, "screen", screen.GetComponent<CanvasGroup>());
-            AztecUiData.Set(subScreen, "backButton", back);
-            AztecUiData.Set(subScreen, "cancelAction", PlayerSetupMenu.FindActionReference("UI", "Cancel"));
-            AztecUiData.Set(subScreen, "firstSelected", back);
+            root.AddComponent<KeepVisibleInMenu>();
             screen.gameObject.SetActive(false);
 
             var leaderboardScreen = root.AddComponent<LeaderboardScreen>();
             AztecUiData.Set(leaderboardScreen, "service", service);
             AztecUiData.Set(leaderboardScreen, "scoreCollector", collector);
-            AztecUiData.Set(leaderboardScreen, "subScreen", subScreen);
+            AztecUiData.Set(leaderboardScreen, "window", screen.gameObject);
+            AztecUiData.Set(leaderboardScreen, "backButton", back);
+            AztecUiData.Set(leaderboardScreen, "cancelAction", PlayerSetupMenu.FindActionReference("UI", "Cancel"));
             AztecUiData.Set(leaderboardScreen, "openButton", openButton);
             AztecUiData.Set(leaderboardScreen, "openButtonGroup", buttonGroup);
             AztecUiData.Set(leaderboardScreen, "statusLabel", status);

@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using WSFGameJam2026.Menus;
+using WSFGameJam2026.Menu;
 using WSFGameJam2026.Rounds;
 
 namespace WSFGameJam2026.Leaderboard
@@ -30,9 +32,6 @@ namespace WSFGameJam2026.Leaderboard
         [SerializeField]
         private ScoreCollector scoreCollector;
 
-        [SerializeField]
-        private SubScreen subScreen;
-
         [Header("Opening")]
         [Tooltip("Button of the menu that opens the window.")]
         [SerializeField]
@@ -42,9 +41,20 @@ namespace WSFGameJam2026.Leaderboard
         [SerializeField]
         private CanvasGroup openButtonGroup;
 
-        [Tooltip("Optional. When set, the open button is visible only while this menu is on the screen. Connect it in the scene.")]
+        [Tooltip("Optional. When set, the open button is visible only while the game is in this menu. Connect it in the scene.")]
         [SerializeField]
         private MainMenu mainMenu;
+
+        [Tooltip("The window with the table. Switched off until it is opened.")]
+        [SerializeField]
+        private GameObject window;
+
+        [SerializeField]
+        private Button backButton;
+
+        [Tooltip("Optional. Closes the window (UI/Cancel). Its action map is enabled by its owner, not here.")]
+        [SerializeField]
+        private InputActionReference cancelAction;
 
         [Header("Death")]
         [Tooltip("Optional. When set, the window opens after a death and closing it returns to the main menu. Connect it in the scene; "
@@ -133,6 +143,8 @@ namespace WSFGameJam2026.Leaderboard
         private bool isSubmitting;
         private bool returnsToMenu;
 
+        public bool IsOpen => window && window.activeSelf;
+
         private string SavedName => PlayerPrefs.GetString(NameKey, string.Empty);
 
         private bool HasAccount => string.IsNullOrEmpty(SavedName) == false;
@@ -141,7 +153,6 @@ namespace WSFGameJam2026.Leaderboard
         {
             service = GetComponentInChildren<LeaderboardService>();
             scoreCollector = GetComponentInChildren<ScoreCollector>();
-            subScreen = GetComponentInChildren<SubScreen>();
             roundController = FindAnyObjectByType<RoundController>();
             mainMenu = FindAnyObjectByType<MainMenu>();
         }
@@ -163,8 +174,14 @@ namespace WSFGameJam2026.Leaderboard
             if (scoreCollector)
                 scoreCollector.OnScoreChanged += ScoreCollector_OnScoreChanged;
 
-            if (subScreen)
-                subScreen.OnClosed += SubScreen_OnClosed;
+            if (backButton)
+                backButton.onClick.AddListener(BackButton_OnClick);
+
+            if (cancelAction)
+                cancelAction.action.performed += CancelAction_Performed;
+
+            if (window && IsOpen == false)
+                window.SetActive(false);
 
             if (roundController)
                 roundController.OnRunEnded += RoundController_OnRunEnded;
@@ -173,18 +190,42 @@ namespace WSFGameJam2026.Leaderboard
         private void Update()
         {
             if (mainMenu && openButtonGroup)
-                SetOpenButtonVisible(mainMenu.IsOpen && subScreen.IsOpen == false);
+                SetOpenButtonVisible(mainMenu.IsInMenu && IsOpen == false);
         }
 
         /// <summary>Opens the window and downloads the top list.</summary>
         public void Open()
         {
-            if (subScreen == null || subScreen.IsOpen)
+            if (window == null || IsOpen)
                 return;
 
-            subScreen.Open(openButton);
+            window.SetActive(true);
+            Select(backButton);
             ShowEntry();
             RefreshAsync();
+        }
+
+        /// <summary>Closes the window. After a death it also returns to the main menu.</summary>
+        public void Close()
+        {
+            if (IsOpen == false)
+                return;
+
+            window.SetActive(false);
+            if (returnsToMenu)
+            {
+                returnsToMenu = false;
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                return;
+            }
+
+            Select(openButton);
+        }
+
+        private static void Select(Selectable selectable)
+        {
+            if (selectable && EventSystem.current)
+                EventSystem.current.SetSelectedGameObject(selectable.gameObject);
         }
 
         private async void RefreshAsync()
@@ -322,13 +363,14 @@ namespace WSFGameJam2026.Leaderboard
             StartCoroutine(DeathOpeningCo());
         }
 
-        private void SubScreen_OnClosed()
+        private void BackButton_OnClick()
         {
-            if (returnsToMenu == false)
-                return;
+            Close();
+        }
 
-            returnsToMenu = false;
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        private void CancelAction_Performed(InputAction.CallbackContext context)
+        {
+            Close();
         }
 
         private void OpenButton_OnClick()
@@ -348,7 +390,7 @@ namespace WSFGameJam2026.Leaderboard
 
         private void ScoreCollector_OnScoreChanged(int score)
         {
-            if (subScreen && subScreen.IsOpen)
+            if (IsOpen)
                 ShowEntry();
         }
 
@@ -366,8 +408,11 @@ namespace WSFGameJam2026.Leaderboard
             if (scoreCollector)
                 scoreCollector.OnScoreChanged -= ScoreCollector_OnScoreChanged;
 
-            if (subScreen)
-                subScreen.OnClosed -= SubScreen_OnClosed;
+            if (backButton)
+                backButton.onClick.RemoveListener(BackButton_OnClick);
+
+            if (cancelAction)
+                cancelAction.action.performed -= CancelAction_Performed;
 
             if (roundController)
                 roundController.OnRunEnded -= RoundController_OnRunEnded;
