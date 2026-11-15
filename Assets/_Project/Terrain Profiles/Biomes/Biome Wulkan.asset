@@ -16,6 +16,32 @@ MonoBehaviour:
   materialOverride: {fileID: 2100000, guid: 0dacb2cedd11323459eac687ed36ee9f, type: 2}
   aroundTiling: 1
   seamBlendWidth: 0
+  shaping:
+    tierHeight: 9
+    tierCount: 2
+    plateauSize: 70
+    coverage: 0.25
+    cliffSoftness: 0.02
+    seed: 4
+    pathHalfWidth: 0.05
+    pathWander: 0.07
+    hasBasins: 1
+    basinLevel: -0.2
+    shoreWidth: 0.25
+    basinDepth: 2.5
+    hasWater: 0
+    surfaceOffset: 0.25
+    isPainted: 1
+    brightnessSpread: {x: 0.05, y: 0.12}
+    cliffDark: {r: 0.07, g: 0.07, b: 0.08, a: 1}
+    cliffLight: {r: 0.26, g: 0.25, b: 0.27, a: 1}
+    strataColors: []
+    strataBand: 2
+    topCover: {r: 0.4, g: 0.38, b: 0.37, a: 0.4}
+    tierLighten: 0.06
+    lavaCrackChance: 0.3
+    lavaColor: {r: 1, g: 0.45, b: 0.1, a: 1}
+    basinColor: {r: 0, g: 0, b: 0, a: 0}
   terrainMesh: {fileID: 6093254408856565865, guid: ebeefd2fe8a55b7438a9687f110866ce, type: 3}
   decorationModel: {fileID: 919132149155446097, guid: ebeefd2fe8a55b7438a9687f110866ce, type: 3}
   gridResolutionAlong: 158
