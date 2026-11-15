@@ -5,7 +5,6 @@ using WSFGameJam2026.Combat;
 using WSFGameJam2026.Enemies;
 using WSFGameJam2026.Head;
 using WSFGameJam2026.Player;
-using WSFGameJam2026.Progression;
 using WSFGameJam2026.Skills;
 using WSFGameJam2026.World;
 
@@ -49,9 +48,9 @@ namespace WSFGameJam2026.Rounds
         [SerializeField]
         private SkillSlots playerSkills;
 
-        [Tooltip("Optional. Level and XP of the player, back to level 1 when a new run starts.")]
+        [Tooltip("The first round starts when the scene starts. Turn it off when something else (the main menu) calls StartRun.")]
         [SerializeField]
-        private Experience playerExperience;
+        private bool startAutomatically = true;
 
         [Header("Start of a round")]
         [Tooltip("The player starts this far in front of the head, in degrees of theta.")]
@@ -91,8 +90,24 @@ namespace WSFGameJam2026.Rounds
         [Min(0f)]
         private float deathDelaySeconds = 3f;
 
+        [Tooltip("Off: after a death the run waits for RestartRun, so the death screen can offer its buttons. The delay above still runs first.")]
+        [SerializeField]
+        private bool restartAutomatically = true;
+
         private Health playerHealth;
         private TorusObject playerObject;
+        private bool isBreakSkipped;
+        private bool isRestartRequested;
+
+        [Header("States")]
+        [SerializeField]
+        private float breakTimeLeft;
+
+        /// <summary>Time left until the next round starts, during the break after a won round. 0 otherwise.</summary>
+        public float BreakTimeLeft => breakTimeLeft;
+
+        /// <summary>True after a death while the run waits for <see cref="RestartRun"/>.</summary>
+        public bool IsWaitingForRestart { get; private set; }
 
         /// <summary>Best number of completed rounds, saved between sessions.</summary>
         public int BestRounds => PlayerPrefs.GetInt(BestRoundsKey, 0);
@@ -105,7 +120,6 @@ namespace WSFGameJam2026.Rounds
             spawner = FindAnyObjectByType<EnemySpawner>();
             playerCombat = FindAnyObjectByType<PlayerCombat>();
             playerSkills = FindAnyObjectByType<SkillSlots>();
-            playerExperience = FindAnyObjectByType<Experience>();
         }
 
         private void Awake()
@@ -122,7 +136,48 @@ namespace WSFGameJam2026.Rounds
 
         private void Start()
         {
+            if (startAutomatically)
+                BeginRound();
+        }
+
+        /// <summary>Starts the first round from the main menu (when "Start Automatically" is off).</summary>
+        public void StartRun()
+        {
             BeginRound();
+        }
+
+        /// <summary>Speed of the jaw in the given round, as a multiplier of its base speed.</summary>
+        public float GetJawSpeedMultiplier(int round)
+        {
+            return 1f + jawSpeedPerRound * Mathf.Max(0, round - 1);
+        }
+
+        /// <summary>Multiplier of the number and level of enemies in the given round.</summary>
+        public float GetEnemyMultiplier(int round)
+        {
+            return 1f + enemiesPerRound * Mathf.Max(0, round - 1);
+        }
+
+        /// <summary>Ends the break after a won round at once and starts the next round.</summary>
+        public void ContinueNow()
+        {
+            isBreakSkipped = true;
+        }
+
+        /// <summary>Starts a new run after a death (when the run does not restart by itself).</summary>
+        public void RestartRun()
+        {
+            isRestartRequested = true;
+        }
+
+        /// <summary>Puts the player the start gap in front of the jaw where it is now. The menu keeps the parked player there while the jaw moves.</summary>
+        public void PlacePlayerAheadOfHead()
+        {
+            var startTheta = head.Theta + startGapDegrees * Mathf.Deg2Rad;
+            var startAngles = new TorusAngles(startTheta, startPhiDegrees * Mathf.Deg2Rad);
+            var world = playerObject.World;
+            var facing = world.transform.TransformDirection(TorusGeometry.GetThetaDirection(startAngles.Theta));
+            playerObject.Place(world, startAngles, facing);
         }
 
         private void OnDisable()
@@ -152,8 +207,15 @@ namespace WSFGameJam2026.Rounds
             playerHealth.MakeInvulnerable(roundBreakSeconds);
             playerHealth.Heal(Mathf.CeilToInt(playerHealth.MaxHealth * healOnRoundCompleted));
 
-            yield return new WaitForSeconds(roundBreakSeconds);
+            isBreakSkipped = false;
+            breakTimeLeft = roundBreakSeconds;
+            while (breakTimeLeft > 0f && isBreakSkipped == false)
+            {
+                breakTimeLeft -= Time.deltaTime;
+                yield return null;
+            }
 
+            breakTimeLeft = 0f;
             roundState.StartNextRound();
             BeginRound();
         }
@@ -174,37 +236,31 @@ namespace WSFGameJam2026.Rounds
 
             OnRunEnded?.Invoke(completed, best, isNewBest);
 
+            isRestartRequested = false;
             yield return new WaitForSeconds(deathDelaySeconds);
 
+            IsWaitingForRestart = restartAutomatically == false;
+            while (IsWaitingForRestart && isRestartRequested == false)
+                yield return null;
+
+            IsWaitingForRestart = false;
             roundState.ResetRounds();
             playerCombat.Revive();
             if (playerSkills)
                 playerSkills.ResetSkills();
 
-            // After Revive: the level reset changes the maximum health and fills it again.
-            if (playerExperience)
-                playerExperience.ResetProgress();
-
             BeginRound();
         }
 
-        // Puts the jaw and the player at the start, clears the enemies and sets the difficulty of the current round.
+        // The jaw never goes back: it keeps going round and round. The player is put the start gap in front of it. Clears the enemies and sets the difficulty of the current round.
         private void BeginRound()
         {
-            var roundsPlayed = roundState.Round - 1;
-
-            head.SpeedMultiplier = 1f + jawSpeedPerRound * roundsPlayed;
-            head.ResetPosition();
+            head.SpeedMultiplier = GetJawSpeedMultiplier(roundState.Round);
             head.IsMoving = true;
 
-            spawner.RoundMultiplier = 1f + enemiesPerRound * roundsPlayed;
+            spawner.RoundMultiplier = GetEnemyMultiplier(roundState.Round);
             spawner.Clear();
-             
-            var startTheta = head.Theta + startGapDegrees * Mathf.Deg2Rad;
-            var startAngles = new TorusAngles(startTheta, startPhiDegrees * Mathf.Deg2Rad);
-            var world = playerObject.World;
-            var facing = world.transform.TransformDirection(TorusGeometry.GetThetaDirection(startAngles.Theta));
-            playerObject.Place(world, startAngles, facing);
+            PlacePlayerAheadOfHead();
 
             weakPoint.ResetState();
             OnRoundStarted?.Invoke(roundState.Round);

@@ -20,6 +20,11 @@ namespace WSFGameJam2026.Skills
         private Sprite icon;
         public Sprite Icon => icon;
 
+        [Tooltip("Color of the skill in the UI: the letter in its slot when it has no icon, the card on level up.")]
+        [SerializeField]
+        private Color accentColor = new Color(0.93f, 0.9f, 0.84f, 1f);
+        public Color AccentColor => accentColor;
+
         [Tooltip("Exactly 4 elements: base, upgrade 1, upgrade 2, evolution.")]
         [SerializeField]
         private SkillTier[] tiers = new SkillTier[MaxTier + 1];

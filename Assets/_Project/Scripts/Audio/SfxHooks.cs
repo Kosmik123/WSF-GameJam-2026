@@ -31,7 +31,7 @@ namespace WSFGameJam2026.Audio
         private RoundController roundController;
 
         [SerializeField]
-        private Experience experience;
+        private PlayerLevel playerLevel;
 
         [Header("Player")]
         [SerializeField]
@@ -82,7 +82,7 @@ namespace WSFGameJam2026.Audio
             rangedAttack = playerCombat.GetComponent<RangedAttack>();
             skillUser = playerCombat.GetComponent<SkillUser>();
             playerHealth = playerCombat.GetComponent<Health>();
-            experience = playerCombat.GetComponent<Experience>();
+            playerLevel = playerCombat.GetComponent<PlayerLevel>();
         }
 
         private void OnEnable()
@@ -111,8 +111,8 @@ namespace WSFGameJam2026.Audio
                 roundController.OnRunEnded += RoundController_OnRunEnded;
             }
 
-            if (experience)
-                experience.OnLevelUp += Experience_OnLevelUp;
+            if (playerLevel)
+                playerLevel.OnLevelUp += PlayerLevel_OnLevelUp;
 
             Enemy.OnAnyEnemyDamaged += Enemy_OnAnyEnemyDamaged;
             Enemy.OnAnyEnemyDied += Enemy_OnAnyEnemyDied;
@@ -150,7 +150,7 @@ namespace WSFGameJam2026.Audio
             Sfx.Play(playerDeath, PlayerPosition);
         }
 
-        private void Experience_OnLevelUp(int level)
+        private void PlayerLevel_OnLevelUp(int level)
         {
             Sfx.Play(levelUp);
         }
@@ -204,8 +204,8 @@ namespace WSFGameJam2026.Audio
                 roundController.OnRunEnded -= RoundController_OnRunEnded;
             }
 
-            if (experience)
-                experience.OnLevelUp -= Experience_OnLevelUp;
+            if (playerLevel)
+                playerLevel.OnLevelUp -= PlayerLevel_OnLevelUp;
 
             Enemy.OnAnyEnemyDamaged -= Enemy_OnAnyEnemyDamaged;
             Enemy.OnAnyEnemyDied -= Enemy_OnAnyEnemyDied;

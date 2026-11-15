@@ -88,7 +88,7 @@ namespace WSFGameJam2026.Editor
             SetIfEmpty(hooks, "roundCompleted", roundCompleted);
             SetIfEmpty(hooks, "newRecord", newRecord);
             SetIfEmpty(hooks, "levelUp", levelUp);
-            SetIfEmpty(hooks, "experience", player.GetComponent<Progression.Experience>());
+            SetIfEmpty(hooks, "playerLevel", player.GetComponent<Progression.PlayerLevel>());
 
             if (Object.FindAnyObjectByType<AudioListener>() == null)
                 Debug.LogWarning("Audio setup: the scene has no AudioListener, nothing will be heard. Add one to the camera.");
