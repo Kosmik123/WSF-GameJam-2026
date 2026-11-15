@@ -6,9 +6,9 @@ using WSFGameJam2026.World;
 namespace WSFGameJam2026.Head
 {
     /// <summary>
-    /// Moves the snake's head (the jaw) along the centre line of the torus, at a constant speed. When the player comes close from behind,
-    /// the head speeds up and runs away: the speed grows linearly with the distance, from the base speed at the distance where
-    /// the speedup starts to the maximum speed at the distance where it is reached.
+    /// Moves the snake's head (the jaw) along the centre line of the torus. The player runs away from it, so the speed depends on how far
+    /// ahead of the head the player is: the closer the player (the easier the head can eat him), the slower the head, down to the minimum speed
+    /// at the threshold distance and closer. Beyond the threshold the speed grows linearly with the distance, without a limit.
     /// Its local forward is always tangent to the torus, in the direction of growing theta.
     /// </summary>
     public class HeadMovement : MonoBehaviour
@@ -18,26 +18,22 @@ namespace WSFGameJam2026.Head
         [SerializeField]
         private TorusWorld world;
 
-        [Tooltip("Speed along the snake body in degrees per second. Negative = opposite direction.")]
+        [Header("Speed by the distance of the player (ahead of the head)")]
+        [Tooltip("The lowest speed of the head, at the threshold distance and closer, degrees per second. Negative = opposite direction.")]
         [FormerlySerializedAs("angularMoveSpeed")]
         [SerializeField]
         private float angularMoveSpeedDegrees = 5f;
 
-        [Header("Speedup when the player is close")]
-        [Tooltip("The player behind the head: the speed of the head when the player is as close as 'Max Speed Theta' or closer, degrees per second. Not more than the base speed = no speedup.")]
+        [Tooltip("Distance ahead of the head (degrees of theta) up to which the head moves at the lowest speed.")]
+        [FormerlySerializedAs("maxSpeedThetaDegrees")]
         [SerializeField]
         [Min(0f)]
-        private float maxSpeedDegrees = 12f;
+        private float closeThetaDegrees = 15f;
 
-        [Tooltip("Distance behind the head (degrees of theta) at which the head reaches the maximum speed.")]
+        [Tooltip("How much the speed grows (degrees per second) with every degree of theta of the distance beyond the threshold. No upper limit.")]
         [SerializeField]
         [Min(0f)]
-        private float maxSpeedThetaDegrees = 15f;
-
-        [Tooltip("Distance behind the head (degrees of theta) from which the head starts to speed up. Further than this the speed is the base one.")]
-        [SerializeField]
-        [Min(0f)]
-        private float speedupStartThetaDegrees = 60f;
+        private float speedGainPerDegree = 0.15f;
 
         [Tooltip("The player whose distance counts. Empty = found automatically.")]
         [SerializeField]
@@ -52,6 +48,10 @@ namespace WSFGameJam2026.Head
         [Header("States")]
         [SerializeField]
         private float theta;
+
+        [Tooltip("Shown for balancing, set every frame (do not edit): the speed of the head now with the round multiplier, in degrees per second. 0 when it is stopped.")]
+        [SerializeField]
+        private float currentSpeedDegrees;
 
         /// <summary>Angle along the snake body, in radians.</summary>
         public float Theta => theta;
@@ -78,36 +78,34 @@ namespace WSFGameJam2026.Head
 
         private void Update()
         {
+            currentSpeedDegrees = IsMoving ? CurrentSpeedDegrees * SpeedMultiplier : 0f;
             if (IsMoving == false)
                 return;
 
-            theta = Mathf.Repeat(theta + CurrentSpeedDegrees * SpeedMultiplier * Mathf.Deg2Rad * Time.deltaTime, TwoPi);
+            theta = Mathf.Repeat(theta + currentSpeedDegrees * Mathf.Deg2Rad * Time.deltaTime, TwoPi);
             Refresh();
         }
 
-        /// <summary>Speed along the body now, in degrees per second, before the round multiplier: the base speed, or more when the player is close behind.</summary>
-        public float CurrentSpeedDegrees => player ? GetSpeedDegrees(GetDistanceBehindDegrees(player.Angles.Theta)) : angularMoveSpeedDegrees;
+        /// <summary>Speed along the body now, in degrees per second, before the round multiplier: depends on how far ahead of the head the player is.</summary>
+        public float CurrentSpeedDegrees => player ? GetSpeedDegrees(GetDistanceAheadDegrees(player.Angles.Theta)) : angularMoveSpeedDegrees;
 
         /// <summary>
-        /// Speed of the head (degrees per second, before the round multiplier) when the player is the given distance behind it.
-        /// The base speed from <see cref="speedupStartThetaDegrees"/> and further, the maximum speed from <see cref="maxSpeedThetaDegrees"/>
-        /// and closer, a straight line between them.
+        /// Speed of the head (degrees per second, before the round multiplier) when the player is the given distance ahead of it:
+        /// the lowest speed up to <see cref="closeThetaDegrees"/>, then growing linearly with the distance, with no limit.
         /// </summary>
-        public float GetSpeedDegrees(float distanceBehindDegrees)
+        public float GetSpeedDegrees(float distanceAheadDegrees)
         {
-            float closest = maxSpeedThetaDegrees;
-            float farthest = Mathf.Max(speedupStartThetaDegrees, closest + 0.01f);
-            float closeness = Mathf.InverseLerp(farthest, closest, distanceBehindDegrees);
-            return Mathf.Lerp(angularMoveSpeedDegrees, maxSpeedDegrees, closeness);
+            return angularMoveSpeedDegrees + speedGainPerDegree * Mathf.Max(0f, distanceAheadDegrees - closeThetaDegrees);
         }
 
-        // How far behind the head the given theta (radians) is, in degrees [0, 360). A player ahead of the head is far behind it.
-        private float GetDistanceBehindDegrees(float playerTheta)
+        /// <summary>How far ahead of the head the given theta (radians) is, in degrees [0, 180]. A player behind the head counts as at the head (0).</summary>
+        public float GetDistanceAheadDegrees(float otherTheta)
         {
-            return Mathf.Repeat(theta - playerTheta, TwoPi) * Mathf.Rad2Deg;
+            float degrees = Mathf.Repeat(otherTheta - theta, TwoPi) * Mathf.Rad2Deg;
+            return degrees <= 180f ? degrees : 0f;
         }
 
-        // Rings around the tube: yellow where the head starts to speed up, red where it reaches the maximum speed (both behind the head), white at the head.
+        // Rings around the tube: white at the head, yellow at the threshold distance ahead of it (closer than this the head is at its lowest speed).
         private void OnDrawGizmosSelected()
         {
             var gizmoWorld = world ? world : FindAnyObjectByType<TorusWorld>();
@@ -129,10 +127,7 @@ namespace WSFGameJam2026.Head
             DrawRing(gizmoWorld, headTheta);
 
             Gizmos.color = Color.yellow;
-            DrawRing(gizmoWorld, headTheta - speedupStartThetaDegrees * Mathf.Deg2Rad);
-
-            Gizmos.color = Color.red;
-            DrawRing(gizmoWorld, headTheta - maxSpeedThetaDegrees * Mathf.Deg2Rad);
+            DrawRing(gizmoWorld, headTheta + closeThetaDegrees * Mathf.Deg2Rad);
 
             Gizmos.matrix = previousMatrix;
         }

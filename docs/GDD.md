@@ -31,9 +31,9 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 ## 5. Zagrożenie: paszcza
 
 - Strefa śmierci w kształcie szczęki węża, która krąży po torusie.
-- Porusza się **jednostajnie**, ze stałą prędkością kątową. Nie przyspiesza w ramach rundy.
+- Gracz przed nią **ucieka**. Jej prędkość zależy od odległości gracza (w θ, przed głową): im bliżej gracz (im łatwiej go pożreć), tym wolniejsza, do progu minimalnej prędkości (`angularMoveSpeedDegrees` w odległości do `closeThetaDegrees`). Dalej przyspiesza liniowo z odległością (`speedGainPerDegree`), bez górnej granicy, więc nie da się jej zgubić samym biegiem. Mnożnik rundy dalej przyspiesza ją z rundy na rundę.
 - Przebywanie w strefie paszczy **stopniowo odbiera życie graczowi** (obrażenia na sekundę, `damagePerSecond`), a NPC **zabija od razu**. Tryb wybiera się w komponencie `Health` (pole `Maw Damage Mode`: Instant lub Gradual). Obrażenia ignorują nietykalność (unik, chwila po trafieniu), więc unik nie ratuje przed paszczą. Gdy HP gracza spadnie do 0, ginie tą samą ścieżką co od wrogów (`OnDied`). Wykrywanie liczymy z kątów `θ` gracza i głowy, bez fizyki i colliderów. Strefa ma nieregularny kształt zależny od `φ`: górna i dolna szczęka sięgają dalej do przodu, policzki są cofnięte do tyłu (dwie krzywe w Inspektorze: zasięg do przodu i do tyłu). Strefę można też przesunąć wzdłuż ciała: o ile obiekt strefy jest przesunięty względem głowy w jej osi „do przodu”, o tyle przesuwa się cała strefa. Kształt obraca się wokół ciała razem z rotacją obiektu strefy względem głowy (obrót wokół jego osi „do przodu”), więc obracając strefę zmieniamy, gdzie są szczęki, a gdzie policzki.
-- Gracz musi być szybszy od paszczy, żeby ją okrążyć, więc walka z wrogami kosztuje czas.
+- Gracz ucieka przed paszczą, a walka z wrogami kosztuje czas, który zmniejsza dystans do niej.
 - Wygląd: animowana szczęka (otwiera się i zamyka), po bokach strefy zagrożenia efekty (poświata, dźwięk, drgania kamery).
 
 ## 6. Pętla rozgrywki
@@ -82,7 +82,7 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 - **Poziomy gracza:** wrogowie dają doświadczenie (XP), po zebraniu progu gracz awansuje. Każdy poziom zwiększa statystyki (HP, obrażenia, szybkość ataku).
   - Prototyp: próg 60 XP na poziom 2, każdy kolejny ×1,35; poziom daje +12 HP i +6% obrażeń. Przy awansie gra staje i gracz wybiera jedną z trzech kart: nowy skill, ulepszenie albo ewolucję (sekcja 7). XP dają tylko wrogowie zabici przez gracza.
 - **Ekwipunek:** wrogowie (i skrzynie) zostawiają przedmioty: broń, pancerz, dodatki. Ekwipunek zmienia statystyki i może dawać prostą zdolność. **[DO USTALENIA]** liczba slotów i typów przedmiotów.
-- **Trudność zależy od bliskości paszczy.** Liczymy ją dla każdego segmentu z jego odległości od paszczy, mierzonej w kierunku biegu gracza:
+- **Trudność rośnie z czasem gry i nie ma górnej granicy.** Gra to endless runner: im dłużej trwa bieżące przejście (nie liczą się przerwy między rundami, zeruje się po śmierci), tym więcej, szybciej i silniej pojawiają się wrogowie, aż w pewnym momencie nie da się przeżyć. Trudność = `(czas / secondsPerDifficulty)^difficultyExponent` (`EnemySpawner`), poziom wroga i liczebność rosną liniowo z nią bez ograniczenia (tylko twardy limit `maxAliveLimit` i minimalny odstęp `minSpawnInterval` chronią wydajność). Poniższa lista opisuje stary pomysł (odległość od paszczy) i jest do przepisania:
   - blisko paszczy: wrogowie najsłabsi (dobre miejsce na zdobywanie XP),
   - dalej: coraz silniejsi,
   - tuż za paszczą, przy czubku głowy: najsilniejsi (dojście do wrażliwego punktu jest najtrudniejsze).

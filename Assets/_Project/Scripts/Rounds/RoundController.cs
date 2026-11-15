@@ -143,6 +143,7 @@ namespace WSFGameJam2026.Rounds
         /// <summary>Starts the first round from the main menu (when "Start Automatically" is off).</summary>
         public void StartRun()
         {
+            spawner.ResetPlayTime();
             BeginRound();
         }
 
@@ -245,6 +246,7 @@ namespace WSFGameJam2026.Rounds
 
             IsWaitingForRestart = false;
             roundState.ResetRounds();
+            spawner.ResetPlayTime();
             playerCombat.Revive();
             if (playerSkills)
                 playerSkills.ResetSkills();

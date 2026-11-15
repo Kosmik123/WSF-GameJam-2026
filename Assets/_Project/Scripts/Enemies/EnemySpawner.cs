@@ -9,8 +9,8 @@ namespace WSFGameJam2026.Enemies
 {
     /// <summary>
     /// Spawns groups of enemies on the torus a few seconds ahead of the player (GDD 8 and 9).
-    /// The level of every enemy is set once, at spawn, from the difficulty of the place where it appears
-    /// (distance from the jaw along the run direction) and the round multiplier. Enemies far behind the player are removed.
+    /// The level of every enemy is set once, at spawn, from the difficulty (it grows with the time of the run) and the round multiplier.
+    /// Enemies far behind the player are removed.
     /// </summary>
     public class EnemySpawner : MonoBehaviour
     {
@@ -26,9 +26,9 @@ namespace WSFGameJam2026.Enemies
             private float weight = 1f;
             public float Weight => weight;
 
-            [Tooltip("The enemy appears only where the difficulty (0-1) is at least this.")]
+            [Tooltip("The enemy appears only when the difficulty is at least this (1 = after 'Seconds Per Difficulty').")]
             [SerializeField]
-            [Range(0f, 1f)]
+            [Min(0f)]
             private float minDifficulty;
             public float MinDifficulty => minDifficulty;
 
@@ -44,7 +44,7 @@ namespace WSFGameJam2026.Enemies
         [SerializeField]
         private Health player;
 
-        [Tooltip("Optional. Without it the difficulty depends only on the round.")]
+        [Tooltip("Optional. The play time (and so the difficulty) counts only while the jaw moves: not in the breaks between rounds.")]
         [SerializeField]
         private HeadMovement head;
 
@@ -90,18 +90,45 @@ namespace WSFGameJam2026.Enemies
         private float despawnDistanceBehind = 30f;
 
         [Header("Difficulty")]
-        [Tooltip("Level at difficulty 0 (just ahead of the jaw) and 1 (right behind it, at the top of the head).")]
+        [Tooltip("Level of an enemy at difficulty 0 (the start of the run) and 1. Beyond 1 the level keeps growing in the same way.")]
         [SerializeField]
         private Vector2Int levelRange = new Vector2Int(1, 10);
 
-        [Tooltip("How the difficulty grows with the distance from the jaw (x = 0..1 distance, y = 0..1 difficulty).")]
+        [Tooltip("Seconds of play (of the current run) for the difficulty to reach 1. The difficulty has no top: it keeps growing, so at some point it can not be survived.")]
         [SerializeField]
-        private AnimationCurve difficultyCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+        [Min(1f)]
+        private float secondsPerDifficulty = 300f;
+
+        [Tooltip("1 = the difficulty grows evenly with the time. More than 1 = it grows faster and faster.")]
+        [SerializeField]
+        [Min(0.1f)]
+        private float difficultyExponent = 1.2f;
+
+        [Tooltip("Number of enemies at once and the pace of spawning at difficulty 1, as a multiple of the values at difficulty 0. Above 1 it keeps growing in the same way.")]
+        [SerializeField]
+        [Min(1f)]
+        private float intensityAtDifficultyOne = 1.5f;
+
+        [Tooltip("Hard limit of the enemies alive at once, for the performance.")]
+        [SerializeField]
+        [Min(1)]
+        private int maxAliveLimit = 60;
+
+        [Tooltip("The shortest time between spawns, whatever the difficulty.")]
+        [SerializeField]
+        [Min(0.05f)]
+        private float minSpawnInterval = 0.4f;
 
         private readonly List<Enemy> alive = new List<Enemy>();
         public IReadOnlyList<Enemy> Alive => alive;
 
         private float nextSpawnTime;
+
+        /// <summary>Seconds of the current run during which the jaw was moving.</summary>
+        public float PlayTime { get; private set; }
+
+        /// <summary>Number of enemies and pace of spawning from the difficulty: 1 at difficulty 0, 'Intensity At Difficulty One' at 1, and on without a limit.</summary>
+        private float Intensity => 1f + (intensityAtDifficultyOne - 1f) * GetDifficulty();
 
         /// <summary>Set by the round loop. Scales the enemy level and the number of enemies at once. 1 = first round.</summary>
         public float RoundMultiplier { get; set; } = 1f;
@@ -118,20 +145,22 @@ namespace WSFGameJam2026.Enemies
             Enemy.OnAnyEnemyDied += Enemy_OnAnyEnemyDied;
         }
 
-        /// <summary>Difficulty 0-1 of a place along the body: 0 just ahead of the jaw, 1 right behind it (GDD 9).</summary>
-        public float GetDifficulty(float theta)
+        /// <summary>Difficulty now: 0 at the start of the run, 1 after 'Seconds Per Difficulty', and it never stops growing.</summary>
+        public float GetDifficulty()
         {
-            if (head == null)
-                return 0f;
+            return Mathf.Pow(PlayTime / secondsPerDifficulty, difficultyExponent);
+        }
 
-            float distanceFromJaw = Mathf.Repeat((theta - head.Theta) * Mathf.Sign(runDirection), TorusGeometry.TwoPi) / TorusGeometry.TwoPi;
-            return Mathf.Clamp01(difficultyCurve.Evaluate(distanceFromJaw));
+        /// <summary>Starts counting the play time from zero (a new run).</summary>
+        public void ResetPlayTime()
+        {
+            PlayTime = 0f;
         }
 
         /// <summary>Level given to an enemy spawned at this theta. It never changes later.</summary>
         public int GetLevel(float difficulty)
         {
-            float baseLevel = Mathf.Lerp(levelRange.x, levelRange.y, difficulty);
+            float baseLevel = levelRange.x + (levelRange.y - levelRange.x) * difficulty; // not clamped: the level has no top either
             return Mathf.Max(1, Mathf.RoundToInt(baseLevel * RoundMultiplier));
         }
 
@@ -156,14 +185,17 @@ namespace WSFGameJam2026.Enemies
             if (world == null || player == null || player.IsDead)
                 return;
 
+            if (head == null || head.IsMoving)
+                PlayTime += Time.deltaTime;
+
             alive.RemoveAll(enemy => enemy == null);
             DespawnFarBehind();
 
             if (Time.time < nextSpawnTime)
                 return;
 
-            nextSpawnTime = Time.time + spawnInterval / Mathf.Max(0.1f, RoundMultiplier);
-            int capacity = Mathf.RoundToInt(maxAlive * RoundMultiplier) - alive.Count;
+            nextSpawnTime = Time.time + Mathf.Max(minSpawnInterval, spawnInterval / Mathf.Max(0.1f, RoundMultiplier * Intensity));
+            int capacity = Mathf.Min(maxAliveLimit, Mathf.RoundToInt(maxAlive * RoundMultiplier * Intensity)) - alive.Count;
             if (capacity > 0)
                 SpawnGroup(capacity);
         }
@@ -180,7 +212,7 @@ namespace WSFGameJam2026.Enemies
             float ringRadius = Mathf.Max(0.1f, TorusGeometry.GetRingRadius(surface.MajorRadius, surface.MinorRadius, phi));
             float theta = playerObject.Angles.Theta + sign * aheadDistance / ringRadius;
 
-            float difficulty = GetDifficulty(theta);
+            float difficulty = GetDifficulty();
             var entry = PickEntry(difficulty);
             if (entry == null || entry.Prefab == null)
                 return;
