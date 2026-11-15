@@ -411,6 +411,9 @@ namespace WSFGameJam2026.World
             if (world == null || camera.cameraType == CameraType.Preview || camera.cameraType == CameraType.Reflection)
                 return;
 
+            if (IsHiddenByPrefabStage(camera))
+                return;
+
             if (isBuilt == false)
                 Rebuild();
 
@@ -423,6 +426,16 @@ namespace WSFGameJam2026.World
             var bounds = new Bounds(world.transform.position, Vector3.one * radius * Mathf.Max(1f, world.transform.lossyScale.x));
             foreach (var batch in batches)
                 DrawBatch(batch, camera, bounds);
+        }
+
+        // While a prefab is open in its own stage the Scene view shows only the prefab, so the decorations of the scene stay hidden.
+        private static bool IsHiddenByPrefabStage(Camera camera)
+        {
+#if UNITY_EDITOR
+            return camera.cameraType == CameraType.SceneView && UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage() != null;
+#else
+            return false;
+#endif
         }
 
         // Instances near the shadow target cast shadows, all the others do not: two groups of draws per batch.
