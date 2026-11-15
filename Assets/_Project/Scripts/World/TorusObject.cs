@@ -283,5 +283,10 @@ namespace WSFGameJam2026.World
         {
             Refresh();
         }
+
+        private void FixedUpdate()
+        {
+            Refresh();
+        }
     }
 }

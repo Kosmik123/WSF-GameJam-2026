@@ -186,7 +186,7 @@ MonoBehaviour:
       Enabled: 0
       Input:
         InputAction: {fileID: 6240969308177333660, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-        Gain: 1
+        Gain: -1
         CancelDeltaTime: 0
       InputValue: 0
       Driver:
@@ -237,6 +237,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Cameras.PlayerCameraRig
   target: {fileID: 0}
   movement: {fileID: 0}
-  zoomRange: {x: 0.5, y: 5}
-  zoomStep: 0.15
-  zoomSharpness: 12
