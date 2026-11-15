@@ -59,7 +59,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fda19e253147a3b42bb49c111c412dd6, type: 2}
   blendWidth: 0.3
   defaultMaterial: {fileID: 0}
-  waterMaterial: {fileID: 2100000, guid: 41714bfb1810cda479b2c35fcacd893a, type: 2}
   generateColliders: 0
   shouldRebuildOnValidate: 0
 --- !u!114 &5846759002389348118

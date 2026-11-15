@@ -44,10 +44,6 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private Material defaultMaterial;
 
-        [Tooltip("Material of the water surface of segments whose profile has water.")]
-        [SerializeField]
-        private Material waterMaterial;
-
         [Tooltip("Colliders are built from the terrain without the head blend, so they do not follow the terrain near the head.")]
         [SerializeField]
         private bool generateColliders = true;
@@ -59,7 +55,6 @@ namespace WSFGameJam2026.World
 
         private TorusSurface surface;
         private TorusHeadMeshBlender headMeshBlender;
-        private TorusWaterSurfaces waterSurfaces;
 
         /// <summary>Called after the segments were built again (shape, profiles or terrain changed).</summary>
         public event System.Action Rebuilt;
@@ -107,16 +102,12 @@ namespace WSFGameJam2026.World
 
             headMeshBlender = new TorusHeadMeshBlender(surface, meshes, sidesResolution, HeadTerrain);
             headMeshBlender.Update();
-
-            waterSurfaces = new TorusWaterSurfaces(surface, HeadTerrain);
-            waterSurfaces.Build(transform, waterMaterial, sidesResolution);
             Rebuilt?.Invoke();
         }
 
         private void LateUpdate()
         {
             headMeshBlender?.Update();
-            waterSurfaces?.Update();
         }
 
         private void InvalidateProfiles()
@@ -169,7 +160,6 @@ namespace WSFGameJam2026.World
         private void Clear()
         {
             headMeshBlender = null;
-            waterSurfaces = null;
 
             for (int i = transform.childCount - 1; i >= 0; i--)
             {

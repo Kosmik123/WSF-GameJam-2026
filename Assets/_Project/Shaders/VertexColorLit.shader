@@ -9,7 +9,6 @@ Shader "WSF/Vertex Color Lit"
         [Toggle] _SrgbVertexColor ("Vertex Color Is sRGB", Float) = 1
         _Emission ("Emission (glowing assets)", Range(0, 8)) = 0
         _WarmGlow ("Glow Of Warm Colors (lava on terrain)", Range(0, 8)) = 0
-        [Toggle] _Faceted ("Faceted (one color and flat lighting per triangle, for smooth meshes like the terrain)", Float) = 0
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull (Back = one-sided, Off = two-sided, e.g. for leaves)", Float) = 2
     }
 
@@ -26,7 +25,6 @@ Shader "WSF/Vertex Color Lit"
             half _Emission;
             half _WarmGlow;
             half _Cull;
-            half _Faceted;
         CBUFFER_END
         ENDHLSL
 
@@ -61,7 +59,6 @@ Shader "WSF/Vertex Color Lit"
                 float3 normalWS : TEXCOORD1;
                 half4 color : COLOR;
                 half fogFactor : TEXCOORD2;
-                nointerpolation half4 flatColor : TEXCOORD3;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -76,7 +73,6 @@ Shader "WSF/Vertex Color Lit"
                 output.positionWS = positions.positionWS;
                 output.normalWS = TransformObjectToWorldNormal(input.normalOS);
                 output.color = input.color;
-                output.flatColor = input.color;
                 output.fogFactor = ComputeFogFactor(positions.positionCS.z);
                 return output;
             }
@@ -85,19 +81,12 @@ Shader "WSF/Vertex Color Lit"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
 
-                bool isFaceted = _Faceted > 0.5h;
-                half3 vertexColor = isFaceted ? input.flatColor.rgb : input.color.rgb;
+                half3 vertexColor = input.color.rgb;
                 half3 albedo = _SrgbVertexColor > 0.5h ? SRGBToLinear(vertexColor) : vertexColor;
                 albedo *= _Tint.rgb;
 
                 // Leaves, petals and lilies are single planes drawn from both sides: light the back side too.
                 float3 normal = normalize(input.normalWS) * (IS_FRONT_VFACE(isFrontFace, 1.0, -1.0));
-                if (isFaceted)
-                {
-                    // Flat normal of the triangle, turned to the side of the smooth one.
-                    float3 flatNormal = normalize(cross(ddy(input.positionWS), ddx(input.positionWS)));
-                    normal = dot(flatNormal, normal) < 0.0 ? -flatNormal : flatNormal;
-                }
                 Light mainLight = GetMainLight(TransformWorldToShadowCoord(input.positionWS));
                 half lambert = saturate(dot(normal, mainLight.direction));
                 half3 lit = albedo * mainLight.color * (lambert * mainLight.shadowAttenuation * mainLight.distanceAttenuation);

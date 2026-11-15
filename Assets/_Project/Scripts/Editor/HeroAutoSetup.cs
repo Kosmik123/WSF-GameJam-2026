@@ -12,7 +12,7 @@ namespace WSFGameJam2026.Editor
     [InitializeOnLoad]
     public static class HeroAutoSetup
     {
-        private const string SessionKey = "WSFGameJam2026.HeroAutoSetup.Done.v4";
+        private const string SessionKey = "WSFGameJam2026.HeroAutoSetup.Done.v3";
         private const string MageClassPath = "Assets/_Project/Data/Classes/Mage.asset";
         private const string OldHeroFolder = "Assets/RPG Tiny Hero Duo/";
 
@@ -45,11 +45,10 @@ namespace WSFGameJam2026.Editor
             var model = mage.ModelPrefab;
             bool usesOldHero = model == null || AssetDatabase.GetAssetPath(model).StartsWith(OldHeroFolder);
             bool usesPriest = HeroSetupMenu.IsPriestPrefab(model);
-            bool needsMage = (usesOldHero || usesPriest) && HeroSetupMenu.NeedsPrimitiveMage(model);
-            if (usesOldHero == false && needsMage == false && (usesPriest == false || HeroSetupMenu.NeedsPreview() == false))
+            if (usesOldHero == false && (usesPriest == false || HeroSetupMenu.NeedsPreview() == false))
                 return;
 
-            Debug.Log("Hero auto setup: setting the hero models (primitive Mage, quetzal priest Warrior) and the preview in the player prefab.");
+            Debug.Log("Hero auto setup: setting the quetzal priest as the hero and placing it in the player prefab.");
             HeroSetupMenu.ApplyPriest();
         }
     }

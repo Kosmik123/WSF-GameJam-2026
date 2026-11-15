@@ -28,11 +28,6 @@ namespace WSFGameJam2026.World
         [SerializeField]
         private bool isBlockedByHeadBarrier;
 
-        [Tooltip("Steepest slope (degrees) the object can walk up. Cliffs steeper than that must be walked around. 90 = no limit.")]
-        [SerializeField]
-        [Range(10f, 90f)]
-        private float maxClimbAngle = 50f;
-
         [Tooltip("How fast the object follows the terrain height. Higher = tighter.")]
         [SerializeField]
         [Min(0f)]
@@ -190,53 +185,10 @@ namespace WSFGameJam2026.World
             float thetaDistance = Vector3.Dot(localDirection, localRunDirection) * distance;
             float phiDistance = Vector3.Dot(localDirection, phiDirection) * distance;
 
-            var target = GetClimbableTarget(surface, thetaDistance, phiDistance);
-            var moved = world.Obstacles.Resolve(surface, target, bodyRadius);
+            var delta = TorusGeometry.GetAngleDelta(surface.MajorRadius, surface.MinorRadius, phi, thetaDistance, phiDistance);
+            var moved = world.Obstacles.Resolve(surface, angles.Add(delta.x, delta.y), bodyRadius);
             angles = isBlockedByHeadBarrier ? world.HeadBarrier.Constrain(angles, moved) : moved;
             Refresh();
-        }
-
-        /// <summary>
-        /// Target of a move that does not climb a slope steeper than <see cref="maxClimbAngle"/>. When the whole move is too steep,
-        /// it slides along the cliff (only the theta or only the phi part of the move), or stays in place.
-        /// </summary>
-        private TorusAngles GetClimbableTarget(TorusSurface surface, float thetaDistance, float phiDistance)
-        {
-            var full = GetMovedAngles(surface, thetaDistance, phiDistance);
-            if (maxClimbAngle >= 90f)
-                return full;
-
-            float maxRise = Mathf.Tan(maxClimbAngle * Mathf.Deg2Rad);
-            float startHeight = surface.GetHeight(angles);
-            if (CanClimb(surface, full, startHeight, Mathf.Sqrt(thetaDistance * thetaDistance + phiDistance * phiDistance), maxRise))
-                return full;
-
-            bool isThetaFirst = Mathf.Abs(thetaDistance) >= Mathf.Abs(phiDistance);
-            float firstDistance = isThetaFirst ? thetaDistance : phiDistance;
-            float secondDistance = isThetaFirst ? phiDistance : thetaDistance;
-            var first = isThetaFirst ? GetMovedAngles(surface, thetaDistance, 0f) : GetMovedAngles(surface, 0f, phiDistance);
-            if (CanClimb(surface, first, startHeight, Mathf.Abs(firstDistance), maxRise))
-                return first;
-
-            var second = isThetaFirst ? GetMovedAngles(surface, 0f, phiDistance) : GetMovedAngles(surface, thetaDistance, 0f);
-            if (CanClimb(surface, second, startHeight, Mathf.Abs(secondDistance), maxRise))
-                return second;
-
-            return angles;
-        }
-
-        private TorusAngles GetMovedAngles(TorusSurface surface, float thetaDistance, float phiDistance)
-        {
-            var delta = TorusGeometry.GetAngleDelta(surface.MajorRadius, surface.MinorRadius, angles.Phi, thetaDistance, phiDistance);
-            return angles.Add(delta.x, delta.y);
-        }
-
-        private static bool CanClimb(TorusSurface surface, TorusAngles target, float startHeight, float distance, float maxRise)
-        {
-            if (distance < 0.0001f)
-                return false;
-
-            return surface.GetHeight(target) - startHeight <= distance * maxRise;
         }
 
         /// <summary>Recalculates the placement on the terrain. Call it after the world was rebuilt.</summary>
@@ -280,11 +232,6 @@ namespace WSFGameJam2026.World
         }
 
         private void OnValidate()
-        {
-            Refresh();
-        }
-
-        private void FixedUpdate()
         {
             Refresh();
         }

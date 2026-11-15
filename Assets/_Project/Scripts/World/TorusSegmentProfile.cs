@@ -36,13 +36,6 @@ namespace WSFGameJam2026.World
             return Color.white;
         }
 
-        /// <summary>True when the segment has a water surface; height is its height above the base tube.</summary>
-        public virtual bool TryGetWaterSurface(out float height)
-        {
-            height = 0f;
-            return false;
-        }
-
         /// <summary>Forget cached data. Called before the world is rebuilt, so edited source assets are picked up.</summary>
         public virtual void Invalidate() { }
 

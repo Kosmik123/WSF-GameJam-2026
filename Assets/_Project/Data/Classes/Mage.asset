@@ -19,9 +19,18 @@ MonoBehaviour:
   rangedDamage: 8
   rangedCooldown: 0.35
   maxHealth: 80
-  modelPrefab: {fileID: 919132149155446097, guid: 2b9a955ccc9a4390a3b82865c41de9a5, type: 3}
+  modelPrefab: {fileID: 9186045537942361741, guid: d1da45512dbcad34e83f4496532a08cb, type: 3}
   modelMaterial: {fileID: 0}
-  hiddenParts: []
+  hiddenParts:
+  - Body05
+  - Head01_Male
+  - Eye01
+  - Mouth01
+  - Warrior_Plume
+  - Warrior_Cape
+  - Warrior_Spear
+  - Warrior_Shield
+  - Warrior_CheekGuards
   skillPool:
   - {fileID: 11400000, guid: 3866f7e8c2399354aaeabf7c1ea63054, type: 2}
   - {fileID: 11400000, guid: 3a11a152378f38246a0b24507b703137, type: 2}
