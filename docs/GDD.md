@@ -106,7 +106,7 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 ## 11. Styl wizualny i dźwięk
 
 - **Grafika:** stylizowany low poly, spójna paleta, shadery i efekty cząsteczkowe podbijające prezentację (łuski, mgła, poświata paszczy). **[DO USTALENIA]** paleta i referencje.
-- **Dźwięk:** muzyka rosnąca w napięciu przy zbliżaniu się paszczy, efekty walki, dźwięk paszczy. Źródło: mieszanka darmowych paczek (CC0), pracy ręcznej i syntezatorów. Przy każdym assecie z zewnątrz sprawdzamy licencję.
+- **Dźwięk:** muzyka rosnąca w napięciu przy zbliżaniu się paszczy, efekty walki, dźwięk paszczy. W tle zapętlony ambient („Cavernous Ritual”), ten sam w menu i w grze, bez przerwy przy nowym runie. Źródło: mieszanka darmowych paczek (CC0), pracy ręcznej i syntezatorów. Przy każdym assecie z zewnątrz sprawdzamy licencję.
 
 ## 12. Zakres i ryzyka
 

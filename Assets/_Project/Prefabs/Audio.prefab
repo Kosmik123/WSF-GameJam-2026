@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1852013579802284751}
   - component: {fileID: 7845771988959709222}
   - component: {fileID: 2518778416533161956}
+  - component: {fileID: 4410836215730962841}
   m_Layer: 0
   m_Name: Audio
   m_TagString: Untagged
@@ -78,3 +79,18 @@ MonoBehaviour:
   enemyDie: {fileID: 11400000, guid: 506a318fcb72f7349a85d776fce2ae3b, type: 2}
   roundCompleted: {fileID: 11400000, guid: ce999e1342faba24898a7b1143771017, type: 2}
   newRecord: {fileID: 11400000, guid: 9177bd47829e2ca45b8d0a07757dc5f8, type: 2}
+--- !u!114 &4410836215730962841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6169301339466709413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f19585eecc8d4c29a11133f2e8f7ee89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Audio.MusicPlayer
+  music: {fileID: 8300000, guid: 53fad7a29a8d453fad85dc804aca5060, type: 3}
+  volume: 0.5
+  fadeInSeconds: 3

@@ -120,6 +120,7 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [ ] **Shadery i efekty:** łuski, mgła, post-processing (URP Volume), efekty cząsteczkowe walki. `G`
 - [ ] **Muzyka i dźwięki:** napięcie przy zbliżaniu się paszczy, walka, UI. `?`
   - [x] Dźwięk głowy węża: pętla `Assets/SFX/SnakeHead_Loop.wav` (rumble + ogień, fade in 2,5 s na starcie runu) i `SnakeHead_Death.wav` (ostatnie 2 s, gra przy śmierci gracza). Steruje `HeadAudio` na prefabie `Snake Head`. Licencje źródeł (Pixabay/Freesound) do potwierdzenia.
+  - [x] Muzyka w tle (ambient): `Audio/Music/Cavernous Ritual.mp3` (wygenerowana w Suno, licencja według planu konta Suno do potwierdzenia), zapętlona, ta sama w menu i w grze, fade in 3 s na starcie. `MusicPlayer` na prefabie `Audio` (głośność 0,5, idzie za głośnością z ustawień). Źródło muzyki przeżywa przeładowanie sceny (`DontDestroyOnLoad`), więc nowy run i powrót do menu nie zaczynają utworu od nowa. Nie testowane w Unity. `C`
 - [ ] **Balans:** prędkość paszczy, siła wrogów, tempo rund.
 - [ ] **Build i test** na docelowej platformie jamu.
 - [ ] **Prezentacja:** nagranie / trailer, opis gry, zrzuty ekranu. `?`

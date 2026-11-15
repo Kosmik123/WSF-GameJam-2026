@@ -13,13 +13,15 @@ namespace WSFGameJam2026.Editor
 {
     /// <summary>
     /// Sets up sound effects: <see cref="SoundEffect"/> assets in Data/Sounds, an "Audio" scene object with the
-    /// <see cref="SfxPlayer"/> and wired <see cref="SfxHooks"/>, and <see cref="EnemySfx"/> on every enemy prefab.
+    /// <see cref="SfxPlayer"/>, wired <see cref="SfxHooks"/> and the <see cref="MusicPlayer"/>, and <see cref="EnemySfx"/>
+    /// on every enemy prefab.
     /// Safe to run again: existing assets keep their settings, empty references are filled.
     /// </summary>
     public static class AudioSetupMenu
     {
         private const string SoundsFolder = "Assets/_Project/Data/Sounds";
         private const string SwordFolder = "Assets/_Project/Audio/Sword";
+        private const string MusicPath = "Assets/_Project/Audio/Music/Cavernous Ritual.mp3";
         private const string EnemiesFolder = "Assets/_Project/Prefabs/Enemies";
 
         [MenuItem("WSF GameJam/Setup/Create Audio")]
@@ -90,6 +92,9 @@ namespace WSFGameJam2026.Editor
             SetIfEmpty(hooks, "levelUp", levelUp);
             SetIfEmpty(hooks, "playerLevel", player.GetComponent<Progression.PlayerLevel>());
 
+            var musicPlayer = GetOrAdd<MusicPlayer>(audioObject);
+            SetIfEmpty(musicPlayer, "music", AssetDatabase.LoadAssetAtPath<AudioClip>(MusicPath));
+
             if (Object.FindAnyObjectByType<AudioListener>() == null)
                 Debug.LogWarning("Audio setup: the scene has no AudioListener, nothing will be heard. Add one to the camera.");
 
@@ -97,7 +102,7 @@ namespace WSFGameJam2026.Editor
 
             EditorSceneManager.MarkSceneDirty(playerCombat.gameObject.scene);
             AssetDatabase.SaveAssets();
-            Debug.Log($"Audio setup done: sounds in {SoundsFolder}, Audio object with the SfxPlayer and SfxHooks, EnemySfx on {enemyCount} enemy prefabs.");
+            Debug.Log($"Audio setup done: sounds in {SoundsFolder}, Audio object with the SfxPlayer, SfxHooks and MusicPlayer, EnemySfx on {enemyCount} enemy prefabs.");
         }
 
         private static int SetupEnemyPrefabs(SoundEffect windup, SoundEffect shot, SoundEffect lunge, SoundEffect heavyWindup, SoundEffect heavySlam)
