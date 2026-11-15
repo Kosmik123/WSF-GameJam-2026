@@ -551,7 +551,7 @@ namespace WSFGameJam2026.World
         /// The head shapes the terrain near it (the tail ahead of it thins out, the terrain behind it blends into the neck), but the assets
         /// are placed on the terrain without the head. So whenever the head terrain changes, assets in the range it affects are moved along
         /// the tube normal by the change of the terrain height at their spot. In the blend between the terrain and the head they also shrink:
-        /// full size on the terrain, down to nothing at the head (assets under the head itself are not drawn).
+        /// full size on the terrain, linearly down to nothing at the head (assets under the head itself are not drawn).
         /// Assets that left the range go back to their original place and size.
         /// </summary>
         private void ApplyHeadTerrain()
@@ -597,25 +597,19 @@ namespace WSFGameJam2026.World
         /// <summary>
         /// Tips a tall asset over, around its pivot on the ground, away from the coming head (the head moves to growing theta).
         /// It starts to lean when the head's front is within the topple reach, falls faster and faster (like a cut tree)
-        /// and lies on the ground when the head reaches it. Behind the head, where the terrain grows back, it stands up again.
+        /// and lies on the ground when the head reaches it. Only ahead of the head: behind it the assets do not lean, they grow back from nothing.
         /// </summary>
         private Matrix4x4 Topple(Matrix4x4 matrix, Placement placement, TorusHeadTerrain headTerrain, float headFront, float toppleReach)
         {
+            // On and behind the head nothing leans: the assets there shrink instead (see GetMovedMatrix).
             float aheadOfFront = Mathf.Repeat(placement.Theta - headFront + Mathf.PI, TorusGeometry.TwoPi) - Mathf.PI;
-            float fall;
-            if (aheadOfFront >= 0f)
-            {
-                // 0 at the edge of the reach, 1 at the front of the head; the delay makes some assets hold on longer.
-                float closeness = 1f - aheadOfFront / toppleReach;
-                fall = Mathf.Clamp01((closeness - placement.FallDelay) / (1f - placement.FallDelay));
-                fall *= fall; // the fall speeds up
-            }
-            else
-            {
-                // On and behind the head: lying while the head covers it, standing up again as the terrain blends back.
-                fall = headTerrain.GetWeight(placement.Theta);
-            }
+            if (aheadOfFront < 0f)
+                return matrix;
 
+            // 0 at the edge of the reach, 1 at the front of the head; the delay makes some assets hold on longer.
+            float closeness = 1f - aheadOfFront / toppleReach;
+            float fall = Mathf.Clamp01((closeness - placement.FallDelay) / (1f - placement.FallDelay));
+            fall *= fall; // the fall speeds up
             if (fall <= 0f)
                 return matrix;
 
@@ -637,7 +631,7 @@ namespace WSFGameJam2026.World
             var position = (Vector3)matrix.GetColumn(3) + placement.Up * (newHeight - placement.Height);
 
             // The pivot of an asset is on the ground, so scaling the axes shrinks it towards the terrain.
-            float scale = 1f - headTerrain.GetBlendWeight(placement.Theta);
+            float scale = 1f - headTerrain.GetScaleWeight(placement.Theta);
             for (int axis = 0; axis < 3; axis++)
                 matrix.SetColumn(axis, matrix.GetColumn(axis) * scale);
 

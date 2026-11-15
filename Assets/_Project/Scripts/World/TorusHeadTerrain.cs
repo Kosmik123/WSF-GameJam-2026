@@ -150,6 +150,22 @@ namespace WSFGameJam2026.World
             return GetWeight(theta) * blendStrength;
         }
 
+        /// <summary>
+        /// Weight (0-1) for shrinking the assets: 1 on the head, falling linearly to 0 across the blend behind the neck.
+        /// Unlike <see cref="GetBlendWeight"/> it ignores the blend strength, so the assets always vanish under the head.
+        /// </summary>
+        public float GetScaleWeight(float theta)
+        {
+            if (IsActive == false)
+                return 0f;
+
+            float behindNeck = Mathf.Repeat(NeckTheta - theta + Mathf.PI, TwoPi) - Mathf.PI;
+            if (behindNeck <= 0f)
+                return -behindNeck <= HeadLength ? 1f : 0f;
+
+            return BlendLength <= 0f ? 0f : Mathf.Clamp01(1f - behindNeck / BlendLength);
+        }
+
         public float GetWeight(float theta)
         {
             if (IsActive == false)
