@@ -34,6 +34,7 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 
 - [x] **Propsy na torusie:** `TorusPropDefinition` (ScriptableObject na mesh, z referencją do niego, nazwa propa to nazwa mesha: promień pseudo-collidera `blockRadius`, jeden suwak `visibleRangeDegrees` (θ wokół gracza; 180 = zawsze widoczny, np. drzewa, 0 = klasa wyłączona w całości)), `TorusPropCatalog`, `TorusPropObstacles` (siatka przeszkód, `TorusObject` odpycha się od nich, pole `bodyRadius`), menu *WSF GameJam/Setup/Create Prop Definitions*. Nie testowane w Unity, wartości początkowe zgadnięte z rozmiaru mesha. `C`
 - [x] Bariera na głowie: gracz nie może przejść przez theta głowy (+ offset), niezależnie od phi (`HeadBarrier`, `TorusThetaBarrier`, pole `isBlockedByHeadBarrier` w `TorusObject`), menu *WSF GameJam/Setup/Create Head Barrier*. Nie testowane w Unity. `C`
+- [x] Przyspieszenie głowy, gdy gracz jest blisko za nią: `HeadMovement` (`maxSpeedDegrees`, `maxSpeedThetaDegrees`, `speedupStartThetaDegrees`, prędkość rośnie liniowo z odległością). Nie testowane w grze. `C`
 - [ ] Kolor szyi głowy i wtopienie głowy w teren biomu (głowa stoi na segmencie biomu). `G`
 - [ ] **Biomy, poprawki grafiki** (`G`):
   - [ ] Assety są za gęsto, lekko je przerzedzić (PSG: *Density*, *Min Distance*, liczby w warstwach).
