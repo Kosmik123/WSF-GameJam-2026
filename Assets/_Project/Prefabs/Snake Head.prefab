@@ -71,7 +71,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   world: {fileID: 0}
-  headBlendLengthDegrees: 50
+  headBlendLengthDegrees: 30
   neckSliceDepthDegrees: 4.5
   headFrontOffsetDegrees: -30
   blendStrength: 1
