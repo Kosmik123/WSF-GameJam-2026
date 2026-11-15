@@ -52,6 +52,11 @@ namespace WSFGameJam2026.World
         [Min(0f)]
         private float toppleDistanceDegrees = 13f;
 
+        [Tooltip("The assets lie fully fallen when the head's front is this close to them, in degrees of theta ahead of the head's front. Must be smaller than the distance where they start to lean. 0 = they lie when the head reaches them.")]
+        [SerializeField]
+        [Min(0f)]
+        private float toppleFullDistanceDegrees;
+
         [Tooltip("An asset topples when it is taller than this, in meters.")]
         [SerializeField]
         [Min(0f)]
@@ -607,8 +612,9 @@ namespace WSFGameJam2026.World
             if (aheadOfFront < 0f)
                 return matrix;
 
-            // 0 at the edge of the reach, 1 at the front of the head; the delay makes some assets hold on longer.
-            float closeness = 1f - aheadOfFront / toppleReach;
+            // 0 at the edge of the reach, 1 at the full distance; the delay makes some assets hold on longer.
+            float fullReach = Mathf.Min(toppleFullDistanceDegrees * Mathf.Deg2Rad, toppleReach * 0.99f);
+            float closeness = 1f - Mathf.Max(0f, aheadOfFront - fullReach) / (toppleReach - fullReach);
             float fall = Mathf.Clamp01((closeness - placement.FallDelay) / (1f - placement.FallDelay));
             fall *= fall; // the fall speeds up
             if (fall <= 0f)
@@ -640,7 +646,7 @@ namespace WSFGameJam2026.World
             return matrix;
         }
 
-        // Rings around the tube: cyan where the assets start to lean (ahead of the head), white at the front of the head.
+        // Rings around the tube: cyan where the assets start to lean, magenta where they lie fully, white at the front of the head.
         private void OnDrawGizmosSelected()
         {
             var gizmoWorld = world ? world : FindAnyObjectByType<TorusWorld>();
@@ -670,6 +676,8 @@ namespace WSFGameJam2026.World
             DrawRing(gizmoWorld, frontTheta);
             Gizmos.color = Color.cyan;
             DrawRing(gizmoWorld, frontTheta + toppleDistanceDegrees * Mathf.Deg2Rad);
+            Gizmos.color = Color.magenta;
+            DrawRing(gizmoWorld, frontTheta + toppleFullDistanceDegrees * Mathf.Deg2Rad);
             Gizmos.matrix = previousMatrix;
         }
 
