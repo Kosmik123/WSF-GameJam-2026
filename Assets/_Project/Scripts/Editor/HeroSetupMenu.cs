@@ -17,6 +17,10 @@ namespace WSFGameJam2026.Editor
     {
         private const string ModelPath = "Assets/_Project/Models/Hero/QuqumatzPriest.fbx";
         private const string PrefabPath = "Assets/_Project/Prefabs/Hero/Ququmatz Priest.prefab";
+
+        // The Mage built from primitives as in the concept drawing (Tools/Hero/build_mage_primitives.py), same skeleton.
+        private const string MageModelPath = "Assets/_Project/Models/Hero/QuqumatzMage.fbx";
+        private const string MagePrefabPath = "Assets/_Project/Prefabs/Hero/Ququmatz Mage.prefab";
         private const string MaterialPath = "Assets/_Project/Materials/Player/Ququmatz Vertex Color.mat";
         private const string SourceMaterialName = "Ququmatz Vertex Color";
         private const string ReferenceHeroPath = "Assets/RPG Tiny Hero Duo/Prefab/FemaleCharacterPolyart.prefab";
@@ -58,19 +62,41 @@ namespace WSFGameJam2026.Editor
                 return false;
 
             var material = GetMaterial();
-            ConfigureImporter(material);
-            var prefab = CreatePrefab();
-            SetClass("Mage", prefab, MageHidden);
-            SetClass("Warrior", prefab, WarriorHidden);
-            AddPreviewToPlayer(prefab);
+            var priestImporter = ConfigureImporter(ModelPath, material);
+            MatchReferenceHeight(priestImporter);
+            var priest = CreatePrefab(ModelPath, PrefabPath, "Ququmatz Priest");
+            SetClass("Warrior", priest, WarriorHidden);
+
+            // The Mage gets the primitive model when it was built, otherwise the Mage variant of the priest.
+            var mage = priest;
+            var mageHidden = MageHidden;
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(MageModelPath))
+            {
+                // Same skeleton and units as the priest, so the same scale.
+                var mageImporter = ConfigureImporter(MageModelPath, material);
+                mageImporter.globalScale = priestImporter.globalScale;
+                mageImporter.SaveAndReimport();
+                mage = CreatePrefab(MageModelPath, MagePrefabPath, "Ququmatz Mage");
+                mageHidden = new string[0];
+            }
+
+            SetClass("Mage", mage, mageHidden);
+            AddPreviewToPlayer(mage, mageHidden);
             AssetDatabase.SaveAssets();
-            Debug.Log("Hero setup done: the quetzal priest is the model of the Mage and the Warrior.");
+            Debug.Log("Hero setup done: " + (mage == priest ? "the quetzal priest is the model of the Mage and the Warrior." : "the primitive Mage and the quetzal priest Warrior."));
             return true;
         }
 
         internal static bool IsPriestPrefab(Object model)
         {
             return model && AssetDatabase.GetAssetPath(model) == PrefabPath;
+        }
+
+        /// <summary>True when the primitive Mage model exists but the Mage class does not use it yet.</summary>
+        internal static bool NeedsPrimitiveMage(Object mageModel)
+        {
+            bool exists = AssetDatabase.LoadAssetAtPath<GameObject>(MageModelPath);
+            return exists && (mageModel == null || AssetDatabase.GetAssetPath(mageModel) != MagePrefabPath);
         }
 
         private static Material GetMaterial()
@@ -93,9 +119,9 @@ namespace WSFGameJam2026.Editor
         }
 
         // Humanoid with the bones mapped automatically: the rig is the one of RPG Tiny Hero Duo, so its clips retarget.
-        private static void ConfigureImporter(Material material)
+        private static ModelImporter ConfigureImporter(string modelPath, Material material)
         {
-            var importer = (ModelImporter)AssetImporter.GetAtPath(ModelPath);
+            var importer = (ModelImporter)AssetImporter.GetAtPath(modelPath);
             importer.importAnimation = false;
             importer.animationType = ModelImporterAnimationType.Human;
             importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
@@ -103,7 +129,7 @@ namespace WSFGameJam2026.Editor
             importer.materialImportMode = ModelImporterMaterialImportMode.ImportViaMaterialDescription;
             importer.AddRemap(new AssetImporter.SourceAssetIdentifier(typeof(Material), SourceMaterialName), material);
             importer.SaveAndReimport();
-            MatchReferenceHeight(importer);
+            return importer;
         }
 
         // The size of the new hero follows the old one, whatever unit the FBX was written in.
@@ -142,12 +168,12 @@ namespace WSFGameJam2026.Editor
             return height;
         }
 
-        private static GameObject CreatePrefab()
+        private static GameObject CreatePrefab(string modelPath, string prefabPath, string name)
         {
-            EnsureFolder(Path.GetDirectoryName(PrefabPath).Replace('\\', '/'));
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
+            EnsureFolder(Path.GetDirectoryName(prefabPath).Replace('\\', '/'));
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(model);
-            instance.name = "Ququmatz Priest";
+            instance.name = name;
 
             // The avatar made from this model, or (when the automatic mapping failed) the avatar of the old hero's animations.
             var animator = instance.GetComponentInChildren<Animator>();
@@ -157,11 +183,11 @@ namespace WSFGameJam2026.Editor
             if (animator.avatar == null || animator.avatar.isValid == false || animator.avatar.isHuman == false)
             {
                 animator.avatar = AssetDatabase.LoadAssetAtPath<Avatar>(FallbackAvatarPath);
-                Debug.LogWarning("Hero setup: the priest has no valid humanoid avatar of its own, the avatar of the old hero is used. Check the Rig tab of QuqumatzPriest.fbx.");
+                Debug.LogWarning($"Hero setup: {name} has no valid humanoid avatar of its own, the avatar of the old hero is used. Check the Rig tab of {modelPath}.");
             }
 
             animator.applyRootMotion = false;
-            var prefab = PrefabUtility.SaveAsPrefabAsset(instance, PrefabPath);
+            var prefab = PrefabUtility.SaveAsPrefabAsset(instance, prefabPath);
             Object.DestroyImmediate(instance);
             return prefab;
         }
@@ -190,7 +216,7 @@ namespace WSFGameJam2026.Editor
 
         // The hero placed in the player prefab, so it is visible without Play. PlayerClassApplier replaces it with the model
         // of the chosen class when the game starts. The preview shows the Mage, the class the player starts with.
-        private static void AddPreviewToPlayer(GameObject prefab)
+        private static void AddPreviewToPlayer(GameObject prefab, string[] hiddenParts)
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath) == null)
                 return;
@@ -199,7 +225,7 @@ namespace WSFGameJam2026.Editor
             var modelRoot = root.transform.Find("Model");
             if (modelRoot)
             {
-                PlacePreview(modelRoot, prefab);
+                PlacePreview(modelRoot, prefab, hiddenParts);
                 SetPlaceholders(root);
                 PrefabUtility.SaveAsPrefabAsset(root, PlayerPrefabPath);
             }
@@ -239,7 +265,7 @@ namespace WSFGameJam2026.Editor
                 rootRenderer.enabled = false;
         }
 
-        private static void PlacePreview(Transform modelRoot, GameObject prefab)
+        private static void PlacePreview(Transform modelRoot, GameObject prefab, string[] hiddenParts)
         {
             for (int i = modelRoot.childCount - 1; i >= 0; i--)
                 Object.DestroyImmediate(modelRoot.GetChild(i).gameObject);
@@ -247,7 +273,7 @@ namespace WSFGameJam2026.Editor
             var preview = (GameObject)PrefabUtility.InstantiatePrefab(prefab, modelRoot);
             preview.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             foreach (var part in preview.GetComponentsInChildren<Transform>(true))
-                if (System.Array.IndexOf(MageHidden, part.name) >= 0)
+                if (System.Array.IndexOf(hiddenParts, part.name) >= 0)
                     part.gameObject.SetActive(false);
         }
 
