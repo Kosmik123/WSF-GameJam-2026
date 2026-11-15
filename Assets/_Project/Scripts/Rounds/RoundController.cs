@@ -124,13 +124,10 @@ namespace WSFGameJam2026.Rounds
                 BeginRound();
         }
 
-        /// <summary>
-        /// Starts the first round from the main menu (when "Start Automatically" is off). The jaw stays where it is,
-        /// because it has been eating the tail in the menu, and the player appears the usual gap in front of it.
-        /// </summary>
+        /// <summary>Starts the first round from the main menu (when "Start Automatically" is off).</summary>
         public void StartRun()
         {
-            BeginRound(false);
+            BeginRound();
         }
 
         /// <summary>Puts the player the start gap in front of the jaw where it is now. The menu keeps the parked player there while the jaw moves.</summary>
@@ -202,15 +199,12 @@ namespace WSFGameJam2026.Rounds
             BeginRound();
         }
 
-        // Puts the jaw and the player at the start, clears the enemies and sets the difficulty of the current round.
-        private void BeginRound(bool shouldResetHead = true)
+        // The jaw never goes back: it keeps going round and round. The player is put the start gap in front of it. Clears the enemies and sets the difficulty of the current round.
+        private void BeginRound()
         {
             var roundsPlayed = roundState.Round - 1;
 
             head.SpeedMultiplier = 1f + jawSpeedPerRound * roundsPlayed;
-            if (shouldResetHead)
-                head.ResetPosition();
-
             head.IsMoving = true;
 
             spawner.RoundMultiplier = 1f + enemiesPerRound * roundsPlayed;
