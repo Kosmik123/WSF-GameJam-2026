@@ -21,6 +21,12 @@ namespace WSFGameJam2026.World
         private float seamBlendWidth = 0.15f;
         public float SeamBlendWidth => seamBlendWidth;
 
+        [Header("Shaping")]
+        [Tooltip("Plateaus with cliffs and sunken water added on top of the grid heights.")]
+        [SerializeField]
+        private TerrainShaping shaping = new TerrainShaping();
+        public TerrainShaping Shaping => shaping;
+
         private float[] heights;
         private Color[] colors;
         private int gridWidth;
@@ -68,7 +74,19 @@ namespace WSFGameJam2026.World
             return color;
         }
 
+        public override bool TryGetWaterSurface(out float height)
+        {
+            height = shaping != null ? shaping.WaterSurfaceHeight : 0f;
+            return shaping != null && shaping.HasWater;
+        }
+
         public override float SampleHeight(float along, float around, Vector3 basePoint)
+        {
+            float height = SampleGridHeight(along, around);
+            return shaping != null && shaping.IsActive ? shaping.Apply(height, basePoint) : height;
+        }
+
+        private float SampleGridHeight(float along, float around)
         {
             if (EnsureGrid() == false)
                 return 0f;
