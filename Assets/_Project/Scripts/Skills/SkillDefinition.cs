@@ -25,6 +25,18 @@ namespace WSFGameJam2026.Skills
         private Color accentColor = new Color(0.93f, 0.9f, 0.84f, 1f);
         public Color AccentColor => accentColor;
 
+        [Header("Animation")]
+        [Tooltip("Body animation of the hero when the skill is cast (humanoid clip). Empty = the common cast animation.")]
+        [SerializeField]
+        private AnimationClip castAnimation;
+        public AnimationClip CastAnimation => castAnimation;
+
+        [Tooltip("How long the cast animation lasts, in seconds; the clip is sped up or slowed down to fit. 0 = its own length.")]
+        [SerializeField]
+        [Min(0f)]
+        private float castAnimationDuration = 0.5f;
+        public float CastAnimationDuration => castAnimationDuration;
+
         [Tooltip("Exactly 4 elements: base, upgrade 1, upgrade 2, evolution.")]
         [SerializeField]
         private SkillTier[] tiers = new SkillTier[MaxTier + 1];

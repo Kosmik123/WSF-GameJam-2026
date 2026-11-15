@@ -21,11 +21,8 @@ namespace WSFGameJam2026.Editor
         private const string EnemiesFolder = "Assets/_Project/Prefabs/Enemies";
         private const string EnemyMaterialsFolder = "Assets/_Project/Materials/Enemies/LD57";
         private const string PlayerMaterialsFolder = "Assets/_Project/Materials/Player";
-        private const string AnimationsFolder = "Assets/_Project/Animations/Player";
-        private const string ControllerPath = AnimationsFolder + "/Player.controller";
         private const string ClassesFolder = "Assets/_Project/Data/Classes";
         private const string HeroFolder = "Assets/RPG Tiny Hero Duo";
-        private const string ClipsFolder = HeroFolder + "/Animation/SwordAndShield";
 
         private static readonly string[] Weapons = { "OHS03Polyart", "OHS06Polyart", "Shield05Polyart", "Shield08Polyart" };
 
@@ -189,7 +186,7 @@ namespace WSFGameJam2026.Editor
             if (applier == null)
                 return false;
 
-            var controller = CreateController();
+            var controller = HeroAnimationSetup.GetOrCreateController();
             SetClassModel("Warrior", $"{HeroFolder}/Prefab/MaleCharacterPolyart.prefab", null, new string[0]);
             SetClassModel("Mage", $"{HeroFolder}/Prefab/FemaleCharacterPolyart.prefab", CreateMageMaterial(), Weapons);
 
@@ -232,6 +229,7 @@ namespace WSFGameJam2026.Editor
                 playerAnimator = player.AddComponent<PlayerAnimator>();
 
             PlayerSetupMenu.SetReference(playerAnimator, "controller", controller);
+            PlayerSetupMenu.SetReference(playerAnimator, "skillPlaceholderClip", HeroAnimationSetup.LoadClip("Attack04_SwordAndShiled"));
         }
 
         private static void SetClassModel(string className, string modelPath, Material material, string[] hiddenParts)
@@ -271,103 +269,6 @@ namespace WSFGameJam2026.Editor
 
             AssetDatabase.CreateAsset(material, path);
             return material;
-        }
-
-        private static AnimatorController CreateController()
-        {
-            var existing = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath);
-            if (existing)
-                return existing;
-
-            EnsureFolder(AnimationsFolder);
-            var controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
-            controller.AddParameter("Speed", AnimatorControllerParameterType.Float);
-            controller.AddParameter("Turn", AnimatorControllerParameterType.Float);
-            controller.AddParameter("Attack", AnimatorControllerParameterType.Trigger);
-            controller.AddParameter("AttackIndex", AnimatorControllerParameterType.Int);
-            controller.AddParameter("Cast", AnimatorControllerParameterType.Trigger);
-            controller.AddParameter("Dodge", AnimatorControllerParameterType.Bool);
-            controller.AddParameter("Hit", AnimatorControllerParameterType.Trigger);
-            controller.AddParameter("Dead", AnimatorControllerParameterType.Bool);
-
-            var machine = controller.layers[0].stateMachine;
-
-            var locomotion = controller.CreateBlendTreeInController("Locomotion", out var tree);
-            tree.blendType = BlendTreeType.Simple1D;
-            tree.blendParameter = "Speed";
-            tree.useAutomaticThresholds = false;
-            tree.AddChild(LoadClip("InPlace/MoveBWD_Battle_InPlace_SwordAndShield"), -1f);
-            tree.AddChild(LoadClip("Idle_Battle_SwordAndShiled"), 0f);
-            tree.AddChild(LoadClip("InPlace/MoveFWD_Battle_InPlace_SwordAndShield"), 1f);
-            machine.defaultState = locomotion;
-
-            string[] attacks = { "Attack01_SwordAndShiled", "Attack02_SwordAndShiled", "Attack03_SwordAndShiled" };
-            for (int i = 0; i < attacks.Length; i++)
-            {
-                var attack = AddActionState(machine, $"Attack {i + 1}", attacks[i], 2f, locomotion);
-                var transition = AddAnyStateTransition(machine, attack);
-                transition.AddCondition(AnimatorConditionMode.If, 0f, "Attack");
-                transition.AddCondition(AnimatorConditionMode.Equals, i, "AttackIndex");
-            }
-
-            var cast = AddActionState(machine, "Cast", "Attack04_SwordAndShiled", 2f, locomotion);
-            AddAnyStateTransition(machine, cast).AddCondition(AnimatorConditionMode.If, 0f, "Cast");
-
-            var hit = AddActionState(machine, "Hit", "GetHit01_SwordAndShield", 1.5f, locomotion);
-            AddAnyStateTransition(machine, hit).AddCondition(AnimatorConditionMode.If, 0f, "Hit");
-
-            var dodge = machine.AddState("Dodge");
-            dodge.motion = LoadClip("InPlace/JumpAir_Spin_InPlace_SwordAndShield");
-            dodge.speed = 2f;
-            AddAnyStateTransition(machine, dodge).AddCondition(AnimatorConditionMode.If, 0f, "Dodge");
-            var dodgeEnd = dodge.AddTransition(locomotion);
-            dodgeEnd.duration = 0.1f;
-            dodgeEnd.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dodge");
-
-            var die = machine.AddState("Die");
-            die.motion = LoadClip("Die01_SwordAndShield");
-            var toDie = machine.AddAnyStateTransition(die);
-            toDie.duration = 0.1f;
-            toDie.canTransitionToSelf = false;
-            toDie.AddCondition(AnimatorConditionMode.If, 0f, "Dead");
-            var revive = die.AddTransition(locomotion);
-            revive.duration = 0.2f;
-            revive.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
-
-            EditorUtility.SetDirty(controller);
-            return controller;
-        }
-
-        private static AnimatorState AddActionState(AnimatorStateMachine machine, string name, string clip, float speed, AnimatorState back)
-        {
-            var state = machine.AddState(name);
-            state.motion = LoadClip(clip);
-            state.speed = speed;
-            var exit = state.AddTransition(back);
-            exit.hasExitTime = true;
-            exit.exitTime = 0.85f;
-            exit.duration = 0.15f;
-            return state;
-        }
-
-        // Every action can interrupt the others, but not death.
-        private static AnimatorStateTransition AddAnyStateTransition(AnimatorStateMachine machine, AnimatorState target)
-        {
-            var transition = machine.AddAnyStateTransition(target);
-            transition.duration = 0.08f;
-            transition.canTransitionToSelf = true;
-            transition.AddCondition(AnimatorConditionMode.IfNot, 0f, "Dead");
-            return transition;
-        }
-
-        private static AnimationClip LoadClip(string fileName)
-        {
-            foreach (var asset in AssetDatabase.LoadAllAssetsAtPath($"{ClipsFolder}/{fileName}.fbx"))
-                if (asset is AnimationClip clip && clip.name.StartsWith("__preview__") == false)
-                    return clip;
-
-            Debug.LogWarning($"No animation clip in {fileName}.fbx");
-            return null;
         }
 
         private static void EnsureFolder(string path)
