@@ -1460,6 +1460,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6034715529018467321, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
+      propertyPath: roundController
+      value: 
+      objectReference: {fileID: 1300097183}
     - target: {fileID: 551722874855448837, guid: cdc3e2fa12cf8ff42ae5724ca4fecc79, type: 3}
       propertyPath: m_Name
       value: Snake Head
