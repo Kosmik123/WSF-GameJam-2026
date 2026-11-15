@@ -26,7 +26,7 @@ MonoBehaviour:
     pathHalfWidth: 0.05
     pathWander: 0.07
     hasBasins: 1
-    basinLevel: -0.2
+    basinLevel: -0.3
     shoreWidth: 0.25
     basinDepth: 3
     hasWater: 1
