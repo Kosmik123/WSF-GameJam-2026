@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Unity.Cinemachine;
@@ -68,6 +69,7 @@ namespace WSFGameJam2026.Menu
         private Behaviour[] pausedInMenu;
 
         private bool isInMenu;
+        private readonly List<Canvas> hiddenCanvases = new List<Canvas>();
 
         private void Reset()
         {
@@ -78,6 +80,7 @@ namespace WSFGameJam2026.Menu
         private void Start()
         {
             isInMenu = true;
+            HideHud();
             SetGameplay(false);
             SetCameraPriorities(true);
             SetFog(0f);
@@ -110,6 +113,7 @@ namespace WSFGameJam2026.Menu
                 menuScreen.SetActive(false);
 
             SetGameplay(true);
+            ShowHud();
             gameCamera.gameObject.SetActive(true);
             gameCamera.enabled = true;
             SetCameraPriorities(false);
@@ -117,6 +121,31 @@ namespace WSFGameJam2026.Menu
 
             // Puts the player and the head at the start of the first round (also resets the speed of the head).
             controller.StartRun();
+        }
+
+        // Every canvas except the menu is HUD (health, skills, round, screens), whatever it is made of: it is only switched off, not deactivated.
+        private void HideHud()
+        {
+            var menuCanvas = menuScreen ? menuScreen.GetComponentInParent<Canvas>() : null;
+            foreach (var canvas in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+            {
+                if (canvas.enabled && canvas != menuCanvas && canvas.isRootCanvas)
+                {
+                    canvas.enabled = false;
+                    hiddenCanvases.Add(canvas);
+                }
+            }
+        }
+
+        private void ShowHud()
+        {
+            foreach (var canvas in hiddenCanvases)
+            {
+                if (canvas)
+                    canvas.enabled = true;
+            }
+
+            hiddenCanvases.Clear();
         }
 
         private IEnumerator FogCo()
