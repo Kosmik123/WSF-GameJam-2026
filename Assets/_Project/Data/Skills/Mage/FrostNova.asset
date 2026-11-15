@@ -12,35 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 648d1bd0bac247fbb5caad0d54efa249, type: 3}
   m_Name: FrostNova
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Mage.FrostNovaSkill
-  displayName: Frost Nova
+  displayName: Lodowa nova
   icon: {fileID: 0}
+  accentColor: {r: 0.5568628, g: 0.7647059, b: 0.91764706, a: 1}
   tiers:
-  - tierName: Base
-    description: 'Ring of ice within 3 m: 12 damage and 2 s of slow.'
+  - tierName: Baza
+    description: "Pier\u015Bcie\u0144 lodu w promieniu 3 m: 12 obra\u017Ce\u0144
+      i 2 s spowolnienia."
     cooldown: 8
     damage: 12
     range: 3
     duration: 2
     knockback: 0
     stun: 0
-  - tierName: Upgrade I
-    description: Radius 3.5 m, 16 damage.
+  - tierName: Ulepszenie I
+    description: "Promie\u0144 3,5 m, 16 obra\u017Ce\u0144."
     cooldown: 8
     damage: 16
     range: 3.5
     duration: 2
     knockback: 0
     stun: 0
-  - tierName: Upgrade II
-    description: Radius 4 m, 20 damage.
+  - tierName: Ulepszenie II
+    description: "Promie\u0144 4 m, 20 obra\u017Ce\u0144."
     cooldown: 8
     damage: 20
     range: 4
     duration: 2
     knockback: 0
     stun: 0
-  - tierName: 'Evolution: Freeze'
-    description: Enemies in the ring are also frozen for 1.5 s.
+  - tierName: 'Ewolucja: Szron'
+    description: "Wrogowie w pier\u015Bcieniu zamarzaj\u0105 na 1,5 s."
     cooldown: 8
     damage: 20
     range: 4

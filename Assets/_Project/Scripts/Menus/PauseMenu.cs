@@ -2,23 +2,23 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using WSFGameJam2026.Combat;
 using WSFGameJam2026.Rounds;
 
 namespace WSFGameJam2026.Menus
 {
     /// <summary>
     /// The pause menu, toggled with the Cancel action (Escape, the Start button of a gamepad).
-    /// Shows the state of the run and lets the player go back, start the scene again or quit.
-    /// Does nothing while the main menu is open.
+    /// Shows the state of the run (round, level, lap, skills) and offers: back to the game, settings, controls
+    /// and giving up the run. Does nothing while the game is already paused by something else (main menu, level up).
     /// </summary>
     public class PauseMenu : MonoBehaviour
     {
         [SerializeField]
         private GamePause pause;
 
-        [Tooltip("Optional. The pause menu does not open while the main menu is open.")]
+        [Tooltip("Optional. The pause menu does not open while the main menu is on the screen.")]
         [SerializeField]
         private MainMenu mainMenu;
 
@@ -34,12 +34,26 @@ namespace WSFGameJam2026.Menus
         private Button resumeButton;
 
         [SerializeField]
-        private Button restartButton;
+        private Button settingsButton;
 
         [SerializeField]
-        private Button quitButton;
+        private Button controlsButton;
+
+        [Tooltip("Ends the run at once, as if the player died.")]
+        [SerializeField]
+        private Button surrenderButton;
+
+        [Header("Screens")]
+        [SerializeField]
+        private SubScreen settingsScreen;
+
+        [SerializeField]
+        private SubScreen controlsScreen;
 
         [Header("State of the run")]
+        [SerializeField]
+        private Health playerHealth;
+
         [SerializeField]
         private RoundState roundState;
 
@@ -79,11 +93,14 @@ namespace WSFGameJam2026.Menus
             if (resumeButton)
                 resumeButton.onClick.AddListener(Close);
 
-            if (restartButton)
-                restartButton.onClick.AddListener(RestartScene);
+            if (settingsButton)
+                settingsButton.onClick.AddListener(SettingsButton_OnClick);
 
-            if (quitButton)
-                quitButton.onClick.AddListener(QuitGame);
+            if (controlsButton)
+                controlsButton.onClick.AddListener(ControlsButton_OnClick);
+
+            if (surrenderButton)
+                surrenderButton.onClick.AddListener(Surrender);
 
             if (screen)
                 screen.gameObject.SetActive(false);
@@ -92,7 +109,7 @@ namespace WSFGameJam2026.Menus
         /// <summary>Pauses the game and shows the menu.</summary>
         public void Open()
         {
-            if (isOpen || (mainMenu && mainMenu.IsOpen))
+            if (isOpen || pause.IsPaused || (mainMenu && mainMenu.IsOpen))
                 return;
 
             isOpen = true;
@@ -119,6 +136,8 @@ namespace WSFGameJam2026.Menus
 
             isOpen = false;
             StopAllCoroutines();
+            CloseScreen(settingsScreen);
+            CloseScreen(controlsScreen);
             if (screen)
                 screen.gameObject.SetActive(false);
 
@@ -127,6 +146,10 @@ namespace WSFGameJam2026.Menus
 
         private void ToggleAction_Performed(InputAction.CallbackContext context)
         {
+            // Escape first closes the settings or the controls, and only then the pause.
+            if (SubScreen.IsAnyOpenOrJustClosed)
+                return;
+
             if (isOpen)
             {
                 Close();
@@ -145,19 +168,29 @@ namespace WSFGameJam2026.Menus
                 lapLabel.text = string.Format(lapFormat, Mathf.Clamp01(lapTracker.Progress) * 100f);
         }
 
-        private void RestartScene()
+        private void SettingsButton_OnClick()
         {
-            pause.Release(this);
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            if (settingsScreen)
+                settingsScreen.Open(settingsButton);
         }
 
-        private void QuitGame()
+        private void ControlsButton_OnClick()
         {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
+            if (controlsScreen)
+                controlsScreen.Open(controlsButton);
+        }
+
+        private void Surrender()
+        {
+            Close();
+            if (playerHealth)
+                playerHealth.Kill();
+        }
+
+        private static void CloseScreen(SubScreen subScreen)
+        {
+            if (subScreen)
+                subScreen.Close();
         }
 
         private void OnDisable()
@@ -168,11 +201,14 @@ namespace WSFGameJam2026.Menus
             if (resumeButton)
                 resumeButton.onClick.RemoveListener(Close);
 
-            if (restartButton)
-                restartButton.onClick.RemoveListener(RestartScene);
+            if (settingsButton)
+                settingsButton.onClick.RemoveListener(SettingsButton_OnClick);
 
-            if (quitButton)
-                quitButton.onClick.RemoveListener(QuitGame);
+            if (controlsButton)
+                controlsButton.onClick.RemoveListener(ControlsButton_OnClick);
+
+            if (surrenderButton)
+                surrenderButton.onClick.RemoveListener(Surrender);
 
             if (isOpen)
                 Close();

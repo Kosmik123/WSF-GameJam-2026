@@ -12,35 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 32d7d8324b0440c794c562b8c741ebbd, type: 3}
   m_Name: AxeThrow
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Warrior.AxeThrowSkill
-  displayName: Axe Throw
+  displayName: Rzut toporem
   icon: {fileID: 0}
+  accentColor: {r: 0.8509804, g: 0.627451, b: 0.4, a: 1}
   tiers:
-  - tierName: Base
-    description: 'Throw an axe 10 m: 12 damage on the way out and 12 on the way back.'
+  - tierName: Baza
+    description: "Top\xF3r leci 10 m i wraca: 12 obra\u017Ce\u0144 w ka\u017Cd\u0105
+      stron\u0119."
     cooldown: 3
     damage: 12
     range: 10
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: Upgrade I
-    description: Range 13 m.
+  - tierName: Ulepszenie I
+    description: "Zasi\u0119g 13 m."
     cooldown: 3
     damage: 12
     range: 13
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: Upgrade II
-    description: 16 damage.
+  - tierName: Ulepszenie II
+    description: "16 obra\u017Ce\u0144."
     cooldown: 3
     damage: 16
     range: 13
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: 'Evolution: Two Axes'
-    description: Throw two axes 15 degrees apart.
+  - tierName: 'Ewolucja: Dwa topory'
+    description: "Rzut dwoma toporami rozchylonymi o 15\xB0."
     cooldown: 3
     damage: 16
     range: 13

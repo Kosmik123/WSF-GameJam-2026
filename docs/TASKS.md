@@ -54,9 +54,10 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci z wynikiem (liczba rund), zapis rekordu i restart od rundy 1. `P`
   - [x] Logika: `RoundController` (przerwa po rundzie, szybsza paszcza i mnożnik wrogów, śmierć kończy przejście, rekord w `PlayerPrefs`, restart od rundy 1), menu *WSF GameJam/Setup/Create Round Loop*. Nie testowane w Unity. `C`
   - [x] Ekran zwycięstwa rundy i ekran śmierci z wynikiem i rekordem: `RoundScreens` (zdarzenia `OnRoundCompleted`, `OnRunEnded`), menu *WSF GameJam/Setup/Create Round Screens*, nie testowane w Unity. `C`
-  - [ ] Ładna grafika tych ekranów (teraz placeholder: przyciemnienie i tekst). `G`
+  - [x] Grafika tych ekranów według makiety (`RoundWonScreen`, `RunEndScreen`, menu *Create Aztec UI*); stare `RoundScreens` są usuwane. Nie testowane w Unity. `C`
 - [ ] **Model paszczy** (siatka, animacja otwierania i zamykania). `G`
-- [ ] **Model gracza** (low poly, animacje: bieg, atak, unik, obrażenia, śmierć). Teraz jest postać z paczki RPG Tiny Hero Duo (z LD57), własny model opcjonalny. `G`
+- [x] **Model gracza: Kapłan Pierzastego Węża** (koncept 02, motyw Q'uq'umatza). Low poly, budowany skryptem Blendera `Tools/Hero/build_quqmatz_priest.py` na szkielecie RPG Tiny Hero Duo, więc wszystkie animacje działają (humanoid). Ciało przekolorowane z tekstury na kolory wierzchołków w palecie kapłana, części przypięte do kości: hełm-paszcza węża z kłami, pióropusz kwezala, kołnierz-żuchwa, peleryna z piór, laska z głową węża (Mag), włócznia, tarcza z piór i osłony policzków (Wojownik). Jeden plik `Models/Hero/QuqumatzPriest.fbx`, klasa ukrywa części drugiej klasy (`PlayerClass.hiddenParts`). Materiał z shaderem `WSF/Vertex Color Lit`. Menu *WSF GameJam/Setup/Apply Quetzal Priest Hero*, uruchamia się samo raz (`HeroAutoSetup`). Sprawdzone w renderze Blendera w pozach Idle, Attack i Move, nie testowane w Unity. `C`
+- [ ] **Szlif modelu kapłana:** detale hełmu i twarzy, własna animacja rzucania czaru, ewentualnie ruch peleryny. `G`
 - [ ] **Materiał i wygląd ciała węża** (łuski, kolory, różne warianty segmentów). `G`
 
 ## Etap 2: walka i wrogowie (MUST)
@@ -83,10 +84,11 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 
 ## Etap 2b: progresja (MUST)
 
-- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku); reset poziomu i sprzętu przy śmierci. Awans może dawać karty skilli: `SkillSlots.GetOfferableSkills` i `SkillSlots.Grant` są gotowe. `C`
+- [x] **Doświadczenie i poziomy:** `PlayerLevel` na graczu: XP za wrogów zabitych przez gracza (`Enemy.ExperienceReward`, zabici przez paszczę się nie liczą), próg 60 XP rosnący ×1,35 na poziom, każdy poziom +12 HP i +6% obrażeń (`PlayerCombat.DamageMultiplier`), reset na starcie nowego przejścia. Awans otwiera ekran kart (`LevelUpScreen`: nowy skill, ulepszenie albo ewolucja, wybór myszą, padem lub klawiszami 1/2/3). Liczby do balansu w Inspectorze. Nie testowane w Unity. `C`
 - [x] **Trudność zależna od paszczy:** `EnemySpawner.GetDifficulty` liczy trudność z aktualnej odległości miejsca od paszczy (krzywa, blisko = łatwo, czubek głowy = najtrudniej) razem z mnożnikiem rundy. Poziom wroga ustalany raz, przy pojawieniu się. Nie testowane w Unity. `C`
 - [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
 - [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`
+  - [x] Pasek XP i odznaka poziomu w HUD-zie (`PlayerLevelView`), ekran awansu z kartami. `C`
 - [ ] **Ikony i modele przedmiotów** (broń, pancerz, dodatki). `G`
 
 ## Etap 3: czytelność i interfejs (SHOULD)
@@ -97,7 +99,9 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [x] **Wskaźnik paszczy:** pierścień okrążenia z odległością do paszczy (`LapRing`) i czerwona, pulsująca winieta z ostrzeżeniem, gdy paszcza jest blisko (`MawWarning`). Menu *WSF GameJam/Setup/Create Aztec UI*. Nie testowane w Unity. `C`
 - [ ] **Ekrany:** start, zwycięstwo rundy, śmierć, pauza. `G` (grafika), `P` (logika)
   - [x] UI w stylu azteckim (projekt: [canvas „Uroboros — propozycja UI”](https://claude.ai/artifact/VR4j8GK12A2xV2qYbzkG7V)): menu startowe z ładowaniem (kręcący się uroboros, `UiSpinner`), wyborem klasy i rekordem, kamera z góry torusa zjeżdża za plecy bohatera (`MainMenu`, `CameraIntro`), pauza pod Escape (`PauseMenu`; `GamePause` jest jedynym właścicielem pauzy), baner „Runda N” (`RoundBanner`), kropki rundy (`RoundDots`), restyling HUD-u i ekranów rund. Sprite’y rysowane w kodzie (`AztecUiSprites`, zapis do `Assets/_Project/Ui/Sprites`). Menu *WSF GameJam/Setup/Create Aztec UI* (po *Create HUD*, *Create Round Loop*, *Create Round Screens*). Skompilowane poza Unity, nie testowane w Unity. `C`
-  - [ ] Font nagłówków (teraz domyślny TMP, w projekcie był Cinzel), ikony skilli, pasek XP i ekran awansu po systemie poziomów. `G`, `C`
+  - [x] Odwzorowanie makiety 1:1 (rozmiary ×1,5 do 1920×1080): panel gracza (odznaka poziomu, klasa, HP z mozaiką, XP), numer rundy z kropkami i rekordem, pierścień okrążenia z paszczą i celem, strzałka „paszcza · N m”, pasek umiejętności (atak, unik z odliczaniem, 4 skille z literą w kolorze skilla, kreskami poziomu i odliczaniem), ekran awansu, zwycięstwa rundy (czas, wrogowie, najbliżej paszczy, co zmienia się w następnej rundzie, przycisk „DALEJ” pomija przerwę), śmierci (przyczyna, rundy, rekord z odznaką, poziom, wrogowie, klasa, „ZACZNIJ OD NOWA” i „Menu główne”), pauza (runda, poziom, okrążenie, lista skilli, ustawienia, sterowanie, poddanie), ustawienia (głośność, pełny ekran) i sterowanie. Menu startowe ma legendę i znaczniki bohatera, paszczy i celu nad torusem. Setup tłumaczy nazwy i opisy klas oraz skilli na polski i nadaje skillom kolory (`SkillDefinition.AccentColor`). `RoundController`: `ContinueNow`, `RestartRun`, `restartAutomatically`. Nowe akcje `UI/Choose1-3`. Skompilowane poza Unity, nie testowane w Unity. `C`
+  - [x] Współpraca z menu z *Create Main Menu* (kamery Cinemachine, zaparkowany gracz, mgła): gdy jest w scenie, *Create Aztec UI* nie dodaje własnej kamery ani pauzy, tylko podpina swój ekran (klasa, ustawienia, rekord, legenda) jako jego ekran, a GRAJ jako jego Play; stary ekran Play jest wyłączany, nie usuwany. Kolejność: najpierw *Create Main Menu*, potem *Create Aztec UI*. `C`
+  - [ ] Fonty Cinzel i Inter (OFL) w `Assets/_Project/Ui/Fonts`: setup sam zrobi z nich fonty TMP; bez nich jest domyślny font. Ikony skilli (`SkillDefinition.Icon`). `G`
 - [ ] **Efekty paszczy w świecie:** poświata, drgania kamery, zmiana kolorów przy zbliżaniu się. `C`
 
 ## Etap 4: więcej zawartości (SHOULD / COULD)
@@ -125,5 +129,5 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [ ] Dokładne zachowania i statystyki wrogów.
 - [x] Poziom i sprzęt zostają między rundami, ale giną ze śmiercią (nowa gra od zera).
 - [x] Wróg dostaje siłę raz, przy pojawieniu się, i jej nie zmienia.
-- [ ] Szczegóły progresji: krzywa XP, sloty i typy przedmiotów, źródła.
+- [ ] Szczegóły progresji: krzywa XP (jest robocza: 60 × 1,35^poziom), sloty i typy przedmiotów, źródła.
 - [ ] Paleta kolorów i referencje wizualne.

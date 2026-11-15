@@ -12,36 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5293e65792f7437995d49c604d631d98, type: 3}
   m_Name: Charge
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Warrior.ChargeSkill
-  displayName: Charge
+  displayName: "Szar\u017Ca"
   icon: {fileID: 0}
+  accentColor: {r: 1, g: 0.5411765, b: 0.49803922, a: 1}
   tiers:
-  - tierName: Base
-    description: Dash 6 m forward through enemies, 20 damage. Invulnerable on the
-      way.
+  - tierName: Baza
+    description: "Zryw o 6 m przez wrog\xF3w, 20 obra\u017Ce\u0144, nietykalno\u015B\u0107
+      w trakcie."
     cooldown: 4
     damage: 20
     range: 6
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: Upgrade I
-    description: Dash 8 m.
+  - tierName: Ulepszenie I
+    description: Zryw o 8 m.
     cooldown: 4
     damage: 20
     range: 8
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: Upgrade II
-    description: 28 damage.
+  - tierName: Ulepszenie II
+    description: "28 obra\u017Ce\u0144."
     cooldown: 4
     damage: 28
     range: 8
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: 'Evolution: Fire Charge'
-    description: Leaves a trail of fire for 3 s (8 damage per second).
+  - tierName: "Ewolucja: Ognista szar\u017Ca"
+    description: "Zostawia ognisty \u015Blad na 3 s (8 obra\u017Ce\u0144 na sekund\u0119)."
     cooldown: 4
     damage: 28
     range: 8

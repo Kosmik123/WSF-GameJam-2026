@@ -12,36 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0e6cd59106de4a06b2a96cf7ea9e5001, type: 3}
   m_Name: ChainLightning
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Mage.ChainLightningSkill
-  displayName: Chain Lightning
+  displayName: "\u0141a\u0144cuch b\u0142yskawic"
   icon: {fileID: 0}
+  accentColor: {r: 0.7882353, g: 0.72156864, b: 0.9411765, a: 1}
   tiers:
-  - tierName: Base
-    description: 'Hits the nearest enemy (8 m) and jumps to 3 more: 16 damage, every
-      jump 4 less.'
+  - tierName: Baza
+    description: "Trafia najbli\u017Cszego wroga (8 m) i przeskakuje na 3 kolejnych:
+      16 obra\u017Ce\u0144, ka\u017Cdy skok o 4 mniej."
     cooldown: 5
     damage: 16
     range: 8
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: Upgrade I
-    description: 4 jumps, 20 damage.
+  - tierName: Ulepszenie I
+    description: "4 skoki, 20 obra\u017Ce\u0144."
     cooldown: 5
     damage: 20
     range: 8
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: Upgrade II
-    description: 5 jumps, 24 damage.
+  - tierName: Ulepszenie II
+    description: "5 skok\xF3w, 24 obra\u017Cenia."
     cooldown: 5
     damage: 24
     range: 8
     duration: 0
     knockback: 0
     stun: 0
-  - tierName: 'Evolution: Storm'
-    description: Every hit stuns the enemy for 0.5 s.
+  - tierName: 'Ewolucja: Burza'
+    description: "Ka\u017Cde trafienie og\u0142usza wroga na 0,5 s."
     cooldown: 5
     damage: 24
     range: 8
@@ -53,3 +54,4 @@ MonoBehaviour:
   damageLossPerJump: 4
   missLength: 2.5
   color: {r: 0.6, g: 0.8, b: 1, a: 1}
+  castHeight: 1

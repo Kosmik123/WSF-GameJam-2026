@@ -35,6 +35,11 @@ namespace WSFGameJam2026.Editor
         {
             int enemies = ApplyEnemyModels();
             bool hasPlayer = ApplyPlayerModel();
+
+            // The quetzal priest (when built) replaces the RPG Tiny Hero Duo model in both classes.
+            if (hasPlayer)
+                HeroSetupMenu.ApplyPriest();
+
             AssetDatabase.SaveAssets();
             Debug.Log($"LD57 models: {enemies} enemy prefabs updated" + (hasPlayer ? ", player character set." : ", no player (run Create Skills And Mage first)."));
         }
@@ -220,8 +225,8 @@ namespace WSFGameJam2026.Editor
             var applier = player.GetComponent<PlayerClassApplier>();
             var serializedApplier = new SerializedObject(applier);
             serializedApplier.FindProperty("modelRoot").objectReferenceValue = modelRoot;
-            serializedApplier.FindProperty("placeholderRenderer").objectReferenceValue = player.GetComponent<MeshRenderer>();
             serializedApplier.ApplyModifiedPropertiesWithoutUndo();
+            HeroSetupMenu.SetPlaceholders(player);
 
             if (player.TryGetComponent<PlayerAnimator>(out var playerAnimator) == false)
                 playerAnimator = player.AddComponent<PlayerAnimator>();

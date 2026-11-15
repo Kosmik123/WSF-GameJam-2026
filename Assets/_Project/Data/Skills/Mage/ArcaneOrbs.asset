@@ -12,35 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e79f1ae08a804ed69d7bd7cd4c2890ce, type: 3}
   m_Name: ArcaneOrbs
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Mage.ArcaneOrbsSkill
-  displayName: Arcane Orbs
+  displayName: Magiczne kule
   icon: {fileID: 0}
+  accentColor: {r: 0.7254902, g: 0.654902, b: 0.93333334, a: 1}
   tiers:
-  - tierName: Base
-    description: 3 orbs circle you for 6 s and hurt enemies (8 damage).
+  - tierName: Baza
+    description: "3 kule kr\u0105\u017C\u0105 wok\xF3\u0142 ciebie przez 6 s i rani\u0105
+      wrog\xF3w przy dotyku (8 obra\u017Ce\u0144)."
     cooldown: 12
     damage: 8
     range: 1.8
     duration: 6
     knockback: 0
     stun: 0
-  - tierName: Upgrade I
-    description: 4 orbs, 12 damage.
+  - tierName: Ulepszenie I
+    description: "4 kule, 12 obra\u017Ce\u0144."
     cooldown: 12
     damage: 12
     range: 1.8
     duration: 6
     knockback: 0
     stun: 0
-  - tierName: Upgrade II
-    description: 5 orbs, 16 damage.
+  - tierName: Ulepszenie II
+    description: "5 kul, 16 obra\u017Ce\u0144."
     cooldown: 12
     damage: 16
     range: 1.8
     duration: 6
     knockback: 0
     stun: 0
-  - tierName: 'Evolution: Guardians'
-    description: Every second one of the orbs shoots the nearest enemy.
+  - tierName: "Ewolucja: Stra\u017Cnicy"
+    description: "Co sekund\u0119 jedna z kul strzela w najbli\u017Cszego wroga."
     cooldown: 12
     damage: 16
     range: 1.8
@@ -52,6 +54,7 @@ MonoBehaviour:
   hitRadius: 0.4
   perEnemyCooldown: 0.5
   orbSize: 0.36
+  orbHeight: 0.9
   shotInterval: 1
   shotRange: 10
   shotSpeed: 16

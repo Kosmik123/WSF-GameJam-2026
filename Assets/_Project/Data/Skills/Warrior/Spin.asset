@@ -12,35 +12,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2868cb98a6924beabef8ed6430a2bfb9, type: 3}
   m_Name: Spin
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Warrior.SpinSkill
-  displayName: Spin
+  displayName: Wir
   icon: {fileID: 0}
+  accentColor: {r: 0.21176471, g: 0.7019608, b: 0.627451, a: 1}
   tiers:
-  - tierName: Base
-    description: 'Spin with the sword: 8 damage every 0.25 s within 2.5 m for 1 s.'
+  - tierName: Baza
+    description: "Wir mieczem: 8 obra\u017Ce\u0144 co 0,25 s w promieniu 2,5 m przez
+      1 s."
     cooldown: 5
     damage: 8
     range: 2.5
     duration: 1
     knockback: 0
     stun: 0
-  - tierName: Upgrade I
-    description: Radius 3 m, 12 damage per tick.
+  - tierName: Ulepszenie I
+    description: "Promie\u0144 3 m, 12 obra\u017Ce\u0144 na uderzenie."
     cooldown: 5
     damage: 12
     range: 3
     duration: 1
     knockback: 0
     stun: 0
-  - tierName: Upgrade II
-    description: Radius 3.5 m, 16 damage per tick.
+  - tierName: Ulepszenie II
+    description: "Promie\u0144 3,5 m, 16 obra\u017Ce\u0144 na uderzenie."
     cooldown: 5
     damage: 16
     range: 3.5
     duration: 1
     knockback: 0
     stun: 0
-  - tierName: 'Evolution: Tornado'
-    description: Spins for 2 s and pulls enemies to the middle.
+  - tierName: 'Ewolucja: Tornado'
+    description: "Wir trwa 2 s i przyci\u0105ga wrog\xF3w do \u015Brodka."
     cooldown: 5
     damage: 16
     range: 3.5
