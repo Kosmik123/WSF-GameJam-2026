@@ -124,10 +124,23 @@ namespace WSFGameJam2026.Rounds
                 BeginRound();
         }
 
-        /// <summary>Starts the first round: puts the jaw and the player at the start. For the main menu, when "Start Automatically" is off.</summary>
+        /// <summary>
+        /// Starts the first round from the main menu (when "Start Automatically" is off). The jaw stays where it is,
+        /// because it has been eating the tail in the menu, and the player appears the usual gap in front of it.
+        /// </summary>
         public void StartRun()
         {
-            BeginRound();
+            BeginRound(false);
+        }
+
+        /// <summary>Puts the player the start gap in front of the jaw where it is now. The menu keeps the parked player there while the jaw moves.</summary>
+        public void PlacePlayerAheadOfHead()
+        {
+            var startTheta = head.Theta + startGapDegrees * Mathf.Deg2Rad;
+            var startAngles = new TorusAngles(startTheta, startPhiDegrees * Mathf.Deg2Rad);
+            var world = playerObject.World;
+            var facing = world.transform.TransformDirection(TorusGeometry.GetThetaDirection(startAngles.Theta));
+            playerObject.Place(world, startAngles, facing);
         }
 
         private void OnDisable()
@@ -190,22 +203,19 @@ namespace WSFGameJam2026.Rounds
         }
 
         // Puts the jaw and the player at the start, clears the enemies and sets the difficulty of the current round.
-        private void BeginRound()
+        private void BeginRound(bool shouldResetHead = true)
         {
             var roundsPlayed = roundState.Round - 1;
 
             head.SpeedMultiplier = 1f + jawSpeedPerRound * roundsPlayed;
-            head.ResetPosition();
+            if (shouldResetHead)
+                head.ResetPosition();
+
             head.IsMoving = true;
 
             spawner.RoundMultiplier = 1f + enemiesPerRound * roundsPlayed;
             spawner.Clear();
-             
-            var startTheta = head.Theta + startGapDegrees * Mathf.Deg2Rad;
-            var startAngles = new TorusAngles(startTheta, startPhiDegrees * Mathf.Deg2Rad);
-            var world = playerObject.World;
-            var facing = world.transform.TransformDirection(TorusGeometry.GetThetaDirection(startAngles.Theta));
-            playerObject.Place(world, startAngles, facing);
+            PlacePlayerAheadOfHead();
 
             weakPoint.ResetState();
             OnRoundStarted?.Invoke(roundState.Round);

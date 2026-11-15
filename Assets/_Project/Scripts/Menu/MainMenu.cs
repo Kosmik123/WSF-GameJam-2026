@@ -55,6 +55,8 @@ namespace WSFGameJam2026.Menu
         [SerializeField]
         private Behaviour[] pausedInMenu;
 
+        private bool isInMenu;
+
         private void Reset()
         {
             controller = FindAnyObjectByType<RoundController>();
@@ -63,6 +65,7 @@ namespace WSFGameJam2026.Menu
 
         private void Start()
         {
+            isInMenu = true;
             SetGameplay(false);
             SetCameraPriorities(true);
             head.SpeedMultiplier = menuHeadSpeedMultiplier;
@@ -71,6 +74,13 @@ namespace WSFGameJam2026.Menu
                 menuScreen.SetActive(true);
 
             playButton.onClick.AddListener(PlayButton_OnClick);
+        }
+
+        // The parked player keeps his distance from the jaw, so Play can start the game wherever the jaw is.
+        private void Update()
+        {
+            if (isInMenu)
+                controller.PlacePlayerAheadOfHead();
         }
 
         private void OnDestroy()
@@ -82,6 +92,7 @@ namespace WSFGameJam2026.Menu
         private void PlayButton_OnClick()
         {
             playButton.onClick.RemoveListener(PlayButton_OnClick);
+            isInMenu = false;
             if (menuScreen)
                 menuScreen.SetActive(false);
 
