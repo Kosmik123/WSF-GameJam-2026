@@ -80,6 +80,7 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, więc **trudność rośnie szybciej, niż da się ją przeskoczyć samym biegiem**: gracz musi walczyć wcześnie (na łatwiejszych odcinkach), żeby zdobyć poziomy i sprzęt, a potem poradzić sobie z trudniejszymi.
 
 - **Poziomy gracza:** wrogowie dają doświadczenie (XP), po zebraniu progu gracz awansuje. Każdy poziom zwiększa statystyki (HP, obrażenia, szybkość ataku).
+  - Prototyp: próg 60 XP na poziom 2, każdy kolejny ×1,35; poziom daje +12 HP i +6% obrażeń. Przy awansie gra staje i gracz wybiera jedną z trzech kart: nowy skill, ulepszenie albo ewolucję (sekcja 7). XP dają tylko wrogowie zabici przez gracza.
 - **Ekwipunek:** wrogowie (i skrzynie) zostawiają przedmioty: broń, pancerz, dodatki. Ekwipunek zmienia statystyki i może dawać prostą zdolność. **[DO USTALENIA]** liczba slotów i typów przedmiotów.
 - **Trudność zależy od bliskości paszczy.** Liczymy ją dla każdego segmentu z jego odległości od paszczy, mierzonej w kierunku biegu gracza:
   - blisko paszczy: wrogowie najsłabsi (dobre miejsce na zdobywanie XP),
@@ -100,6 +101,7 @@ Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, wi�
 - UI: HP gracza, numer rundy, ekran startowy, ekran zwycięstwa rundy, ekran śmierci, pauza.
 - **Ekran startowy:** krótkie ładowanie, potem menu (wybór klasy, rekord, Graj) nad torusem widzianym z góry. Po „Graj” kamera zjeżdża za plecy bohatera i dopiero wtedy gra rusza.
 - **Styl UI:** lekka inspiracja kulturą aztecką, bez przesady: obsydian, turkus, złoto i czerwień paszczy, schodkowe narożniki paneli, pas schodkowego meandra, schodkowa spirala (xicalcoliuhqui), kamień słońca w tle ekranów, numer rundy cyfrą i kropkami, pasek HP jako turkusowa mozaika, pierścień okrążenia z 20 znacznikami (20 znaków dni). Projekt: canvas „Uroboros — propozycja UI” (https://claude.ai/artifact/VR4j8GK12A2xV2qYbzkG7V).
+- **Ekrany w grze:** awans (karty), zwycięstwo rundy (czas okrążenia, pokonani wrogowie, najbliżej paszczy, co zmienia następna runda, przycisk „Dalej” skraca przerwę), śmierć (przyczyna, przetrwane rundy, rekord, „Zacznij od nowa” albo „Menu główne”; nowe przejście czeka na wybór gracza), pauza z ustawieniami (głośność, pełny ekran) i sterowaniem. Teksty UI, nazwy i opisy skilli są po polsku.
 
 ## 11. Styl wizualny i dźwięk
 

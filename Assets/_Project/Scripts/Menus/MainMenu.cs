@@ -83,6 +83,12 @@ namespace WSFGameJam2026.Menus
         private Button quitButton;
 
         [SerializeField]
+        private Button settingsButton;
+
+        [SerializeField]
+        private SubScreen settingsScreen;
+
+        [SerializeField]
         private TMP_Text recordLabel;
 
         [Tooltip("{0} is replaced with the best number of completed rounds.")]
@@ -124,6 +130,9 @@ namespace WSFGameJam2026.Menus
 
             if (quitButton)
                 quitButton.onClick.AddListener(QuitGame);
+
+            if (settingsButton)
+                settingsButton.onClick.AddListener(SettingsButton_OnClick);
 
             foreach (var option in classOptions)
                 option.Bind(this);
@@ -246,6 +255,12 @@ namespace WSFGameJam2026.Menus
                 group.gameObject.SetActive(isVisible);
         }
 
+        private void SettingsButton_OnClick()
+        {
+            if (settingsScreen && isStarting == false)
+                settingsScreen.Open(settingsButton);
+        }
+
         private void QuitGame()
         {
 #if UNITY_EDITOR
@@ -262,6 +277,9 @@ namespace WSFGameJam2026.Menus
 
             if (quitButton)
                 quitButton.onClick.RemoveListener(QuitGame);
+
+            if (settingsButton)
+                settingsButton.onClick.RemoveListener(SettingsButton_OnClick);
 
             foreach (var option in classOptions)
                 option.Unbind();

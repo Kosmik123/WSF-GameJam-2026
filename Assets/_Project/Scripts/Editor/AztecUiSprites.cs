@@ -41,6 +41,22 @@ namespace WSFGameJam2026.Editor
 
         public static Sprite Ouroboros => Get("Ouroboros", 128, 128, OuroborosAlpha, Vector4.zero);
 
+        public static Sprite Pill => Get("Pill", 64, 32, PillAlpha, new Vector4(16f, 0f, 16f, 0f));
+
+        public static Sprite ThinRing => Get("ThinRing", 128, 128, (x, y) => Annulus(Distance(x, y, 64f), 58.5f, 63f), Vector4.zero);
+
+        public static Sprite SunRays => Get("SunRays", 256, 256, (x, y) => Annulus(Distance(x, y, 128f), 104f, 127f) * Ticks(x, y, 128f, 12, 9f), Vector4.zero);
+
+        public static Sprite Triangle => Get("Triangle", 64, 64, TriangleAlpha, Vector4.zero);
+
+        public static Sprite Chevron => Get("Chevron", 48, 48, (x, y) => Icon(x, y, 48f, 2.6f, new[] { 6f, 9f, 12f, 15f, 18f, 9f }), Vector4.zero);
+
+        public static Sprite IconShot => Get("IconShot", 64, 64, IconShotAlpha, Vector4.zero);
+
+        public static Sprite IconSword => Get("IconSword", 64, 64, IconSwordAlpha, Vector4.zero);
+
+        public static Sprite IconDodge => Get("IconDodge", 64, 64, IconDodgeAlpha, Vector4.zero);
+
         private static Sprite Get(string spriteName, int width, int height, Func<float, float, float> alpha, Vector4 border, TextureWrapMode wrap = TextureWrapMode.Clamp)
         {
             var path = $"{Folder}/{spriteName}.png";
@@ -227,6 +243,88 @@ namespace WSFGameJam2026.Editor
                 head = 0f;
 
             return Mathf.Max(body, head);
+        }
+
+        // A capsule with fully rounded ends, for badges and the warning banner.
+        private static float PillAlpha(float x, float y)
+        {
+            const float Radius = 16f;
+            float clampedX = Mathf.Clamp(x, Radius, 64f - Radius);
+            return Mathf.Clamp01(Radius - Vector2.Distance(new Vector2(x, y), new Vector2(clampedX, 16f)) + 0.5f);
+        }
+
+        private static float TriangleAlpha(float x, float y)
+        {
+            var a = new Vector2(6f, 10f);
+            var b = new Vector2(58f, 22f);
+            var c = new Vector2(30f, 58f);
+            var p = new Vector2(x, y);
+            float d1 = Cross(p, a, b);
+            float d2 = Cross(p, b, c);
+            float d3 = Cross(p, c, a);
+            bool hasNegative = d1 < 0f || d2 < 0f || d3 < 0f;
+            bool hasPositive = d1 > 0f || d2 > 0f || d3 > 0f;
+            return hasNegative && hasPositive ? 0f : 1f;
+        }
+
+        private static float Cross(Vector2 p, Vector2 a, Vector2 b)
+        {
+            return (p.x - b.x) * (a.y - b.y) - (a.x - b.x) * (p.y - b.y);
+        }
+
+        // A stroke icon drawn on a 24 x 24 grid with y going down (like an SVG icon), scaled to the sprite.
+        private static float Icon(float x, float y, float size, float strokeWidth, float[] svgPoints)
+        {
+            float scale = size / 24f;
+            var points = new float[svgPoints.Length];
+            for (int i = 0; i < svgPoints.Length; i += 2)
+            {
+                points[i] = svgPoints[i] * scale;
+                points[i + 1] = (24f - svgPoints[i + 1]) * scale;
+            }
+
+            return Polyline(x, y, points, strokeWidth * scale * 0.5f);
+        }
+
+        private static float IconShotAlpha(float x, float y)
+        {
+            const float Scale = 64f / 24f;
+            float ring = Annulus(Distance(x, y, 32f), (4f - 0.9f) * Scale, (4f + 0.9f) * Scale);
+            float alpha = Mathf.Max(ring, Icon(x, y, 64f, 1.8f, new[] { 12f, 2f, 12f, 6f }));
+            alpha = Mathf.Max(alpha, Icon(x, y, 64f, 1.8f, new[] { 12f, 18f, 12f, 22f }));
+            alpha = Mathf.Max(alpha, Icon(x, y, 64f, 1.8f, new[] { 2f, 12f, 6f, 12f }));
+            return Mathf.Max(alpha, Icon(x, y, 64f, 1.8f, new[] { 18f, 12f, 22f, 12f }));
+        }
+
+        private static float IconSwordAlpha(float x, float y)
+        {
+            float alpha = Icon(x, y, 64f, 1.8f, new[] { 8f, 16f, 20f, 4f, 20f, 8f, 8f, 20f });
+            alpha = Mathf.Max(alpha, Icon(x, y, 64f, 1.8f, new[] { 5f, 13f, 11f, 19f }));
+            return Mathf.Max(alpha, Icon(x, y, 64f, 1.8f, new[] { 3f, 21f, 6.5f, 17.5f }));
+        }
+
+        // "M4 17c4 0 6-3 8-6s4-6 8-6" and the arrow head "M16 5h4v4", the curve sampled into short lines.
+        private static float IconDodgeAlpha(float x, float y)
+        {
+            const int Samples = 12;
+            var curve = new float[(Samples * 2 + 1) * 2];
+            int index = 0;
+            AddBezier(curve, ref index, new Vector2(4f, 17f), new Vector2(8f, 17f), new Vector2(10f, 14f), new Vector2(12f, 11f), Samples, true);
+            AddBezier(curve, ref index, new Vector2(12f, 11f), new Vector2(14f, 8f), new Vector2(16f, 5f), new Vector2(20f, 5f), Samples, false);
+            float alpha = Icon(x, y, 64f, 1.8f, curve);
+            return Mathf.Max(alpha, Icon(x, y, 64f, 1.8f, new[] { 16f, 5f, 20f, 5f, 20f, 9f }));
+        }
+
+        private static void AddBezier(float[] points, ref int index, Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, int samples, bool includeStart)
+        {
+            for (int i = includeStart ? 0 : 1; i <= samples; i++)
+            {
+                float t = (float)i / samples;
+                float u = 1f - t;
+                var point = u * u * u * p0 + 3f * u * u * t * p1 + 3f * u * t * t * p2 + t * t * t * p3;
+                points[index++] = point.x;
+                points[index++] = point.y;
+            }
         }
 
         // Transparent in the middle, opaque at the edges.
