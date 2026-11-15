@@ -83,7 +83,7 @@ MonoBehaviour:
   playerSkills: {fileID: 0}
   startAutomatically: 0
   startGapDegrees: 50
-  startPhiDegrees: 90
+  startPhiDegrees: 30
   jawSpeedPerRound: 0.2
   enemiesPerRound: 0.25
   roundBreakSeconds: 2.5
