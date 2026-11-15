@@ -53,6 +53,10 @@ PrefabInstance:
       value: Ququmatz Priest
       objectReference: {fileID: 0}
     - target: {fileID: 5866666021909216657, guid: e77765e0a11a4400ad79be383a4d49bd, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: a786334e8aa6e2e4ead6103fd9104fbf, type: 2}
+    - target: {fileID: 5866666021909216657, guid: e77765e0a11a4400ad79be383a4d49bd, type: 3}
       propertyPath: m_ApplyRootMotion
       value: 0
       objectReference: {fileID: 0}
