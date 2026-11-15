@@ -1,7 +1,9 @@
 """
 Builds the Mage "Kaplan Pierzastego Weza" (Q'uq'umatz priest) from primitives, as close as possible to the concept
 drawing 02 on the "Bohater z Xibalby" page: boxes, faceted cylinders and flat feathers in the concept palette,
-written as vertex colors ("Col", face corner) with one material.
+written as vertex colors ("Col", face corner) with one material. Every corner is painted (paint_corner): baked key light
+with warm/cool tints, height gradients, ambient occlusion from the whole body, highlights on gold and jade, face jitter.
+In Unity the heroes use the shader WSF/Hero Vertex Color (Assets/_Project/Shaders/HeroVertexColor.shader).
 
 Every part is rigid and parented to a bone of the RPG Tiny Hero Duo skeleton (the LD57 hero), so the humanoid
 animations of the game (idle, run, attacks, cast, dodge, hit, death) play on it. Only the armature of
@@ -12,11 +14,13 @@ Run:    blender -b --python Tools/Hero/build_mage_primitives.py -- <repo root>
 """
 import math
 import os
+import random
 import sys
 
 import bmesh
 import bpy
 from mathutils import Matrix, Vector
+from mathutils.bvhtree import BVHTree
 
 ROOT = sys.argv[-1] if len(sys.argv) > 1 and os.path.isdir(sys.argv[-1]) else os.getcwd()
 SOURCE_FBX = os.path.join(ROOT, "Assets", "RPG Tiny Hero Duo", "Mesh", "ModularCharacterPolyart.fbx")
@@ -53,6 +57,136 @@ def mix(a, b, t):
     return tuple(a[i] + (b[i] - a[i]) * t for i in range(3))
 
 
+def multiply(a, b):
+    return tuple(a[i] * b[i] for i in range(3))
+
+
+def clamp01(value):
+    return max(0.0, min(1.0, value))
+
+
+def smoothstep(edge0, edge1, value):
+    t = clamp01((value - edge0) / (edge1 - edge0))
+    return t * t * (3.0 - 2.0 * t)
+
+
+# ---------------------------------------------------------------- corner painting
+# Every face corner gets its own color: the face color (the palette of the drawing) times a baked light, a height
+# gradient, ambient occlusion from the whole body and a small per-face jitter. All in sRGB, like the palette.
+
+PENDING = []
+
+# Key light from the top, the front and the left of the viewer (the character faces -Y, the viewer's left is -X).
+KEY_LIGHT = Vector((-0.45, -0.6, 0.85)).normalized()
+WARM_LIGHT = (1.04, 1.0, 0.93)
+COOL_SHADOW = (0.9, 0.95, 1.03)
+OCCLUSION_TINT = (0.56, 0.62, 0.7)
+HIGHLIGHT = (1.0, 0.97, 0.86)
+AO_DISTANCE = 0.11
+AO_RAYS = 24
+
+
+def face_normal(points):
+    """Newell normal of a polygon (works for the slightly non planar quads of the frustums)."""
+    normal = Vector((0.0, 0.0, 0.0))
+    for i, a in enumerate(points):
+        b = points[(i + 1) % len(points)]
+        normal.x += (a.y - b.y) * (a.z + b.z)
+        normal.y += (a.z - b.z) * (a.x + b.x)
+        normal.z += (a.x - b.x) * (a.y + b.y)
+    return normal.normalized() if normal.length > 1e-9 else Vector((0.0, 0.0, 1.0))
+
+
+def face_jitter(part_name, face_index):
+    """Deterministic small value change per face, so the facets read even where the light is the same."""
+    return random.Random(f"{part_name}:{face_index}").uniform(0.965, 1.035)
+
+
+def hemisphere_directions(count):
+    """Cosine weighted directions around +Z (a Fibonacci spiral, the same every run)."""
+    directions = []
+    golden = math.pi * (3.0 - math.sqrt(5.0))
+    for i in range(count):
+        r = math.sqrt((i + 0.5) / count)
+        angle = golden * i
+        directions.append(Vector((r * math.cos(angle), r * math.sin(angle), math.sqrt(max(0.0, 1.0 - r * r)))))
+    return directions
+
+
+HEMISPHERE = hemisphere_directions(AO_RAYS)
+
+
+class Occluder:
+    """All parts of the body in the rest pose, for the baked ambient occlusion."""
+
+    def __init__(self, parts):
+        verts, polygons = [], []
+        self.two_sided = []
+        for part in parts:
+            offset = len(verts)
+            verts.extend(part.verts)
+            polygons.extend([offset + i for i in indices] for indices, _ in part.faces)
+            self.two_sided.extend(i in part.double_sided for i in range(len(part.faces)))
+        self.tree = BVHTree.FromPolygons(verts, polygons, all_triangles=False)
+
+    def occlusion(self, corner, normal):
+        tangent = normal.orthogonal().normalized()
+        bitangent = normal.cross(tangent)
+        origin = corner + normal * 0.002
+        hidden = 0.0
+        for d in HEMISPHERE:
+            direction = (tangent * d.x + bitangent * d.y + normal * d.z).normalized()
+            hit = self.tree.ray_cast(origin, direction, AO_DISTANCE)
+            # A back face hit means the corner is inside another part (the decals sunk in the collar): not occluded.
+            if hit[0] is not None and hit[3] > 0.003 and (hit[1].dot(direction) < 0.0 or self.two_sided[hit[2]]):
+                hidden += 1.0 - hit[3] / AO_DISTANCE * 0.6
+        return hidden / len(HEMISPHERE)
+
+
+def chroma_close(color, reference, tolerance=0.03):
+    total, reference_total = sum(color), sum(reference)
+    if total < 1e-6:
+        return False
+    return sum((color[i] / total - reference[i] / reference_total) ** 2 for i in range(3)) ** 0.5 < tolerance
+
+
+def paint_corner(color, corner, normal, z_range, jitter, occluder):
+    if color == EYE:
+        return EYE
+
+    # Baked key light: a wrapped lambert, warm where lit and a cool tint on the faces turned away.
+    wrap = clamp01((normal.dot(KEY_LIGHT) + 0.35) / 1.35)
+    light = 0.84 + 0.24 * wrap
+    tint = mix(COOL_SHADOW, WARM_LIGHT, wrap)
+
+    # Darker towards the ground and towards the bottom of each part.
+    bottom, top = z_range
+    local = (corner.z - bottom) / (top - bottom) if top - bottom > 1e-4 else 1.0
+    gradient = (0.86 + 0.16 * smoothstep(0.0, 0.85, corner.z)) * (0.9 + 0.13 * local)
+
+    # Ambient occlusion: other parts close above the face (helmet brim, cape, joints), and the sides facing the body core.
+    occlusion = occluder.occlusion(corner, normal)
+    to_core = Vector((-corner.x, 0.04 - corner.y, 0.0))
+    if to_core.length > 1e-4:
+        facing = clamp01(Vector((normal.x, normal.y, 0.0)).dot(to_core.normalized()))
+        occlusion += 0.25 * facing * (1.0 - smoothstep(0.08, 0.35, to_core.length))
+    occlusion = clamp01(occlusion)
+
+    value = light * gradient * jitter
+    result = tuple(c * value for c in multiply(color, tint))
+    result = multiply(result, mix((1.0, 1.0, 1.0), OCCLUSION_TINT, occlusion * 0.7))
+
+    # Gold and jade are the jewels: a bit brighter overall, and they catch the light on their top faces (more at the top
+    # of the part).
+    accent = chroma_close(color, GOLD) or chroma_close(color, JADE)
+    if accent:
+        result = tuple(c * 1.07 for c in result)
+    if accent and normal.z > 0.3:
+        shine = (normal.z - 0.3) / 0.7 * (0.6 + 0.4 * local) * (1.0 - occlusion)
+        result = mix(result, multiply(HIGHLIGHT, tuple(min(1.0, c * 1.3) for c in color)), 0.45 * shine)
+    return tuple(clamp01(c) for c in result)
+
+
 # ---------------------------------------------------------------- builder
 
 class Part:
@@ -62,15 +196,17 @@ class Part:
         self.name = name
         self.verts = []
         self.faces = []
+        self.double_sided = set()
 
     def face(self, points, color, double_sided=False):
         start = len(self.verts)
         self.verts.extend(Vector(p) for p in points)
         self.faces.append((list(range(start, start + len(points))), color))
         if double_sided:
+            self.double_sided.update((len(self.faces) - 1, len(self.faces)))
             start = len(self.verts)
             self.verts.extend(Vector(p) for p in reversed(points))
-            self.faces.append((list(range(start, start + len(points))), shade(color, 0.8)))
+            self.faces.append((list(range(start, start + len(points))), shade(color, 0.9)))
 
     def box(self, center, half, colors, axes=None):
         """
@@ -87,12 +223,13 @@ class Part:
         def tone(key, amount):
             return palette.get(key, shade(base, amount))
 
+        # The automatic side tones are mild: the corner painting (paint_corner) bakes the light and dark sides.
         self.face([p[(-1, -1, -1)], p[(1, -1, -1)], p[(1, -1, 1)], p[(-1, -1, 1)]], tone("front", 1.0))
-        self.face([p[(1, 1, -1)], p[(-1, 1, -1)], p[(-1, 1, 1)], p[(1, 1, 1)]], tone("back", 0.7))
-        self.face([p[(-1, 1, -1)], p[(-1, -1, -1)], p[(-1, -1, 1)], p[(-1, 1, 1)]], tone("left", 1.05))
-        self.face([p[(1, -1, -1)], p[(1, 1, -1)], p[(1, 1, 1)], p[(1, -1, 1)]], tone("right", 0.8))
-        self.face([p[(-1, -1, 1)], p[(1, -1, 1)], p[(1, 1, 1)], p[(-1, 1, 1)]], tone("top", 1.1))
-        self.face([p[(-1, 1, -1)], p[(1, 1, -1)], p[(1, -1, -1)], p[(-1, -1, -1)]], tone("bottom", 0.6))
+        self.face([p[(1, 1, -1)], p[(-1, 1, -1)], p[(-1, 1, 1)], p[(1, 1, 1)]], tone("back", 0.9))
+        self.face([p[(-1, 1, -1)], p[(-1, -1, -1)], p[(-1, -1, 1)], p[(-1, 1, 1)]], tone("left", 1.0))
+        self.face([p[(1, -1, -1)], p[(1, 1, -1)], p[(1, 1, 1)], p[(1, -1, 1)]], tone("right", 0.93))
+        self.face([p[(-1, -1, 1)], p[(1, -1, 1)], p[(1, 1, 1)], p[(-1, 1, 1)]], tone("top", 1.0))
+        self.face([p[(-1, 1, -1)], p[(1, 1, -1)], p[(1, -1, -1)], p[(-1, -1, -1)]], tone("bottom", 0.85))
 
     def limb(self, start, end, half_width, half_depth, color, light_side=None):
         """Box from one joint to the next (along a bone in the rest pose). light_side: (light, dark) colors of the sides."""
@@ -121,11 +258,11 @@ class Part:
             j = (i + 1) % sides
             middle_x = (bottom[i].x + bottom[j].x) * 0.5 - c.x
             color = color_left if middle_x < 0 else color_right
-            light = 0.8 + 0.2 * abs(math.cos(math.tau * (i + 1) / sides))
+            light = 0.93 + 0.07 * abs(math.cos(math.tau * (i + 1) / sides))
             self.face([bottom[i], bottom[j], top[j], top[i]], shade(color, light))
         if cap:
-            self.face(list(reversed(bottom)), shade(color_right, 0.6))
-            self.face(top, shade(color_left, 1.05))
+            self.face(list(reversed(bottom)), shade(color_right, 0.85))
+            self.face(top, color_left)
 
     def feather(self, base, tip, width, color, thickness=0.012):
         """Long flat quetzal feather: a thin diamond prism from base to tip, light front and darker back."""
@@ -137,30 +274,44 @@ class Part:
         left, right = middle - side * width, middle + side * width
         front, back = normal * thickness, -normal * thickness
         self.face([a, right + front, b], color)
-        self.face([a, b, left + front], shade(color, 0.85))
-        self.face([a, b, right + back], shade(color, 0.65))
-        self.face([a, left + back, b], shade(color, 0.7))
-        self.face([a, left + front, left + back], shade(color, 0.6))
-        self.face([a, right + back, right + front], shade(color, 0.6))
+        self.face([a, b, left + front], shade(color, 0.95))
+        self.face([a, b, right + back], shade(color, 0.8))
+        self.face([a, left + back, b], shade(color, 0.82))
+        self.face([a, left + front, left + back], shade(color, 0.75))
+        self.face([a, right + back, right + front], shade(color, 0.75))
 
     def build(self, armature, bone_name):
+        """Queues the part: the corner colors need the whole body (ambient occlusion), so build_all makes the objects."""
+        PENDING.append((self, armature, bone_name))
+
+    def bounds_z(self):
+        heights = [v.z for v in self.verts]
+        return min(heights), max(heights)
+
+    def build_now(self, armature, bone_name, occluder):
         mesh = bpy.data.meshes.new(self.name)
         bm = bmesh.new()
         bm_verts = [bm.verts.new(v) for v in self.verts]
-        colors = []
-        for indices, color in self.faces:
+        faces = []
+        for face_index, (indices, color) in enumerate(self.faces):
             try:
                 bm.faces.new([bm_verts[i] for i in indices])
-                colors.append(color)
+                faces.append((face_index, indices, color))
             except ValueError:
                 pass
         bm.to_mesh(mesh)
         bm.free()
 
+        z_range = self.bounds_z()
         attribute = mesh.color_attributes.new("Col", "FLOAT_COLOR", "CORNER")
-        for polygon, color in zip(mesh.polygons, colors):
+        for polygon, (face_index, indices, color) in zip(mesh.polygons, faces):
+            points = [self.verts[i] for i in indices]
+            normal = face_normal(points)
+            jitter = face_jitter(self.name, face_index)
             for loop_index in polygon.loop_indices:
-                attribute.data[loop_index].color = (*srgb_to_linear(color), 1.0)
+                corner = mesh.vertices[mesh.loops[loop_index].vertex_index].co
+                painted = paint_corner(color, corner, normal, z_range, jitter, occluder)
+                attribute.data[loop_index].color = (*srgb_to_linear(painted), 1.0)
         mesh.color_attributes.active_color = attribute
         material = bpy.data.materials.get(MATERIAL_NAME) or bpy.data.materials.new(MATERIAL_NAME)
         mesh.materials.append(material)
@@ -424,6 +575,10 @@ def main():
     build_head(armature)
     build_staff(armature)
     build_orb(armature)
+
+    occluder = Occluder([part for part, _, _ in PENDING])
+    for part, part_armature, bone_name in PENDING:
+        part.build_now(part_armature, bone_name, occluder)
 
     os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
     bpy.ops.object.select_all(action="DESELECT")
