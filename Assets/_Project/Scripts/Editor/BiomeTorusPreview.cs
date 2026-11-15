@@ -60,6 +60,20 @@ namespace WSFGameJam2026.Editor
                     Save(camera, target, Path.Combine(folder, $"segment_{segment}.png"));
                 }
 
+                // Borders between biomes, seen from above the seam across the blend zone.
+                for (int segment = 0; segment < surface.SegmentCount; segment++)
+                {
+                    float theta = segment * surface.SegmentAngle;
+                    float phi = Mathf.PI * 0.5f;
+                    var ground = surface.GetPoint(theta, phi);
+                    var up = surface.GetBaseNormal(theta, phi);
+                    var side = TorusGeometry.GetPhiDirection(theta, phi);
+                    var eye = worldTransform.TransformPoint(ground + up * 55f - side * 45f);
+                    var look = worldTransform.TransformPoint(ground + side * 10f);
+                    cameraObject.transform.SetPositionAndRotation(eye, Quaternion.LookRotation(look - eye, worldTransform.TransformDirection(up)));
+                    Save(camera, target, Path.Combine(folder, $"border_{segment}.png"));
+                }
+
                 Debug.Log($"Biome previews saved to {folder}");
             }
             finally

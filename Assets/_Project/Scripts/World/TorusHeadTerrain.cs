@@ -15,12 +15,24 @@ namespace WSFGameJam2026.World
         private const float TwoPi = TorusGeometry.TwoPi;
 
         private float[] neckHeights;
+        private float blendStrength = 1f;
+        private float colorStrength = 1f;
+        private Color[] neckColors;
         private AnimationCurve tailCurve;
 
         /// <summary>Changes every time anything affecting the terrain changes. Used to skip needless mesh updates.</summary>
         public int Version { get; private set; }
 
         public bool IsActive => neckHeights != null;
+
+        /// <summary>How strongly the terrain takes the shape of the head's neck outline (0-1). 0 = not at all. The thinning tail does not depend on it.</summary>
+        public float BlendStrength => blendStrength;
+
+        /// <summary>How strongly the terrain takes the color of the neck of the head (0-1). 0 = it keeps its own color.</summary>
+        public float ColorStrength => colorStrength;
+
+        /// <summary>True when the head has vertex colors that the terrain can take over.</summary>
+        public bool HasColors => IsActive && neckColors != null && colorStrength > 0f;
 
         /// <summary>Theta of the head's pivot, in radians.</summary>
         public float Theta { get; private set; }
@@ -50,12 +62,59 @@ namespace WSFGameJam2026.World
             Version++;
         }
 
+        /// <summary>Sets the colors of the neck outline, evenly spaced around phi like the heights. Null = the head has no vertex colors.</summary>
+        public void ConfigureColors(Color[] colors)
+        {
+            neckColors = colors != null && colors.Length > 0 ? (Color[])colors.Clone() : null;
+            Version++;
+        }
+
+        public void SetColorStrength(float strength)
+        {
+            strength = Mathf.Clamp01(strength);
+            if (Mathf.Approximately(strength, colorStrength))
+                return;
+
+            colorStrength = strength;
+            Version++;
+        }
+
+        /// <summary>Color of the neck outline at phi (radians), interpolated around the tube.</summary>
+        public Color GetNeckColor(float phi)
+        {
+            if (neckColors == null)
+                return Color.white;
+
+            int count = neckColors.Length;
+            float position = Mathf.Repeat(phi, TwoPi) / TwoPi * count;
+            int first = Mathf.FloorToInt(position) % count;
+            int second = (first + 1) % count;
+            return Color.Lerp(neckColors[first], neckColors[second], position - Mathf.Floor(position));
+        }
+
+        /// <summary>Weight (0-1) with which the terrain takes the neck color at theta: the shape weight of the head times the color strength.</summary>
+        public float GetColorWeight(float theta)
+        {
+            return HasColors ? GetWeight(theta) * colorStrength : 0f;
+        }
+
+        public void SetBlendStrength(float strength)
+        {
+            strength = Mathf.Clamp01(strength);
+            if (Mathf.Approximately(strength, blendStrength))
+                return;
+
+            blendStrength = strength;
+            Version++;
+        }
+
         public void Deactivate()
         {
             if (neckHeights == null)
                 return;
 
             neckHeights = null;
+            neckColors = null;
             Version++;
         }
 
@@ -86,6 +145,27 @@ namespace WSFGameJam2026.World
         /// Weight of the head outline (0-1) at the given theta: 1 on the head, fading out behind the neck.
         /// Ahead of the head the terrain (the tail being eaten) is left alone, so the weight is 0 there.
         /// </summary>
+        public float GetBlendWeight(float theta)
+        {
+            return GetWeight(theta) * blendStrength;
+        }
+
+        /// <summary>
+        /// Weight (0-1) for shrinking the assets: 1 on the head, falling linearly to 0 across the blend behind the neck.
+        /// Unlike <see cref="GetBlendWeight"/> it ignores the blend strength, so the assets always vanish under the head.
+        /// </summary>
+        public float GetScaleWeight(float theta)
+        {
+            if (IsActive == false)
+                return 0f;
+
+            float behindNeck = Mathf.Repeat(NeckTheta - theta + Mathf.PI, TwoPi) - Mathf.PI;
+            if (behindNeck <= 0f)
+                return -behindNeck <= HeadLength ? 1f : 0f;
+
+            return BlendLength <= 0f ? 0f : Mathf.Clamp01(1f - behindNeck / BlendLength);
+        }
+
         public float GetWeight(float theta)
         {
             if (IsActive == false)
@@ -130,7 +210,7 @@ namespace WSFGameJam2026.World
         /// <summary>Terrain height after the head shaped it: the neck outline on and behind the head, a thinner tube on the tail ahead of it.</summary>
         public float Apply(float terrainHeight, float theta, float phi, float minorRadius)
         {
-            float weight = GetWeight(theta);
+            float weight = GetBlendWeight(theta);
             if (weight > 0f)
                 return Mathf.Lerp(terrainHeight, GetNeckHeight(phi), weight);
 

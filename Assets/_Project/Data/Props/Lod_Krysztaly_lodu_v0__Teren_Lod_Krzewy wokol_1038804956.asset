@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be43a0afc1f54517982b70eb61a78f48, type: 3}
+  m_Name: Lod_Krysztaly_lodu_v0__Teren_Lod_Krzewy wokol_1038804956
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusPropDefinition
+  mesh: {fileID: -480090071288666001, guid: e0a5c0726d3e2e54f996b50e9e4128a9, type: 3}
+  blockRadius: 0.5
+  visibleRangeDegrees: 180

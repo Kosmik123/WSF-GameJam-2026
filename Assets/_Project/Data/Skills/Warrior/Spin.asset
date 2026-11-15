@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2868cb98a6924beabef8ed6430a2bfb9, type: 3}
+  m_Name: Spin
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Warrior.SpinSkill
+  displayName: Spin
+  icon: {fileID: 0}
+  tiers:
+  - tierName: Base
+    description: 'Spin with the sword: 8 damage every 0.25 s within 2.5 m for 1 s.'
+    cooldown: 5
+    damage: 8
+    range: 2.5
+    duration: 1
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade I
+    description: Radius 3 m, 12 damage per tick.
+    cooldown: 5
+    damage: 12
+    range: 3
+    duration: 1
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade II
+    description: Radius 3.5 m, 16 damage per tick.
+    cooldown: 5
+    damage: 16
+    range: 3.5
+    duration: 1
+    knockback: 0
+    stun: 0
+  - tierName: 'Evolution: Tornado'
+    description: Spins for 2 s and pulls enemies to the middle.
+    cooldown: 5
+    damage: 16
+    range: 3.5
+    duration: 2
+    knockback: 0
+    stun: 0
+  tickInterval: 0.25
+  pullDistance: 0.5
+  color: {r: 1, g: 0.75, b: 0.3, a: 1}
+  evolvedColor: {r: 1, g: 0.25, b: 0.15, a: 1}

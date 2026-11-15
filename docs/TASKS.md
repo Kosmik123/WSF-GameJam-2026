@@ -32,9 +32,15 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 
 ## W trakcie
 
-- [ ] Propsy na torusie (`TorusPropDefinition` jako ScriptableObject: nazwa, promień kolizji, blokowanie ruchu; rysowanie przez instancing później). Projekt uzgodniony, kodu jeszcze nie ma.
+- [x] **Propsy na torusie:** `TorusPropDefinition` (ScriptableObject na mesh, z referencją do niego, nazwa propa to nazwa mesha: promień pseudo-collidera `blockRadius`, jeden suwak `visibleRangeDegrees` (θ wokół gracza; 180 = zawsze widoczny, np. drzewa, 0 = klasa wyłączona w całości)), `TorusPropCatalog`, `TorusPropObstacles` (siatka przeszkód, `TorusObject` odpycha się od nich, pole `bodyRadius`), menu *WSF GameJam/Setup/Create Prop Definitions*. Nie testowane w Unity, wartości początkowe zgadnięte z rozmiaru mesha. `C`
+- [x] Bariera na głowie: gracz nie może przejść przez theta głowy (+ offset), niezależnie od phi (`HeadBarrier`, `TorusThetaBarrier`, pole `isBlockedByHeadBarrier` w `TorusObject`), menu *WSF GameJam/Setup/Create Head Barrier*. Nie testowane w Unity. `C`
+- [x] Przyspieszenie głowy, gdy gracz jest blisko za nią: `HeadMovement` (`maxSpeedDegrees`, `maxSpeedThetaDegrees`, `speedupStartThetaDegrees`, prędkość rośnie liniowo z odległością). Nie testowane w grze. `C`
 - [ ] Kolor szyi głowy i wtopienie głowy w teren biomu (głowa stoi na segmencie biomu). `G`
-- [ ] Kolizje assetów biomów (promień, blokowanie ruchu) i wpływ biomów na rozgrywkę (np. rodzaje wrogów), do ustalenia. `?`
+- [ ] **Biomy, poprawki grafiki** (`G`):
+  - [ ] Assety są za gęsto, lekko je przerzedzić (PSG: *Density*, *Min Distance*, liczby w warstwach).
+  - [ ] Wybrzeże: dodać wodę, której teraz nie ma. Woda ma leżeć niżej, piasek wyżej.
+  - [ ] Lodowiec: niebieski lód niżej, biały śnieg wyżej.
+- [ ] Wpływ biomów na rozgrywkę (np. rodzaje wrogów), do ustalenia. `?`
 
 ## Etap 1: prototyp grywalny (MUST)
 
@@ -42,14 +48,14 @@ Jeśli po godzinie 13 nie ma grywalnej walki, wycinamy wrogów 3-4 i mini-bossa.
 - [x] **Kamera** z góry pod skosem, podążająca za graczem. Orientację „góry ekranu” i obrót kamery ustawimy przy dostrajaniu walki, tak by była wygodna (odłożone). `C`
 - [x] **Paszcza (logika):** jednostajny ruch po `θ` (`HeadMovement`), strefa działa na każde `Health`: gracza stopniowo pozbawia życia, NPC zabija od razu (pole `MawDamageMode` w `Health`, `MawKillZone`, tylko kąty). `C`
 - [x] **Cel i zwycięstwo rundy:** wykrycie okrążenia i dotarcia do miejsca za głową (`goalBehindHeadDegrees`): `LapTracker` (suma zmian kąta gracz-głowa, tylko `θ`). Decyzja: chodzenie po głowie odpada (pivot głowy nie jest u podstawy, obrót daje schody między głową a segmentem). `C`
-- [x] **Wrażliwy punkt węża** za głową, w miejscu mety: `WeakPoint` (podąża za głową, po wygranej gracz obraca się do niego, hit stop, puls placeholdera, zdarzenie `OnStruck`, opcjonalne triggery animatorów), menu *WSF GameJam/Setup/Create Weak Point*. Sprawdzone w scenie `Game`. `C`
+- [x] **Wrażliwy punkt węża** za głową i cel rundy: `WeakPoint` z `Health` (drużyna wrogów, odporny na paszczę), maleje wraz z utratą życia do `minScale`, miga na czerwono przy trafieniu (`BodyFlash`), po zniszczeniu zdarzenie `OnDestroyed` kończy rundę (`RoundController`). Menu *WSF GameJam/Setup/Create Weak Point*. `LapTracker` już nie rozstrzyga rundy. Nie testowane w Unity. `C`
   - [ ] Model wrażliwego punktu i animacja ataku gracza na niego (pola `visual`, `animator`, `playerAnimator`). `G`
 - [ ] **Pętla rund:** po zwycięstwie nowa runda z szybszą paszczą i większą trudnością, ekran śmierci z wynikiem (liczba rund), zapis rekordu i restart od rundy 1. `P`
   - [x] Logika: `RoundController` (przerwa po rundzie, szybsza paszcza i mnożnik wrogów, śmierć kończy przejście, rekord w `PlayerPrefs`, restart od rundy 1), menu *WSF GameJam/Setup/Create Round Loop*. Nie testowane w Unity. `C`
   - [x] Ekran zwycięstwa rundy i ekran śmierci z wynikiem i rekordem: `RoundScreens` (zdarzenia `OnRoundCompleted`, `OnRunEnded`), menu *WSF GameJam/Setup/Create Round Screens*, nie testowane w Unity. `C`
   - [ ] Ładna grafika tych ekranów (teraz placeholder: przyciemnienie i tekst). `G`
 - [ ] **Model paszczy** (siatka, animacja otwierania i zamykania). `G`
-- [ ] **Model gracza** (low poly, animacje: bieg, atak, unik, obrażenia, śmierć). `G`
+- [ ] **Model gracza** (low poly, animacje: bieg, atak, unik, obrażenia, śmierć). Teraz jest postać z paczki RPG Tiny Hero Duo (z LD57), własny model opcjonalny. `G`
 - [ ] **Materiał i wygląd ciała węża** (łuski, kolory, różne warianty segmentów). `G`
 
 ## Etap 2: walka i wrogowie (MUST)
@@ -63,13 +69,16 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 - [x] **Spawner wrogów** przed graczem, poziom z odległości od paszczy (krzywa) × `RoundMultiplier`, usuwanie wrogów daleko za graczem: `EnemySpawner`. `C`
 - [ ] **Test i balans walki w Unity** (feel ataku i uniku, statystyki wrogów). `?`
 - [x] **Podpięcie pod pętlę rund:** `RoundController` ustawia `EnemySpawner.RoundMultiplier`, woła `Clear()` i `PlayerCombat.Revive()`, a ekran śmierci pokazuje `RoundScreens`. Nie testowane w Unity. `C`
-- [ ] **Modele i animacje wrogów 1 i 2** (teraz są placeholdery z prymitywów). Zdarzenia do animacji: `PlayerCombat.OnAttackStarted/OnDodgeStarted`. `G`
+- [ ] **Modele i animacje wrogów** (teraz bryły w stylu LD57 z animacją w kodzie, własne modele opcjonalne). Zdarzenia do animacji: `PlayerCombat.OnAttackStarted/OnDodgeStarted`. `G`
 - [x] **Skille i klasa Mag** (z LD57): sloty Q/E/R/F (akcje `Skill1`–`Skill4`), cooldowny, 4 poziomy skilla (`SkillDefinition` jako ScriptableObject, jedna podklasa na skill, bez enuma), 5 skilli maga (kula ognia, lodowa nova, łańcuch błyskawic, teleport, magiczne kule), strzał maga `RangedAttack`, klasy `PlayerClass` (Mag, Wojownik) i `PlayerClassApplier`, spowolnienie i ogłuszenie wrogów `StatusEffects`, pasek skilli `SkillBar`, reset skilli po śmierci w `RoundController`. Menu *WSF GameJam/Setup/Create Skills And Mage*. Efekty skilli to placeholdery z linii i kul (`SkillVfx`). Skompilowane poza Unity (ze stubami Input System, TMP, UI), nie testowane w Unity. `C`
 - [x] **Postać gracza i modele wrogów z LD57:** gracz z paczki *RPG Tiny Hero Duo* (`Assets/RPG Tiny Hero Duo`, tylko potrzebne pliki): Wojownik = postać męska z mieczem i tarczą, Mag = postać kobieca bez broni z niebieskim materiałem. Animacje (bieg do przodu i do tyłu, 3 ciosy combo, rzucanie, unik, trafienie, śmierć) w `Animations/Player/Player.controller`, sterowane przez `PlayerAnimator`; model wstawia `PlayerClassApplier`. Wrogowie: slime (biegacz) i strzelec z LD57 z prymitywów i materiałów LD57, z animacją proceduralną `EnemyVisualAnimator` (port SlimeAnimator, ShooterAnimator i HitReaction bez DOTween). Menu *WSF GameJam/Setup/Apply LD57 Models* (uruchamia się też na końcu *Create Skills And Mage*). Nie testowane w Unity. `C`
 - [ ] **Test i balans skilli maga w Unity** (obrażenia z LD57 ×4, cooldowny, zasięgi). `?`
-- [ ] **Efekty skilli i strzału maga** (zamiast placeholderów `SkillVfx`), ikony skilli (`SkillDefinition.Icon`), animacja rzucania czaru dla maga (teraz cios mieczem `Attack04`). Zdarzenia: `SkillUser.OnSkillExecuted`, `RangedAttack.OnShot`. `G`
+- [x] **Efekty VFX z LD57:** `Vfx/StylizedFx` (port `MageStylizedFx`, `SkillImpactVfx`, `VoxelFxRecipes`, `HitSplash`, `DeathEffects`: wybuchy brył, błyski, pierścienie, błyskawice, lód, dym, spalona ziemia, fala uderzeniowa), efekty skilli maga i wojownika, wygląd pocisków `ProjectileVisual`, `CombatVfx` (iskry trafień w kolorze wroga, wybuch śmierci, trafienie gracza, smuga uniku, łuk cięcia miecza). Miejsce na ziemi liczone z torusa (`VfxGround`), bez raycastów. Menu *WSF GameJam/Setup/Add Combat Vfx*, uruchamia się samo raz (`VfxAutoSetup`). Nie testowane w Unity. `C`
+- [x] **Dźwięki z LD57:** synteza dźwięków w kodzie (`Audio/SfxSynthesizer`, port `ProceduralSfxBank`), dźwięki jako assety `SoundEffect` w `Data/Sounds` (z opcjonalnymi nagraniami, np. 3 cięcia miecza z LD57), `SfxPlayer`, `SfxHooks` (cios, unik, strzał maga, skille, trafienie i śmierć gracza, trafienie i śmierć wroga, wygrana runda, rekord), `EnemySfx` (zapowiedź i atak wroga, cięższe dźwięki golema). Menu *WSF GameJam/Setup/Create Audio*, uruchamia się samo raz (`AudioAutoSetup`). Nie testowane w Unity. `C`
+- [x] **Skille Wojownika z LD57** (obrażenia ×4): wir, szarża (z nietykalnością), uderzenie w ziemię, rzut toporem (wraca), okrzyk bojowy (odrzut i ogłuszenie). Wojownik zaczyna z 4, okrzyk w puli. `Skills/Warrior/`. Nie testowane w Unity. `C`
+- [ ] **Shader cząsteczek w buildzie:** `VfxMaterials` szuka `Universal Render Pipeline/Particles/Unlit` przez `Shader.Find`; przed buildem dodać go do *Always Included Shaders* albo podpiąć materiał w scenie. `?`
+- [ ] **Ikony skilli** (`SkillDefinition.Icon`), animacja rzucania czaru dla maga (teraz cios mieczem `Attack04`), ładniejsze efekty według uznania. Zdarzenia: `SkillUser.OnSkillExecuted`, `RangedAttack.OnShot`. `G`
 - [x] **Wybór klasy** na ekranie startowym: przyciski Mag i Wojownik w `MainMenu` wołają `PlayerClassApplier.Apply`. Nie testowane w Unity. `C`
-- [ ] **Skille Wojownika** z LD57 (wir, szarża, uderzenie w ziemię, rzut toporem, okrzyk). `?`
 
 ## Etap 2b: progresja (MUST)
 
@@ -92,7 +101,7 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 
 ## Etap 4: więcej zawartości (SHOULD / COULD)
 
-- [ ] **Wróg 3 (pancerny) i wróg 4 (rój)**. `P`, modele: `G`
+- [x] **Wróg 3 (pancerny) i wróg 4 (rój)**, plus szaman: `GolemEnemy` (uderzenie w ziemię z zapowiedzią), `BatEnemy` (krążenie i przelot przez gracza, grupy 4-6), `ShamanEnemy` (dystans, leczenie wrogów, klątwa pod graczem). Modele z brył w stylu LD57, animacja `EnemyVisualAnimator` (doszło machanie skrzydłami i ramionami). Menu *WSF GameJam/Setup/Create Golem Bats Shaman*, uruchamia się samo raz (`EnemiesAutoSetup`), dodaje wrogów do spawnera. Nie testowane w Unity. `C`, ładniejsze modele: `G`
 - [ ] **Mini-boss na czubku głowy** (COULD).
 - [ ] **Różne profile terenu** dla segmentów (pagórki, kratery, grzbiety) jako nowe podklasy `TorusSegmentProfile`. `C`
 

@@ -9,6 +9,7 @@ Shader "WSF/Vertex Color Lit"
         [Toggle] _SrgbVertexColor ("Vertex Color Is sRGB", Float) = 1
         _Emission ("Emission (glowing assets)", Range(0, 8)) = 0
         _WarmGlow ("Glow Of Warm Colors (lava on terrain)", Range(0, 8)) = 0
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull (Back = one-sided, Off = two-sided, e.g. for leaves)", Float) = 2
     }
 
     SubShader
@@ -23,6 +24,7 @@ Shader "WSF/Vertex Color Lit"
             half _SrgbVertexColor;
             half _Emission;
             half _WarmGlow;
+            half _Cull;
         CBUFFER_END
         ENDHLSL
 
@@ -30,7 +32,7 @@ Shader "WSF/Vertex Color Lit"
         {
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
-            Cull Off
+            Cull [_Cull]
 
             HLSLPROGRAM
             #pragma vertex Vertex
@@ -91,7 +93,7 @@ Shader "WSF/Vertex Color Lit"
                 half3 ambient = albedo * SampleSH(normal);
 
                 // Lava on a single-material terrain: strongly warm colors (red much brighter than blue) glow.
-                half warm = saturate((vertexColor.r - vertexColor.b - 0.45h) * 4.0h);
+                half warm = saturate((vertexColor.r - vertexColor.b - 0.55h) * 5.0h);
                 half3 emission = albedo * (_Emission + warm * _WarmGlow);
 
                 half3 color = MixFog(lit + ambient + emission, input.fogFactor);
@@ -107,7 +109,7 @@ Shader "WSF/Vertex Color Lit"
             ZWrite On
             ZTest LEqual
             ColorMask 0
-            Cull Off
+            Cull [_Cull]
 
             HLSLPROGRAM
             #pragma vertex ShadowVertex
@@ -161,7 +163,7 @@ Shader "WSF/Vertex Color Lit"
             Tags { "LightMode" = "DepthOnly" }
             ZWrite On
             ColorMask R
-            Cull Off
+            Cull [_Cull]
 
             HLSLPROGRAM
             #pragma vertex DepthVertex

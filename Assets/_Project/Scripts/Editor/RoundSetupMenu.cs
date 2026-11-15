@@ -10,7 +10,7 @@ using WSFGameJam2026.World;
 namespace WSFGameJam2026.Editor
 {
     /// <summary>
-    /// Adds the round loop to the open scene: RoundState, LapTracker and RoundController on a "Rounds" object,
+    /// Adds the round loop to the open scene: RoundState and RoundController on a "Rounds" object,
     /// connected to the head, the spawner and the player. Safe to run again: it only adds what is missing and connects it again.
     /// </summary>
     public static class RoundSetupMenu
@@ -31,20 +31,17 @@ namespace WSFGameJam2026.Editor
             var roundState = Object.FindAnyObjectByType<RoundState>();
             var roundsObject = roundState != null ? roundState.gameObject : CreateRoundsObject();
             roundState = GetOrAdd<RoundState>(roundsObject);
-            var lapTracker = GetOrAdd<LapTracker>(roundsObject);
             var controller = GetOrAdd<RoundController>(roundsObject);
 
-            Connect(lapTracker, "head", head);
-            Connect(lapTracker, "player", player);
             Connect(controller, "roundState", roundState);
-            Connect(controller, "lapTracker", lapTracker);
+            Connect(controller, "weakPoint", Object.FindAnyObjectByType<WeakPoint>());
             Connect(controller, "head", head);
             Connect(controller, "spawner", spawner);
             Connect(controller, "playerCombat", playerCombat);
 
             EditorSceneManager.MarkSceneDirty(roundsObject.scene);
             Selection.activeObject = roundsObject;
-            Debug.Log("Round loop setup done: RoundState, LapTracker and RoundController on the Rounds object.");
+            Debug.Log("Round loop setup done: RoundState and RoundController on the Rounds object. The round is won by destroying the weak point (WSF GameJam/Setup/Create Weak Point).");
         }
 
         private static GameObject CreateRoundsObject()

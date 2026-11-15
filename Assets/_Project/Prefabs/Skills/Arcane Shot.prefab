@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3979129675454800656}
   - component: {fileID: 2508819465299380518}
   - component: {fileID: 1738859259209740607}
+  - component: {fileID: 3567953090216377348}
   m_Layer: 0
   m_Name: Arcane Shot
   m_TagString: Untagged
@@ -106,6 +107,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusObject
   world: {fileID: 0}
   groundOffset: 0.9
+  bodyRadius: 0.5
   heightSharpness: 25
   startAngles:
     thetaRadians: 0
@@ -127,3 +129,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.SkillProjectile
   hitRadius: 0.3
   spawnOffset: 0.6
+--- !u!114 &3567953090216377348
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5353788531053382948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074cf6ab7b454341a1bd8af6d69c3414, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Vfx.ProjectileVisual
+  color: {r: 0.7, g: 0.4, b: 1, a: 1}
+  isFiery: 0
+  trailSize: 0.08
+  hideBaseRenderer: 1
+  playsImpact: 1

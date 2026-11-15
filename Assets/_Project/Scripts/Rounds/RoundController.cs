@@ -33,7 +33,7 @@ namespace WSFGameJam2026.Rounds
         private RoundState roundState;
 
         [SerializeField]
-        private LapTracker lapTracker;
+        private WeakPoint weakPoint;
 
         [SerializeField]
         private HeadMovement head;
@@ -95,7 +95,7 @@ namespace WSFGameJam2026.Rounds
         private void Reset()
         {
             roundState = FindAnyObjectByType<RoundState>();
-            lapTracker = FindAnyObjectByType<LapTracker>();
+            weakPoint = FindAnyObjectByType<WeakPoint>();
             head = FindAnyObjectByType<HeadMovement>();
             spawner = FindAnyObjectByType<EnemySpawner>();
             playerCombat = FindAnyObjectByType<PlayerCombat>();
@@ -110,7 +110,7 @@ namespace WSFGameJam2026.Rounds
 
         private void OnEnable()
         {
-            lapTracker.OnLapCompleted += LapTracker_OnLapCompleted;
+            weakPoint.OnDestroyed += WeakPoint_OnDestroyed;
             playerHealth.OnDied += PlayerHealth_OnDied;
         }
 
@@ -121,11 +121,11 @@ namespace WSFGameJam2026.Rounds
 
         private void OnDisable()
         {
-            lapTracker.OnLapCompleted -= LapTracker_OnLapCompleted;
+            weakPoint.OnDestroyed -= WeakPoint_OnDestroyed;
             playerHealth.OnDied -= PlayerHealth_OnDied;
         }
 
-        private void LapTracker_OnLapCompleted()
+        private void WeakPoint_OnDestroyed()
         {
             StartCoroutine(RoundBreakCo());
         }
@@ -155,7 +155,6 @@ namespace WSFGameJam2026.Rounds
         private IEnumerator RunEndedCo()
         {
             head.IsMoving = false;
-            lapTracker.Stop();
 
             var completed = roundState.CompletedRounds;
             var best = BestRounds;
@@ -197,7 +196,7 @@ namespace WSFGameJam2026.Rounds
             var facing = world.transform.TransformDirection(TorusGeometry.GetThetaDirection(startAngles.Theta));
             playerObject.Place(world, startAngles, facing);
 
-            lapTracker.Begin();
+            weakPoint.ResetState();
             OnRoundStarted?.Invoke(roundState.Round);
         }
     }

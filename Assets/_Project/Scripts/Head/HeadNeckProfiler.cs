@@ -19,10 +19,20 @@ namespace WSFGameJam2026.Head
         /// <param name="headLength">Length of the head along the body, in radians of theta.</param>
         public static bool TryMeasure(TorusWorld world, float theta, IReadOnlyList<Renderer> renderers, float sliceDepth, float[] heights, out float neckOffset, out float headLength)
         {
+            return TryMeasure(world, theta, renderers, sliceDepth, heights, null, out neckOffset, out headLength);
+        }
+
+        /// <summary>
+        /// Measures the head and also reads its colors: for every angle phi the vertex color of the outermost vertex of the slice,
+        /// so the terrain can take the color of the neck. <paramref name="colors"/> (the same length as heights) stays untouched
+        /// when the head meshes have no vertex colors.
+        /// </summary>
+        public static bool TryMeasure(TorusWorld world, float theta, IReadOnlyList<Renderer> renderers, float sliceDepth, float[] heights, Color[] colors, out float neckOffset, out float headLength)
+        {
             neckOffset = 0f;
             headLength = 0f;
 
-            var points = CollectPoints(world, theta, renderers);
+            var points = CollectPoints(world, theta, renderers, out var pointColors);
             if (points.Count == 0)
                 return false;
 
@@ -36,19 +46,36 @@ namespace WSFGameJam2026.Head
 
             int bins = heights.Length;
             var radii = new float[bins];
-            foreach (var point in points)
+            var binColors = new Color[bins];
+            for (int i = 0; i < points.Count; i++)
             {
+                var point = points[i];
                 if (point.z > minForward + sliceDepth)
                     continue;
 
                 float phi = Mathf.Atan2(point.y, point.x);
                 int bin = Mathf.RoundToInt(Mathf.Repeat(phi, TorusGeometry.TwoPi) / TorusGeometry.TwoPi * bins) % bins;
                 float radius = Mathf.Sqrt(point.x * point.x + point.y * point.y);
-                radii[bin] = Mathf.Max(radii[bin], radius);
+                if (radius <= radii[bin])
+                    continue;
+
+                radii[bin] = radius;
+                if (pointColors != null)
+                    binColors[bin] = pointColors[i];
             }
+
+            var hasVertex = new bool[bins];
+            for (int i = 0; i < bins; i++)
+                hasVertex[i] = radii[i] > 0f;
 
             if (FillEmptyBins(radii) == false)
                 return false;
+
+            if (colors != null && pointColors != null && colors.Length == bins)
+            {
+                FillEmptyColors(binColors, hasVertex);
+                System.Array.Copy(binColors, colors, bins);
+            }
 
             for (int i = 0; i < bins; i++)
                 heights[i] = radii[i] - world.MinorRadius;
@@ -59,7 +86,7 @@ namespace WSFGameJam2026.Head
         }
 
         /// <summary>Vertices in the frame of the tube cross-section at theta: x outward, y up, z along the body.</summary>
-        private static List<Vector3> CollectPoints(TorusWorld world, float theta, IReadOnlyList<Renderer> renderers)
+        private static List<Vector3> CollectPoints(TorusWorld world, float theta, IReadOnlyList<Renderer> renderers, out List<Color> colors)
         {
             var center = TorusGeometry.GetCenterPoint(world.MajorRadius, theta);
             var forward = TorusGeometry.GetThetaDirection(theta);
@@ -68,6 +95,9 @@ namespace WSFGameJam2026.Head
 
             var points = new List<Vector3>();
             var vertices = new List<Vector3>();
+            var meshColors = new List<Color>();
+            var allColors = new List<Color>();
+            bool hasColors = false;
             foreach (var renderer in renderers)
             {
                 var mesh = GetMesh(renderer);
@@ -75,15 +105,52 @@ namespace WSFGameJam2026.Head
                     continue;
 
                 vertices.Clear();
+                meshColors.Clear();
                 mesh.GetVertices(vertices);
-                foreach (var vertex in vertices)
+                mesh.GetColors(meshColors);
+                bool meshHasColors = meshColors.Count == vertices.Count;
+                hasColors |= meshHasColors;
+                for (int i = 0; i < vertices.Count; i++)
                 {
-                    var local = world.transform.InverseTransformPoint(renderer.transform.TransformPoint(vertex)) - center;
+                    var local = world.transform.InverseTransformPoint(renderer.transform.TransformPoint(vertices[i])) - center;
                     points.Add(new Vector3(Vector3.Dot(local, outward), Vector3.Dot(local, up), Vector3.Dot(local, forward)));
+                    allColors.Add(meshHasColors ? meshColors[i] : Color.white);
                 }
             }
 
+            colors = hasColors ? allColors : null;
             return points;
+        }
+
+        /// <summary>Gives bins without any vertex the color of the nearest bin that has one.</summary>
+        private static void FillEmptyColors(Color[] colors, bool[] hasVertex)
+        {
+            int count = colors.Length;
+            var filled = (Color[])colors.Clone();
+            for (int i = 0; i < count; i++)
+            {
+                if (hasVertex[i])
+                    continue;
+
+                for (int distance = 1; distance < count; distance++)
+                {
+                    int before = (i - distance + count) % count;
+                    int after = (i + distance) % count;
+                    if (hasVertex[before])
+                    {
+                        filled[i] = colors[before];
+                        break;
+                    }
+
+                    if (hasVertex[after])
+                    {
+                        filled[i] = colors[after];
+                        break;
+                    }
+                }
+            }
+
+            System.Array.Copy(filled, colors, count);
         }
 
         private static Mesh GetMesh(Renderer renderer)

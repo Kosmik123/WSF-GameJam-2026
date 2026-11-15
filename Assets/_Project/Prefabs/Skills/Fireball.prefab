@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8672551253224646230}
   - component: {fileID: 1362571411460463836}
   - component: {fileID: 7022417865448561145}
+  - component: {fileID: 7743127847955146274}
   m_Layer: 0
   m_Name: Fireball
   m_TagString: Untagged
@@ -106,6 +107,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.TorusObject
   world: {fileID: 0}
   groundOffset: 0.9
+  bodyRadius: 0.5
   heightSharpness: 25
   startAngles:
     thetaRadians: 0
@@ -127,3 +129,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.SkillProjectile
   hitRadius: 0.5
   spawnOffset: 0.6
+--- !u!114 &7743127847955146274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8399823260908548653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074cf6ab7b454341a1bd8af6d69c3414, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Vfx.ProjectileVisual
+  color: {r: 1, g: 0.45, b: 0.12, a: 1}
+  isFiery: 1
+  trailSize: 0.12
+  hideBaseRenderer: 1
+  playsImpact: 1

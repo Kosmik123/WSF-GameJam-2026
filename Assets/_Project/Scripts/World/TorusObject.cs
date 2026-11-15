@@ -19,6 +19,15 @@ namespace WSFGameJam2026.World
         [Min(0f)]
         private float groundOffset = 1f;
 
+        [Tooltip("Radius of the object for the props that can not be entered (see TorusPropDefinition). 0 = its centre only.")]
+        [SerializeField]
+        [Min(0f)]
+        private float bodyRadius = 0.5f;
+
+        [Tooltip("Can not cross the wall at the theta of the head (the player). See HeadBarrier.")]
+        [SerializeField]
+        private bool isBlockedByHeadBarrier;
+
         [Tooltip("How fast the object follows the terrain height. Higher = tighter.")]
         [SerializeField]
         [Min(0f)]
@@ -177,7 +186,8 @@ namespace WSFGameJam2026.World
             float phiDistance = Vector3.Dot(localDirection, phiDirection) * distance;
 
             var delta = TorusGeometry.GetAngleDelta(surface.MajorRadius, surface.MinorRadius, phi, thetaDistance, phiDistance);
-            angles = angles.Add(delta.x, delta.y);
+            var moved = world.Obstacles.Resolve(surface, angles.Add(delta.x, delta.y), bodyRadius);
+            angles = isBlockedByHeadBarrier ? world.HeadBarrier.Constrain(angles, moved) : moved;
             Refresh();
         }
 

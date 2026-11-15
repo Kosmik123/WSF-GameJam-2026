@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: Biome Pustynia
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.MeshTorusSegmentProfile
   lengthResolution: 160
-  materialOverride: {fileID: 2100000, guid: 46f40fc2110e1294293d6bc250ee7358, type: 2}
+  materialOverride: {fileID: 2100000, guid: 0dacb2cedd11323459eac687ed36ee9f, type: 2}
   aroundTiling: 1
   seamBlendWidth: 0
   terrainMesh: {fileID: -5061271460343029401, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
+  decorationModel: {fileID: 919132149155446097, guid: 579a5d02c44099442953fde93c128cc3, type: 3}
   gridResolutionAlong: 158
   gridResolutionAround: 178
   heightScale: 1

@@ -62,6 +62,12 @@ namespace WSFGameJam2026.World
         /// <summary>Terrain shaped by the snake's head. It belongs to the world, so it survives rebuilds.</summary>
         public TorusHeadTerrain HeadTerrain { get; } = new TorusHeadTerrain();
 
+        /// <summary>The pseudo colliders of the props. Filled by <see cref="TorusBiomeDecorations"/>, used when objects move on the torus.</summary>
+        public TorusPropObstacles Obstacles { get; } = new TorusPropObstacles();
+
+        /// <summary>The wall at the theta of the head. Set by <see cref="WSFGameJam2026.Head.HeadBarrier"/>, stops the objects that are blocked by it.</summary>
+        public TorusThetaBarrier HeadBarrier { get; } = new TorusThetaBarrier();
+
         public TorusSurface Surface
         {
             get

@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32d7d8324b0440c794c562b8c741ebbd, type: 3}
+  m_Name: AxeThrow
+  m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.Skills.Warrior.AxeThrowSkill
+  displayName: Axe Throw
+  icon: {fileID: 0}
+  tiers:
+  - tierName: Base
+    description: 'Throw an axe 10 m: 12 damage on the way out and 12 on the way back.'
+    cooldown: 3
+    damage: 12
+    range: 10
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade I
+    description: Range 13 m.
+    cooldown: 3
+    damage: 12
+    range: 13
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: Upgrade II
+    description: 16 damage.
+    cooldown: 3
+    damage: 16
+    range: 13
+    duration: 0
+    knockback: 0
+    stun: 0
+  - tierName: 'Evolution: Two Axes'
+    description: Throw two axes 15 degrees apart.
+    cooldown: 3
+    damage: 16
+    range: 13
+    duration: 0
+    knockback: 0
+    stun: 0
+  speed: 20
+  hitRadius: 0.6
+  catchDistance: 0.7
+  maxFlightTime: 4
+  evolvedSpread: 15
+  color: {r: 1, g: 0.75, b: 0.25, a: 1}
+  evolvedColor: {r: 1, g: 0.25, b: 0.15, a: 1}

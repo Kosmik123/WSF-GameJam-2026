@@ -65,6 +65,9 @@ namespace WSFGameJam2026.Head
                     continue;
                 }
 
+                if (victim.MawDamageMode == MawDamageMode.Immune)
+                    continue;
+
                 if (victim.MawDamageMode == MawDamageMode.Instant)
                 {
                     victim.Kill();

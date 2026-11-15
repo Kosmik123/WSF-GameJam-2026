@@ -130,7 +130,7 @@ namespace WSFGameJam2026.Editor
             return SavePrefab(root, "Shooter").GetComponent<Enemy>();
         }
 
-        private static void AddEnemyComponents(GameObject root, float groundOffset, int maxHealth, float bodyRadius, int experience, float knockbackMultiplier)
+        internal static void AddEnemyComponents(GameObject root, float groundOffset, int maxHealth, float bodyRadius, int experience, float knockbackMultiplier)
         {
             var torusObject = root.AddComponent<TorusObject>();
             SetValues(torusObject, serialized => serialized.FindProperty("groundOffset").floatValue = groundOffset);
@@ -182,7 +182,7 @@ namespace WSFGameJam2026.Editor
             });
         }
 
-        private static void SetEntry(SerializedProperty entry, Enemy prefab, float weight, float minDifficulty, Vector2Int groupSize)
+        internal static void SetEntry(SerializedProperty entry, Enemy prefab, float weight, float minDifficulty, Vector2Int groupSize)
         {
             entry.FindPropertyRelative("prefab").objectReferenceValue = prefab;
             entry.FindPropertyRelative("weight").floatValue = weight;
@@ -227,7 +227,7 @@ namespace WSFGameJam2026.Editor
             return material;
         }
 
-        private static GameObject SavePrefab(GameObject root, string name)
+        internal static GameObject SavePrefab(GameObject root, string name)
         {
             string path = $"{EnemiesFolder}/{name}.prefab";
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, path);
