@@ -2,6 +2,7 @@ using UnityEngine;
 using WSFGameJam2026.Combat;
 using WSFGameJam2026.Enemies;
 using WSFGameJam2026.Player;
+using WSFGameJam2026.Progression;
 using WSFGameJam2026.Rounds;
 using WSFGameJam2026.Skills;
 
@@ -29,6 +30,9 @@ namespace WSFGameJam2026.Audio
         [SerializeField]
         private RoundController roundController;
 
+        [SerializeField]
+        private Experience experience;
+
         [Header("Player")]
         [SerializeField]
         private SoundEffect swordSwing;
@@ -47,6 +51,9 @@ namespace WSFGameJam2026.Audio
 
         [SerializeField]
         private SoundEffect playerDeath;
+
+        [SerializeField]
+        private SoundEffect levelUp;
 
         [Header("Enemies")]
         [SerializeField]
@@ -75,6 +82,7 @@ namespace WSFGameJam2026.Audio
             rangedAttack = playerCombat.GetComponent<RangedAttack>();
             skillUser = playerCombat.GetComponent<SkillUser>();
             playerHealth = playerCombat.GetComponent<Health>();
+            experience = playerCombat.GetComponent<Experience>();
         }
 
         private void OnEnable()
@@ -102,6 +110,9 @@ namespace WSFGameJam2026.Audio
                 roundController.OnRoundCompleted += RoundController_OnRoundCompleted;
                 roundController.OnRunEnded += RoundController_OnRunEnded;
             }
+
+            if (experience)
+                experience.OnLevelUp += Experience_OnLevelUp;
 
             Enemy.OnAnyEnemyDamaged += Enemy_OnAnyEnemyDamaged;
             Enemy.OnAnyEnemyDied += Enemy_OnAnyEnemyDied;
@@ -137,6 +148,11 @@ namespace WSFGameJam2026.Audio
         private void PlayerHealth_OnDied(Health health)
         {
             Sfx.Play(playerDeath, PlayerPosition);
+        }
+
+        private void Experience_OnLevelUp(int level)
+        {
+            Sfx.Play(levelUp);
         }
 
         private void Enemy_OnAnyEnemyDamaged(Enemy enemy, DamageInfo damage)
@@ -187,6 +203,9 @@ namespace WSFGameJam2026.Audio
                 roundController.OnRoundCompleted -= RoundController_OnRoundCompleted;
                 roundController.OnRunEnded -= RoundController_OnRunEnded;
             }
+
+            if (experience)
+                experience.OnLevelUp -= Experience_OnLevelUp;
 
             Enemy.OnAnyEnemyDamaged -= Enemy_OnAnyEnemyDamaged;
             Enemy.OnAnyEnemyDied -= Enemy_OnAnyEnemyDied;

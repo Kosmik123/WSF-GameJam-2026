@@ -80,6 +80,8 @@ Uciekasz po ciele węża zwiniętego w pierścień przed jego własną paszczą,
 Progresja ma zmusić gracza do walki. Bez niej opłacałoby się tylko biec, więc **trudność rośnie szybciej, niż da się ją przeskoczyć samym biegiem**: gracz musi walczyć wcześnie (na łatwiejszych odcinkach), żeby zdobyć poziomy i sprzęt, a potem poradzić sobie z trudniejszymi.
 
 - **Poziomy gracza:** wrogowie dają doświadczenie (XP), po zebraniu progu gracz awansuje. Każdy poziom zwiększa statystyki (HP, obrażenia, szybkość ataku).
+  - XP wypada z wrogów jako kryształy, które same lecą do gracza, gdy jest blisko (jak esencja w LD57). Trzeba więc podejść do miejsca walki.
+  - Przy awansie gra się zatrzymuje i gracz wybiera jedną z 3 kart: nowy skill (gdy ma wolny slot) albo wyższy poziom posiadanego, aż do ewolucji. Gdy nie ma już czego dać, karta leczy.
 - **Ekwipunek:** wrogowie (i skrzynie) zostawiają przedmioty: broń, pancerz, dodatki. Ekwipunek zmienia statystyki i może dawać prostą zdolność. **[DO USTALENIA]** liczba slotów i typów przedmiotów.
 - **Trudność zależy od bliskości paszczy.** Liczymy ją dla każdego segmentu z jego odległości od paszczy, mierzonej w kierunku biegu gracza:
   - blisko paszczy: wrogowie najsłabsi (dobre miejsce na zdobywanie XP),

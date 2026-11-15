@@ -82,10 +82,11 @@ Kod na bazie systemu walki i wrogów z LD57, przeniesiony na torus (pozycje `(θ
 
 ## Etap 2b: progresja (MUST)
 
-- [ ] **Doświadczenie i poziomy:** XP od wrogów, progi, awans, wzrost statystyk (HP, obrażenia, szybkość ataku); reset poziomu i sprzętu przy śmierci. Awans może dawać karty skilli: `SkillSlots.GetOfferableSkills` i `SkillSlots.Grant` są gotowe. `C`
+- [x] **Doświadczenie i poziomy** (z LD57): wrogowie zostawiają kryształy XP (`ExperienceDropper`, `ExperienceOrb`: wyskok, magnes do gracza, zebranie), `Experience` (próg 40 + 13 na poziom jak w LD57), `LevelStats` (+8 HP, +8% obrażeń, +4% szybkości ataku na poziom), reset poziomu przy śmierci w `RoundController`. Przy awansie `LevelUpScreen` pauzuje grę i pokazuje 3 losowe karty skilli (nowy skill albo wyższy poziom, z liczbami „przed → po”), wybór myszką albo klawiszami 1-3 (akcje `Card1`–`Card3`), gdy nie ma czego dać: karta leczenia. Pasek XP z poziomem `XpBar`, dźwięk awansu. Menu *WSF GameJam/Setup/Create Progression*, uruchamia się samo raz (`ProgressionAutoSetup`). Nie testowane w Unity. `C`
+- [ ] **Balans progresji:** krzywa XP, ile XP dają wrogowie, wzrost statystyk. `?`
 - [x] **Trudność zależna od paszczy:** `EnemySpawner.GetDifficulty` liczy trudność z aktualnej odległości miejsca od paszczy (krzywa, blisko = łatwo, czubek głowy = najtrudniej) razem z mnożnikiem rundy. Poziom wroga ustalany raz, przy pojawieniu się. Nie testowane w Unity. `C`
 - [ ] **Ekwipunek:** sloty, przedmioty zmieniające statystyki, upuszczanie przez wrogów i skrzynie. `C`
-- [ ] **UI progresji:** pasek XP, komunikat awansu, ekwipunek i porównanie przedmiotów. `P`, grafiki: `G`
+- [ ] **UI progresji:** pasek XP i karty awansu są (placeholder), brakuje ekwipunku, porównania przedmiotów i grafiki kart. `P`, grafiki: `G`
 - [ ] **Ikony i modele przedmiotów** (broń, pancerz, dodatki). `G`
 
 ## Etap 3: czytelność i interfejs (SHOULD)

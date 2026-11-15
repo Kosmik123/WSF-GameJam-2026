@@ -33,7 +33,7 @@ namespace WSFGameJam2026.Skills
         /// <summary>Damage multiplier for progression. Shared with the melee attack.</summary>
         public float DamageMultiplier => combat.DamageMultiplier;
 
-        private bool CanCast => Health.IsDead == false && combat.IsDodging == false;
+        private bool CanCast => Time.timeScale > 0f && Health.IsDead == false && combat.IsDodging == false;
 
         private void Awake()
         {

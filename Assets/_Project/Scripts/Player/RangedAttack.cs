@@ -69,7 +69,8 @@ namespace WSFGameJam2026.Player
             if (attackAction == null || projectilePrefab == null)
                 return;
 
-            if (health.IsDead || combat.IsDodging || Time.time < nextShotTime)
+            // Paused (menu, level-up cards): no shots.
+            if (Time.timeScale <= 0f || health.IsDead || combat.IsDodging || Time.time < nextShotTime)
                 return;
 
             if (attackAction.action.IsPressed() == false)

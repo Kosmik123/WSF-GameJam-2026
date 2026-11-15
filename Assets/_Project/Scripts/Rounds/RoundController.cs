@@ -5,6 +5,7 @@ using WSFGameJam2026.Combat;
 using WSFGameJam2026.Enemies;
 using WSFGameJam2026.Head;
 using WSFGameJam2026.Player;
+using WSFGameJam2026.Progression;
 using WSFGameJam2026.Skills;
 using WSFGameJam2026.World;
 
@@ -47,6 +48,10 @@ namespace WSFGameJam2026.Rounds
         [Tooltip("Optional. Skills of the player, reset to the starting ones when a new run starts.")]
         [SerializeField]
         private SkillSlots playerSkills;
+
+        [Tooltip("Optional. Level and XP of the player, back to level 1 when a new run starts.")]
+        [SerializeField]
+        private Experience playerExperience;
 
         [Header("Start of a round")]
         [Tooltip("The player starts this far in front of the head, in degrees of theta.")]
@@ -100,6 +105,7 @@ namespace WSFGameJam2026.Rounds
             spawner = FindAnyObjectByType<EnemySpawner>();
             playerCombat = FindAnyObjectByType<PlayerCombat>();
             playerSkills = FindAnyObjectByType<SkillSlots>();
+            playerExperience = FindAnyObjectByType<Experience>();
         }
 
         private void Awake()
@@ -174,6 +180,10 @@ namespace WSFGameJam2026.Rounds
             playerCombat.Revive();
             if (playerSkills)
                 playerSkills.ResetSkills();
+
+            // After Revive: the level reset changes the maximum health and fills it again.
+            if (playerExperience)
+                playerExperience.ResetProgress();
 
             BeginRound();
         }

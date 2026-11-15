@@ -55,6 +55,7 @@ namespace WSFGameJam2026.Editor
             var enemyDie = GetSound("Enemy Die", SfxRecipe.EnemyDie, 0.8f, minInterval: 0.05f);
             var roundCompleted = GetSound("Round Completed", SfxRecipe.Win, 1f, spatialBlend: 0f);
             var newRecord = GetSound("New Record", SfxRecipe.LevelUp, 0.8f, spatialBlend: 0f);
+            var levelUp = GetSound("Level Up", SfxRecipe.LevelUp, 0.8f, spatialBlend: 0f);
             var enemyWindup = GetSound("Enemy Windup", SfxRecipe.Windup, 0.6f);
             var enemyShot = GetSound("Enemy Shot", SfxRecipe.Shot, 0.6f);
             var enemyLunge = GetSound("Enemy Lunge", SfxRecipe.Dash, 0.5f);
@@ -86,6 +87,8 @@ namespace WSFGameJam2026.Editor
             SetIfEmpty(hooks, "enemyDie", enemyDie);
             SetIfEmpty(hooks, "roundCompleted", roundCompleted);
             SetIfEmpty(hooks, "newRecord", newRecord);
+            SetIfEmpty(hooks, "levelUp", levelUp);
+            SetIfEmpty(hooks, "experience", player.GetComponent<Progression.Experience>());
 
             if (Object.FindAnyObjectByType<AudioListener>() == null)
                 Debug.LogWarning("Audio setup: the scene has no AudioListener, nothing will be heard. Add one to the camera.");
