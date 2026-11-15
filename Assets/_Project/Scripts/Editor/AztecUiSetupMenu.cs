@@ -8,6 +8,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 using WSFGameJam2026.Cameras;
 using WSFGameJam2026.Controls;
+using WSFGameJam2026.Head;
 using WSFGameJam2026.Hud;
 using WSFGameJam2026.Menus;
 using WSFGameJam2026.Player;
@@ -57,9 +58,8 @@ namespace WSFGameJam2026.Editor
         {
             var healthBar = Object.FindAnyObjectByType<HealthBar>();
             var controller = Object.FindAnyObjectByType<RoundController>();
-            var lapTracker = Object.FindAnyObjectByType<LapTracker>();
             var roundState = Object.FindAnyObjectByType<RoundState>();
-            if (healthBar == null || controller == null || lapTracker == null || roundState == null)
+            if (healthBar == null || controller == null || roundState == null)
             {
                 EditorUtility.DisplayDialog("Aztec UI setup", "Run WSF GameJam/Setup/Create HUD, Create Round Loop and Create Round Screens first.", "OK");
                 return;
@@ -75,6 +75,7 @@ namespace WSFGameJam2026.Editor
             Undo.RegisterFullObjectHierarchyUndo(hudCanvas.gameObject, "Create Aztec UI");
 
             EnsureEventSystem();
+            var lapTracker = SetUpLapTracker(controller);
             StyleHealthBar(healthBar);
             var roundBanner = BuildHud(hudCanvas.transform, roundState, lapTracker, controller);
             StyleSkillSlots();
@@ -626,6 +627,23 @@ namespace WSFGameJam2026.Editor
 
             if (eventSystem.TryGetComponent<InputSystemUIInputModule>(out _) == false)
                 Undo.AddComponent<InputSystemUIInputModule>(eventSystem.gameObject);
+        }
+
+        // The lap ring, the jaw warning and the pause menu read the lap. The round loop no longer measures it
+        // (the weak point ends the round), so the tracker follows the rounds by itself.
+        private static LapTracker SetUpLapTracker(RoundController controller)
+        {
+            var lapTracker = Object.FindAnyObjectByType<LapTracker>();
+            if (lapTracker == null)
+                lapTracker = Undo.AddComponent<LapTracker>(controller.gameObject);
+
+            Connect(lapTracker, "head", Object.FindAnyObjectByType<HeadMovement>());
+            var playerCombat = Object.FindAnyObjectByType<PlayerCombat>();
+            if (playerCombat)
+                Connect(lapTracker, "player", playerCombat.GetComponent<TorusObject>());
+
+            Connect(lapTracker, "roundController", controller);
+            return lapTracker;
         }
 
         private static CameraIntro SetUpCameraIntro()
