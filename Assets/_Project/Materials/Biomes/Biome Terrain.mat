@@ -27,6 +27,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Emission: 0
+    - _Faceted: 1
     - _SrgbVertexColor: 1
     - _WarmGlow: 2
     m_Colors:

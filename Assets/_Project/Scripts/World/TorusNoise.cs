@@ -31,6 +31,12 @@ namespace WSFGameJam2026.World
             return Mathf.Clamp01((Fractal(point, octaves) - 0.5f) * 2.6f + 0.5f);
         }
 
+        /// <summary>Stable random value (0-1) for a place, the same for every sample closer than about 5 cm.</summary>
+        public static float Random01(Vector3 point, int salt)
+        {
+            return Hash(Mathf.RoundToInt(point.x * 20f) + salt * 7919, Mathf.RoundToInt(point.y * 20f), Mathf.RoundToInt(point.z * 20f));
+        }
+
         private static float Value(Vector3 point)
         {
             int x = Mathf.FloorToInt(point.x);

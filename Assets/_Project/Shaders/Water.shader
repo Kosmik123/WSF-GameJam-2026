@@ -116,10 +116,11 @@ Shader "WSF/Water"
                 Light light = GetMainLight(TransformWorldToShadowCoord(input.positionWS));
 
                 half diffuse = saturate(dot(normalWS, light.direction)) * 0.5 + 0.5;
-                color.rgb *= light.color * diffuse * lerp(0.6, 1.0, light.shadowAttenuation);
+                color.rgb *= light.color * diffuse * lerp(0.6, 1.0, light.shadowAttenuation) + SampleSH(normalWS);
 
                 half fresnel = pow(1.0 - saturate(dot(normalWS, viewDirection)), 4.0) * _FresnelStrength;
-                color.rgb = lerp(color.rgb, unity_FogColor.rgb * 0.6 + 0.4, fresnel * 0.5);
+                half3 sky = SampleSH(normalWS) * 1.5 + half3(0.05, 0.1, 0.15);
+                color.rgb = lerp(color.rgb, sky, fresnel * 0.6);
                 color.a = saturate(color.a + fresnel * 0.4);
 
                 float3 halfVector = normalize(light.direction + viewDirection);
