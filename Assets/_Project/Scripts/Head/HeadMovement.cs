@@ -107,6 +107,48 @@ namespace WSFGameJam2026.Head
             return Mathf.Repeat(theta - playerTheta, TwoPi) * Mathf.Rad2Deg;
         }
 
+        // Rings around the tube: yellow where the head starts to speed up, red where it reaches the maximum speed (both behind the head), white at the head.
+        private void OnDrawGizmosSelected()
+        {
+            var gizmoWorld = world ? world : FindAnyObjectByType<TorusWorld>();
+            if (gizmoWorld == null)
+                return;
+
+            // In edit mode the head is read from where it stands (theta 0 is on +Z, growing towards +X).
+            float headTheta = theta;
+            if (Application.isPlaying == false)
+            {
+                var localPosition = gizmoWorld.transform.InverseTransformPoint(transform.position);
+                headTheta = Mathf.Atan2(localPosition.x, localPosition.z);
+            }
+
+            var previousMatrix = Gizmos.matrix;
+            Gizmos.matrix = gizmoWorld.transform.localToWorldMatrix;
+
+            Gizmos.color = Color.white;
+            DrawRing(gizmoWorld, headTheta);
+
+            Gizmos.color = Color.yellow;
+            DrawRing(gizmoWorld, headTheta - speedupStartThetaDegrees * Mathf.Deg2Rad);
+
+            Gizmos.color = Color.red;
+            DrawRing(gizmoWorld, headTheta - maxSpeedThetaDegrees * Mathf.Deg2Rad);
+
+            Gizmos.matrix = previousMatrix;
+        }
+
+        private static void DrawRing(TorusWorld targetWorld, float ringTheta)
+        {
+            const int segments = 48;
+            var previous = TorusGeometry.GetPoint(targetWorld.MajorRadius, targetWorld.MinorRadius, ringTheta, (segments - 1) * TwoPi / segments);
+            for (int i = 0; i < segments; i++)
+            {
+                var current = TorusGeometry.GetPoint(targetWorld.MajorRadius, targetWorld.MinorRadius, ringTheta, i * TwoPi / segments);
+                Gizmos.DrawLine(previous, current);
+                previous = current;
+            }
+        }
+
         private static TorusObject FindPlayer()
         {
             var movement = FindAnyObjectByType<TorusPlayerMovement>();
