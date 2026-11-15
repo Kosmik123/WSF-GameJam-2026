@@ -13,5 +13,11 @@ namespace WSFGameJam2026.World
         {
             return 1f;
         }
+
+        /// <summary>False when the dodge (the dash) does not work on the terrain of the given height.</summary>
+        public virtual bool CanDodge(float terrainHeight)
+        {
+            return true;
+        }
     }
 }

@@ -137,6 +137,13 @@ namespace WSFGameJam2026.World
             return effect ? effect.GetSpeedMultiplier(GetHeight(angles)) : 1f;
         }
 
+        /// <summary>False when the effect of the biome (water) does not let the dodge work at the given place.</summary>
+        public bool CanDodge(TorusAngles angles)
+        {
+            var effect = GetProfile(GetSegmentIndex(angles)).Effect;
+            return effect == null || effect.CanDodge(GetHeight(angles));
+        }
+
         private TorusSegmentProfile GetAssignedProfile(IReadOnlyList<TorusSegmentProfile> segmentProfiles, int segmentIndex)
         {
             if (segmentProfiles == null || segmentProfiles.Count == 0)

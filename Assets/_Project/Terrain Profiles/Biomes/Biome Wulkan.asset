@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WSFGameJam2026.World.MeshTorusSegmentProfile
   lengthResolution: 160
   materialOverride: {fileID: 2100000, guid: 0dacb2cedd11323459eac687ed36ee9f, type: 2}
+  effect: {fileID: 11400000, guid: 74cf6c345f3a41e98d7ed2792af382f4, type: 2}
   aroundTiling: 1
   seamBlendWidth: 0
   terrainMesh: {fileID: 6093254408856565865, guid: ebeefd2fe8a55b7438a9687f110866ce, type: 3}

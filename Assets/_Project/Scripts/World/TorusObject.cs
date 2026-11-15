@@ -63,6 +63,9 @@ namespace WSFGameJam2026.World
         /// <summary>Multiplier of the walking speed from the biome the object stands in (water...). 1 = none. Walking scripts apply it, knockback and dashes do not.</summary>
         public float GroundSpeedMultiplier { get; private set; } = 1f;
 
+        /// <summary>False when the biome (water) does not let the object dodge here. Always true when the object is not affected by the terrain.</summary>
+        public bool CanDodgeOnGround { get; private set; } = true;
+
         /// <summary>Up of the object: the minor radius direction of the torus, in world space.</summary>
         public Vector3 Up { get; private set; } = Vector3.up;
 
@@ -216,6 +219,7 @@ namespace WSFGameJam2026.World
             smoothedHeight = Mathf.Lerp(smoothedHeight, surface.GetHeight(angles), heightBlend);
 
             GroundSpeedMultiplier = isSlowedByTerrain ? surface.GetSpeedMultiplier(angles) : 1f;
+            CanDodgeOnGround = isSlowedByTerrain == false || surface.CanDodge(angles);
             localUp = surface.GetBaseNormal(angles);
             localRunDirection = TorusGeometry.GetThetaDirection(angles.Theta);
             localPosition = surface.GetBasePoint(angles) + localUp * smoothedHeight;

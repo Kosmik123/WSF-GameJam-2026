@@ -340,6 +340,13 @@ namespace WSFGameJam2026.Player
             if (Time.time >= dodgeBufferedUntil || Time.time < nextDodgeTime)
                 return false;
 
+            if (torusObject.CanDodgeOnGround == false)
+            {
+                // The water does not let the player dash. The press is used up, so the dodge does not fire after leaving the water.
+                dodgeBufferedUntil = -1f;
+                return false;
+            }
+
             dodgeBufferedUntil = -1f;
             attackBufferedUntil = -1f;
 
