@@ -12,7 +12,7 @@ namespace WSFGameJam2026.Editor
     [InitializeOnLoad]
     public static class HeroAutoSetup
     {
-        private const string SessionKey = "WSFGameJam2026.HeroAutoSetup.Done.v2";
+        private const string SessionKey = "WSFGameJam2026.HeroAutoSetup.Done.v3";
         private const string MageClassPath = "Assets/_Project/Data/Classes/Mage.asset";
         private const string OldHeroFolder = "Assets/RPG Tiny Hero Duo/";
 
@@ -38,6 +38,10 @@ namespace WSFGameJam2026.Editor
                 return;
 
             SessionState.SetBool(SessionKey, true);
+
+            // Always checked: the main menu must not turn the placeholder capsule back on over the hero.
+            HeroSetupMenu.FixMainMenuHiddenObjects();
+
             var model = mage.ModelPrefab;
             bool usesOldHero = model == null || AssetDatabase.GetAssetPath(model).StartsWith(OldHeroFolder);
             bool usesPriest = HeroSetupMenu.IsPriestPrefab(model);
