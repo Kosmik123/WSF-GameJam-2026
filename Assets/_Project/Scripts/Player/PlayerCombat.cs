@@ -183,13 +183,20 @@ namespace WSFGameJam2026.Player
             EnterReady();
         }
 
+        // Presses during the pause (menu, level-up cards) are ignored, so a click on a card does not swing after it.
         private void AttackAction_Performed(InputAction.CallbackContext context)
         {
+            if (Time.timeScale <= 0f)
+                return;
+
             attackBufferedUntil = Time.time + inputBuffer;
         }
 
         private void DodgeAction_Performed(InputAction.CallbackContext context)
         {
+            if (Time.timeScale <= 0f)
+                return;
+
             dodgeBufferedUntil = Time.time + inputBuffer;
         }
 
