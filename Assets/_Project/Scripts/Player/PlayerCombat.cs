@@ -343,8 +343,9 @@ namespace WSFGameJam2026.Player
             dodgeBufferedUntil = -1f;
             attackBufferedUntil = -1f;
 
-            // The dodge goes where the player moves (tank controls: back when holding back), standing still = forward.
-            dodgeDirection = movement.GetMoveDirectionOrFacing();
+            // Tank controls: the dodge goes back when the player holds back, otherwise forward.
+            float sign = movement.SmoothedInput.y < -0.1f ? -1f : 1f;
+            dodgeDirection = torusObject.Facing * sign;
 
             nextDodgeTime = Time.time + dodgeDuration + dodgeCooldown;
             health.IsInvulnerable = true;

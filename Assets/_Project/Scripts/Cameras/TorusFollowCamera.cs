@@ -5,7 +5,7 @@ using WSFGameJam2026.World;
 namespace WSFGameJam2026.Cameras
 {
     /// <summary>
-    /// Follows the player from above at an angle, looking along the snake body (or behind the player's facing, see isFollowingFacing).
+    /// Follows the player from above at an angle, behind him (opposite to the direction he faces).
     /// The camera's up is the normal of the smooth torus, so the world turns around the player
     /// as he runs around the tube.
     /// </summary>
@@ -28,11 +28,6 @@ namespace WSFGameJam2026.Cameras
         [Tooltip("Height of the point the camera looks at, above the player's pivot.")]
         [SerializeField]
         private float lookAtHeight = 1f;
-
-        [Tooltip("On: the camera stays behind the player's facing (for the tank controls). " +
-            "Off: it looks along the snake body (growing theta), so aiming with the mouse does not rotate the view.")]
-        [SerializeField]
-        private bool isFollowingFacing;
 
         [Header("Smoothing")]
         [SerializeField]
@@ -115,8 +110,7 @@ namespace WSFGameJam2026.Cameras
         {
             // The smooth base tube is used instead of the terrain, so bumps don't shake the camera.
             up = target.Up;
-            var heading = isFollowingFacing ? target.Facing : target.RunDirection;
-            var forward = Vector3.ProjectOnPlane(heading, up).normalized;
+            var forward = Vector3.ProjectOnPlane(target.Facing, up).normalized;
             focus = target.transform.position + up * lookAtHeight;
 
             float pitchRadians = pitchDegrees * Mathf.Deg2Rad;
