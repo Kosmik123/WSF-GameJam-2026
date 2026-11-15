@@ -1,0 +1,22 @@
+fileFormatVersion: 2
+guid: 2b9a955ccc9a4390a3b82865c41de9a5
+ModelImporter:
+  serializedVersion: 24400
+  externalObjects: {}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    importAnimation: 0
+  meshes:
+    globalScale: 1
+    useFileScale: 1
+  importAnimation: 0
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 3
+  avatarSetup: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
